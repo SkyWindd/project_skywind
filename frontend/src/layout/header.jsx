@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import SidebarMenu from "./SidebarMenu";
 
-export default function Header_t() {
+export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +20,7 @@ export default function Header_t() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-blue-600"
+                className="md:hidden text-gray-700 hover:text-blue-600"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -32,8 +32,7 @@ export default function Header_t() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1">
-            <span className="text-blue-600 font-extrabold text-2xl">BRO</span>
-            <span className="text-gray-800 font-bold text-2xl">SHOP</span>
+            <span className="text-blue-600 font-extrabold md:text-5xl text-3xl font-[Birthstone]">SkyWind</span>
           </Link>
         </div>
 
@@ -57,10 +56,10 @@ export default function Header_t() {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
-                <Search className="h-5 w-5 text-blue-600" />
+                <Search className="h-4 w-4 text-gray-700 hover:bg-blue-600" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="top" className="p-4">
+            <SheetContent side="top" className="p-4" >
               <div className="flex items-center w-full bg-white border rounded-full overflow-hidden">
                 <Input
                   placeholder="Tìm theo tên sản phẩm..."
@@ -96,23 +95,17 @@ export default function Header_t() {
         <div className="hidden md:flex max-w-screen-xl mx-auto items-center justify-between px-4 py-2">
           <Button
             variant="ghost"
-            className="hidden md:flex items-center gap-2 text-white font-medium hover:bg-blue-700"
+            className="hidden md:flex items-center gap-2 text-white font-medium hover:bg-blue-700 hover:text-white"
             onClick={() => setOpen(true)}
           >
             <Menu className="h-4 w-4" />
             Danh mục sản phẩm
           </Button>
 
-          <div className="hidden md:flex gap-6 font-medium">
-            <Link to="/about" className="hover:underline">Giới thiệu BROSHOP</Link>
-          </div>
 
           <div className="flex items-center gap-4 font-medium">
             <span className="flex items-center gap-1">
-              <Store className="h-4 w-4" /> Địa chỉ cửa hàng
-            </span>
-            <span className="flex items-center gap-1">
-              <Phone className="h-4 w-4" /> Hotline: <b>09.6999.9997</b>
+              <Phone className="h-4 w-4" /> Hotline: <b>01.2345.6789</b>
             </span>
           </div>
         </div>

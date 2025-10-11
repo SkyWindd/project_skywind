@@ -1,7 +1,8 @@
+import { Outlet } from "react-router-dom";
 import Footer from '@/layout/footer'
 import Header from '@/layout/header'
+import BreadcrumbNav from "@/layout/breadcrumb"
 import React from 'react'
-import Header_t from './header'
 
 function MainLayout() {
   return (
@@ -13,8 +14,10 @@ function MainLayout() {
       <header>
         <Header />
       </header>
-
-     
+       <BreadcrumbNav />
+      <main className="flex-grow bg-secondary">
+        <Outlet /> {/* nơi render Home, Laptop,... */}
+      </main>
 
       {/* Footer luôn ở cuối trang */}
       <footer>
