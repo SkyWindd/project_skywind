@@ -4,6 +4,7 @@ import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgotpassword";
+import Laptop from "@/pages/laptop";
 
 export default function App() {
    return (
@@ -15,6 +16,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
            <Route path="/register" element={<Register />} />
            <Route path="/forgotpassword" element={<ForgotPassword />} />
+          <Route path="/laptop" element={<Laptop />} />
+        
         </Route>
       </Routes>
     </BrowserRouter>
