@@ -5,14 +5,12 @@ import { Separator } from "@/components/ui/separator";
 
 export default function SidebarMenu({ onClose }) {
   const categories = [
-    "UAG",
-    "Ốp lưng",
-    "Balo | Túi xách",
-    "Phụ kiện | Miếng dán",
-    "Pin dự phòng | Sạc | Cáp",
-    "Bàn phím | Chuột",
-    "Thương hiệu",
-    "Máy cũ",
+    "Asus",
+    "Acer",
+    "Dell",
+    "HP",
+    "Lenovo",
+    "MSI"
   ];
 
   return (
@@ -20,14 +18,6 @@ export default function SidebarMenu({ onClose }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <span className="font-semibold text-gray-700">Danh mục sản phẩm</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-500 hover:text-blue-600"
-          onClick={onClose}
-        >
-          <X className="h-5 w-5" />
-        </Button>
       </div>
 
       {/* Menu list */}
@@ -35,7 +25,7 @@ export default function SidebarMenu({ onClose }) {
         {categories.map((item, i) => (
           <Link
             key={i}
-            to={`/category/${item}`}
+            to={`/product/${item}`}
             onClick={onClose}
             className="flex items-center justify-between px-4 py-2 rounded-md text-gray-700 hover:bg-blue-50 hover:text-blue-600"
           >
@@ -49,10 +39,7 @@ export default function SidebarMenu({ onClose }) {
       {/* Footer links */}
       <div className="p-4 space-y-2 text-sm">
         <Link to="/about" className="block hover:text-blue-600">
-          Giới thiệu BROSHOP
-        </Link>
-        <Link to="/delivery" className="block hover:text-blue-600">
-          Giao hàng siêu tốc 1H
+          Giới thiệu SkyWind
         </Link>
       </div>
     </div>

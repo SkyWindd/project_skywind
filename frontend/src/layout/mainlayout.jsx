@@ -1,7 +1,9 @@
+import { Outlet } from "react-router-dom";
 import Footer from '@/layout/footer'
 import Header from '@/layout/header'
+import BreadcrumbNav from "@/layout/breadcrumb"
 import React from 'react'
-import ChatBox from '../chatbox'
+import Header_t from './header'
 
 function MainLayout() {
   return (
@@ -11,13 +13,7 @@ function MainLayout() {
         <Header />
       </header>
 
-      {/* Nội dung chính */}
-      <main className="flex-1">
-        {/* ...nếu bạn dùng <Outlet /> để hiển thị các trang */}
-      </main>
-
-      {/* Chatbox hiển thị ở góc phải dưới */}
-      <ChatBox />
+     
 
       {/* Footer luôn ở cuối trang */}
       <footer>
