@@ -1,9 +1,9 @@
 
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import ProductCard from "@/layout/ProductCard";
-import CategorySection from "@/layout/CategorySection";
-import Banner from "@/layout/Banner";
+import ProductCard from "@/components/productcard";
+import CategorySection from "@/components/categorysection";
+import Banner from "@/components/banner";
 
 
 function Home() {

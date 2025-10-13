@@ -1,8 +1,8 @@
-import FilterMenu from "@/layout/filtermenu";
-import SortMenu from "@/layout/sort";
-import FilterTags from "@/layout/filtertags";
-import PaginationSection from "@/layout/pagination";
-import ProductCard from "@/layout/productcard";
+import FilterMenu from "@/components/filtermenu";
+import SortMenu from "@/components/sort";
+import FilterTags from "@/components/filtertags";
+import PaginationSection from "@/components/pagination";
+import ProductCard from "@/components/productcard";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import products from "@/data/products";
 
