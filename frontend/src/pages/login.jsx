@@ -1,88 +1,95 @@
-import { useState } from "react"
 import { Link } from "react-router-dom"
+import { useState } from "react"
 import { Eye, EyeOff, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+// ✅ Zod validation schema
+const loginSchema = z.object({
+  email: z.string().email("Email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu phải ít nhất 6 ký tự"),
+})
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
+  // ✅ Gắn react-hook-form + zod
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  })
+
+  const onSubmit = (data) => {
+    console.log("Đăng nhập với:", data)
+  }
+
   return (
-    <div className="flex justify-center items-center min-h-[80vh] bg-gradient-to-b from-blue-50 to-white px-4">
-      <Card className="w-full max-w-md shadow-lg border border-blue-100 rounded-2xl">
+    <div className="flex justify-center items-center min-h-[80vh] bg-transparent px-4">
+      <Card className="w-full max-w-md shadow-md border border-gray-200">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-semibold text-blue-600">
-            Đăng nhập
-          </CardTitle>
-          <CardDescription className="text-gray-500 mt-1">
-            Vui lòng nhập thông tin để tiếp tục
+          <div className="flex justify-center mb-3">
+            <LogIn className="w-10 h-10 text-blue-600" />
+          </div>
+          <CardTitle className="text-2xl font-semibold text-blue-600">Đăng nhập</CardTitle>
+          <CardDescription className="text-gray-500">
+            Chào mừng bạn trở lại
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
-            <div>
-              <Label htmlFor="email" className="text-blue-700">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Nhập email của bạn"
-                className="mt-1"
-                required
-              />
+            <div className="space-y-1 text-blue-700">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
 
             {/* Mật khẩu */}
-            <div>
-              <Label htmlFor="password" className="text-blue-700">
-                Mật khẩu
-              </Label>
-              <div className="relative mt-1">
+            <div className="space-y-1 text-blue-700">
+              <Label htmlFor="password">Mật khẩu</Label>
+              <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Nhập mật khẩu"
-                  required
+                  placeholder="••••••••"
+                  {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-blue-600"
+                  className="absolute right-3 top-2.5 text-gray-500 hover:text-blue-700"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </div>
-
-            {/* Link phụ */}
-            <div className="flex justify-between items-center text-sm text-blue-600">
-              <Link to="/forgotpassword" className="text-blue-600 hover:underline font-medium">
-                Quên mật khẩu?
-              </Link>
-              <Link to="/register" className="text-blue-600 hover:underline font-medium">
-                Đăng ký
-              </Link>
+              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
 
             {/* Nút đăng nhập */}
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 rounded-xl mt-4 transition-all"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
             >
-              <LogIn size={18} />
               Đăng nhập
             </Button>
+
+            {/* Link chuyển sang đăng ký */}
+            <p className="text-center text-sm text-gray-600 mt-2">
+              Chưa có tài khoản?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                Đăng ký ngay
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

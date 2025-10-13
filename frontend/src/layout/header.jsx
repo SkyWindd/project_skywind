@@ -4,13 +4,13 @@ import { Menu, ShoppingCart, User, Search, Phone, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
-import SidebarMenu from "./SidebarMenu";
+import SidebarMenu from "../components/sidebarmenu";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full shadow-sm border-b">
+    <header className="w-full shadow-sm border-b">
       {/* --- Top header --- */}
       <div className="flex items-center justify-between max-w-screen-xl mx-auto px-4 py-3">
         {/* Left side: logo + menu button (mobile) */}

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import MainLayout from "./layout/MainLayout";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
@@ -8,7 +8,7 @@ import Laptop from "@/pages/laptop";
 
 export default function App() {
    return (
-     <BrowserRouter>
+    
       <Routes>
         {/* Dùng MainLayout để bọc các trang chính */}
         <Route path="/" element={<MainLayout />}>
@@ -20,6 +20,6 @@ export default function App() {
         
         </Route>
       </Routes>
-    </BrowserRouter>
+   
   );
 }

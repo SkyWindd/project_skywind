@@ -1,24 +1,25 @@
+import React from "react";
 import { Outlet } from "react-router-dom";
-import Footer from '@/layout/footer';
-import Header from '@/layout/header';
+import Header from "@/layout/header";
+import Footer from "@/layout/footer";
 import BreadcrumbNav from "@/layout/breadcrumb";
-import React from 'react';
-import ChatBox from '../chatbox';
+import ChatBox from "../chatbox";
+import { Toaster } from "sonner";
 
 function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header cố định trên đầu */}
-      <header>
+      {/* Header cố định trên đầu khi cuộn */}
+      <header className="sticky top-0 z-50 bg-white">
         <Header />
       </header>
 
-      {/* Thanh breadcrumb */}
+      {/* Thanh breadcrumb (chỉ hiển thị khi không ở trang Home) */}
       <BreadcrumbNav />
 
       {/* Nội dung chính */}
       <main className="flex-grow bg-secondary">
-        <Outlet /> {/* nơi render Home, Laptop,... */}
+        <Outlet /> {/* Nơi render Home, Login, Register... */}
       </main>
 
       {/* Chatbox hiển thị ở góc phải dưới */}
@@ -28,6 +29,9 @@ function MainLayout() {
       <footer>
         <Footer />
       </footer>
+
+      {/* Toast thông báo */}
+      <Toaster position="top-right" richColors />
     </div>
   );
 }
