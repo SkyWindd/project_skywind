@@ -2,6 +2,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Cpu, HardDrive, Monitor, Gauge, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
+
 export default function ProductCard({ product }) {
   return (
     <Card className="relative hover:shadow-lg transition rounded-xl border border-gray-100 flex flex-col h-full">
@@ -18,7 +19,7 @@ export default function ProductCard({ product }) {
 
       <CardContent className="p-4 flex flex-col flex-grow">
         {/* Tên sản phẩm */}
-        <Link to={`/product/${product.id}`}>
+        <Link to={`/${product.slug}`}>
           <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px] hover:text-blue-600 transition-colors duration-200">
             {product.name}
           </h3>

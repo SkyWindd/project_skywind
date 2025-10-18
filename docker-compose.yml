@@ -1,0 +1,77 @@
+services:
+  # 🗄️ PostgreSQL Database
+  db:
+    image: postgres:18
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: skywind
+    ports:
+      - "54321:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/Skywind.sql:/docker-entrypoint-initdb.d/Skywind.sql:ro
+
+  # 🧠 pgAdmin (web UI quản lý database)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@skywind.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PYTHONWARNINGS: "ignore"
+    depends_on:
+      - db
+
+  # 🐍 Flask Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flask_api
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app  # ✅ Gắn code backend vào container để auto reload
+    environment:
+      FLASK_APP: server.py
+      FLASK_ENV: development
+      FLASK_RUN_HOST: 0.0.0.0
+      FLASK_RUN_PORT: 5000
+      DB_HOST: db
+      DB_NAME: skywind
+      DB_USER: postgres
+      DB_PASS: 12345
+      DB_PORT: 5432
+    command: flask run --reload  # ✅ Chạy Flask với hot reload
+    depends_on:
+      - db
+
+  # ⚛️ React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: react_app
+    restart: always
+    ports:
+      - "3000:5173"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./frontend:/app  # ✅ Auto reload code frontend
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # 👈 Bắt buộc để React Vite hot reload trong Docker
+    command: ["npm", "run", "dev"]
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

@@ -3,30 +3,42 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import json, random
+from dotenv import load_dotenv
+import os, time, random, json
+
+load_dotenv()
+
 app = Flask(__name__)
 CORS(app)
-# 🧠 Đọc file intents.json (huấn luyện cơ bản)
-with open("intents.json", "r", encoding="utf-8") as f:
-    intents = json.load(f)["intents"]
 
-
+# Load intents.json (nếu có)
+if os.path.exists("intents.json"):
+    with open("intents.json", "r", encoding="utf-8") as f:
+        intents = json.load(f).get("intents", [])
+else:
+    intents = []
 
 # ⚙️ Kết nối PostgreSQL
-try:
-    conn = psycopg2.connect(
-        host="localhost",
-        database="skywind",   # ⚠️ Đúng tên database của bạn
-        user="postgres",            # ⚠️ Tên người dùng
-        password="12345",           # ⚠️ Mật khẩu PostgreSQL
-        port=54321                # ⚠️ Port mặc định PostgreSQL (đừng dùng 54321)
-    )
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    print("✅ Kết nối PostgreSQL thành công!")
-except Exception as e:
-    print("❌ Không thể kết nối tới PostgreSQL:", e)
-    conn = None
+for i in range(5):
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASS"),
+            port=os.getenv("DB_PORT")
+        )
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        print("✅ Kết nối PostgreSQL thành công!")
+        break
+    except Exception as e:
+        print(f"⏳ Thử lại kết nối DB ({i+1}/5):", e)
+        time.sleep(3)
+else:
+    print("❌ Không thể kết nối tới PostgreSQL.")
     cur = None
+
+
 
 # ✅ Route mặc định (để test)
 @app.route("/")
@@ -34,12 +46,12 @@ def home():
     return jsonify({"message": "Flask backend is running 🚀"})
 
 # ✅ API 1: Lấy danh sách sản phẩm
-@app.route("/api/products", methods=["GET"])
+@app.route("/api/product_new", methods=["GET"])
 def get_products():
     if not cur:
         return jsonify({"error": "Database not connected"}), 500
     try:
-        cur.execute("SELECT id, name, price, image FROM products;")
+        cur.execute("SELECT id, name, price, image FROM product_new")
         rows = cur.fetchall()
         return jsonify(rows)
     except Exception as e:
@@ -57,44 +69,23 @@ def get_intent_reply(user_input):
     return None
 
 
-# ✅ API chat chính
 @app.route("/api/message", methods=["POST"])
 def chat_message():
     data = request.get_json()
     msg = data.get("message", "").lower()
-    reply = None
+    reply = "Xin lỗi, tôi chưa hiểu ý bạn 😅"
 
-    # 1️⃣ Thử phản hồi từ intents.json
-    reply = get_intent_reply(msg)
-
-    # 2️⃣ Nếu người dùng hỏi về sản phẩm → truy vấn PostgreSQL
-    if "sản phẩm" in msg or "product" in msg:
-        if cur:
-            try:
-                product_name = msg.split("sản phẩm")[-1].strip()
-                if product_name:
-                    cur.execute("SELECT name, price FROM products WHERE name ILIKE %s LIMIT 5;", (f"%{product_name}%",))
-                else:
-                    cur.execute("SELECT name, price FROM products LIMIT 5;")
-                rows = cur.fetchall()
-
-                if rows:
-                    reply = "Các sản phẩm tôi tìm thấy: " + ", ".join([f"{r['name']} ({r['price']}₫)" for r in rows])
-                else:
-                    reply = "Không tìm thấy sản phẩm phù hợp."
-            except Exception as e:
-                print("❌ Lỗi khi truy vấn sản phẩm:", e)
-                reply = "Xin lỗi, tôi không thể lấy dữ liệu sản phẩm ngay bây giờ."
-        else:
-            reply = "⚠️ Server chưa kết nối được với database."
-
-    if not reply:
-        reply = "Xin lỗi, tôi chưa hiểu ý bạn 😅"
-
+    for intent in intents:
+        for pattern in intent.get("patterns", []):
+            if pattern in msg:
+                reply = random.choice(intent["responses"])
+                break
     return jsonify({"reply": reply})
-
-
 
 # 🚀 Chạy server Flask
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("FLASK_RUN_PORT", 5000)))
+
+
+
+
