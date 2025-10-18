@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Bot, X } from "lucide-react";
 import "./ChatBox.css";
 
@@ -9,6 +9,12 @@ export default function ChatBox() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // ✅ Tự động cuộn xuống cuối khi có tin nhắn mới
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -45,19 +51,26 @@ export default function ChatBox() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen ? (
-        <div className="bg-white w-80 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col">
+        <div className="chatbox-container animate-fade-in">
+          {/* Header */}
           <div className="flex justify-between items-center bg-blue-600 text-white px-4 py-2">
-            <h3 className="font-semibold">💬 Chat hỗ trợ</h3>
+            <div className="flex items-center gap-2 font-semibold">
+              <Bot size={18} className="animate-wiggle" />
+              <span>Chat hỗ trợ</span>
+            </div>
             <button onClick={() => setIsOpen(false)}>
               <X size={20} />
             </button>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-2">
+          {/* Body */}
+          <div className="chatbox-body">
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={msg.sender === "user" ? "text-right" : "text-left"}
+                className={`${
+                  msg.sender === "user" ? "text-right" : "text-left"
+                }`}
               >
                 <div
                   className={`inline-block px-3 py-2 rounded-lg ${
@@ -71,10 +84,14 @@ export default function ChatBox() {
               </div>
             ))}
             {loading && (
-              <div className="text-left text-gray-400 italic">Đang trả lời...</div>
+              <div className="text-left text-gray-400 italic">
+                Đang trả lời...
+              </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
+          {/* Footer */}
           <div className="p-3 border-t flex gap-2">
             <input
               type="text"
@@ -86,7 +103,7 @@ export default function ChatBox() {
             />
             <button
               onClick={handleSend}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               Gửi
             </button>

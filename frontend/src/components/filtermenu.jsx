@@ -17,28 +17,77 @@ import { useState } from "react";
 import { useQueryParams } from "@/hooks/useQueryParams";
 
 const filtersConfig = {
-  status: { label: "Tình trạng", options: ["Sẵn hàng", "Like New", "Cũ"] },
-  price: { label: "Giá", options: ["Dưới 15 triệu", "15 - 20 triệu", "20 - 25 triệu", "Trên 25 triệu"] },
-  brand: { label: "Hãng", options: ["ASUS", "Acer", "MSI", "Lenovo", "HP", "Dell"] },
+  price: {
+    label: "Giá",
+    options: ["Dưới 15 triệu", "15 - 20 triệu", "20 - 25 triệu", "Trên 25 triệu"],
+  },
+  brand: { label: "Hãng", options: ["Asus", "Acer", "MSI", "Lenovo", "HP", "Dell"] },
   cpu: { label: "CPU", options: ["Intel Core i5", "Intel Core i7", "Ryzen 5", "Ryzen 7"] },
   ram: { label: "RAM", options: ["8GB", "16GB", "32GB"] },
   ssd: { label: "SSD", options: ["256GB", "512GB", "1TB"] },
-  vga: { label: "Card đồ họa", options: ["Card Onboard", "RTX 3050", "RTX3060", "RTX 4050", "RTX 4060"] },
+  vga: { label: "Card đồ họa", options: ["Card Onboard", "RTX 3050", "RTX 3060", "RTX 4050", "RTX 4060"] },
 };
 
 export default function FilterMenu() {
-  const { searchParams, setParam } = useQueryParams();
+  const { searchParams, setParam, removeParam } = useQueryParams();
   const [openPopover, setOpenPopover] = useState(null);
 
-  const getSelected = (key) =>
-    searchParams.get(key)?.split(",").filter(Boolean) || [];
+  const getSelected = (key) => searchParams.getAll(key);
 
+  // 🧩 Xử lý chọn/bỏ chọn filter
   const handleToggle = (key, value) => {
     const current = getSelected(key);
-    const updated = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value];
-    setParam(key, updated.join(","));
+    let updated;
+
+    if (current.includes(value)) {
+      updated = current.filter((v) => v !== value);
+    } else {
+      updated = [...current, value];
+    }
+
+    // 🔹 Cập nhật param
+    if (updated.length === 0) {
+      removeParam(key);
+    } else {
+      setParam(key, updated);
+    }
+
+    // 🧠 Nếu đang đổi filter thì reset page về 1
+    if (searchParams.get("page") && key !== "page") {
+      setParam("page", "1");
+    }
+
+    // --- Xử lý riêng phần giá ---
+    if (key === "price") {
+      const selectedPrice = updated[0]; // chỉ 1 mức giá được chọn
+      if (!selectedPrice) {
+        removeParam("min_price");
+        removeParam("max_price");
+        return;
+      }
+
+      switch (selectedPrice) {
+        case "Dưới 15 triệu":
+          setParam("max_price", "15000000");
+          removeParam("min_price");
+          break;
+        case "15 - 20 triệu":
+          setParam("min_price", "15000000");
+          setParam("max_price", "20000000");
+          break;
+        case "20 - 25 triệu":
+          setParam("min_price", "20000000");
+          setParam("max_price", "25000000");
+          break;
+        case "Trên 25 triệu":
+          setParam("min_price", "25000000");
+          removeParam("max_price");
+          break;
+        default:
+          removeParam("min_price");
+          removeParam("max_price");
+      }
+    }
   };
 
   return (
@@ -57,7 +106,9 @@ export default function FilterMenu() {
           <Popover
             key={key}
             open={openPopover === key}
-            onOpenChange={() => setOpenPopover(openPopover === key ? null : key)}
+            onOpenChange={() =>
+              setOpenPopover(openPopover === key ? null : key)
+            }
           >
             <PopoverTrigger asChild>
               <Button

@@ -2,9 +2,13 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryParams } from "@/hooks/useQueryParams";
 
-export default function FilterTags() {
+export default function FilterTags({ excludeKeys = [] }) {
   const { searchParams, removeParam, clearAll } = useQueryParams();
-  const entries = Array.from(searchParams.entries());
+
+  // 🧩 Lọc bỏ những key không muốn hiển thị (như "page")
+  const entries = Array.from(searchParams.entries()).filter(
+    ([key]) => !excludeKeys.includes(key)
+  );
 
   if (!entries.length) return null;
 
@@ -19,11 +23,15 @@ export default function FilterTags() {
           >
             <span className="font-medium capitalize">{key}:</span>
             {value}
-            <button onClick={() => removeParam(key)} className="hover:text-red-600">
+            <button
+              onClick={() => removeParam(key)}
+              className="hover:text-red-600"
+            >
               <X size={14} />
             </button>
           </div>
         ))}
+
         <Button variant="link" onClick={clearAll} className="text-blue-600">
           Bỏ chọn tất cả
         </Button>
