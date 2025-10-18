@@ -26,3 +26,7 @@ git merge github-merge
 :: 8. Commit lần cuối sau khi chỉnh sửa xong
 git add .
 git commit -m "Hoàn tất merge code GitHub vào project cũ"
+ 
+ lấy lại code trc khi commit(khi pull lỗi)
+ git log --oneline --all(mã commit cũ)
+ git reset --hard f0f192a(dán mã coommit để quay lại trc lúc commit)
