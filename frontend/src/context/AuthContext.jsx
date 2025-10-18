@@ -1,143 +1,67 @@
-// src/context/AuthContext.jsx
-// AuthContext: quản lý auth state + login/register/logout + auto load từ localStorage
-// Lưu toàn bộ response (authData) vào localStorage theo key "authData"
-import React, { createContext, useContext, useEffect, useState } from "react";
+// ==========================
+// AuthContext.jsx
+// File này dùng Context API để quản lý trạng thái đăng nhập toàn app
+// ==========================
+
+import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import authApi from "../api/authApi";
-import axiosClient from "../api/axiosClient"; // optional if want to call protected endpoints
-import { toast } from "sonner";
 
-/**
- * authData structure (FE lưu nguyên response backend)
- * {
- *   success: true,
- *   message: "Đăng nhập thành công",
- *   accessToken: "xxx",
- *   refreshToken: "yyy",
- *   user: { id, fullName, email, role... }
- * }
- */
+// 1. Tạo Context
+const AuthContext = createContext(null);
 
-const AuthContext = createContext();
-
+// 2. Tạo Provider để bọc toàn bộ app
 export const AuthProvider = ({ children }) => {
-  const [authData, setAuthData] = useState(null); // stores full object from backend
-  const [loading, setLoading] = useState(false); // loading during login/register
-  const [initializing, setInitializing] = useState(true); // loading on app start
   const navigate = useNavigate();
 
-  // Load authData from localStorage on mount
+  /**
+   * authData sẽ lưu thông tin đăng nhập hiện tại
+   * gồm token + user {id, email, role,...}
+   * ban đầu nó null vì chưa ai đăng nhập
+   */
+  const [authData, setAuthData] = useState(null);
+
+  // Khi F5 hoặc reload trang, lấy lại thông tin từ localStorage
   useEffect(() => {
-    const raw = localStorage.getItem("authData");
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        setAuthData(parsed);
-      } catch (err) {
-        console.error("Error parsing authData from localStorage", err);
-        localStorage.removeItem("authData");
-      }
+    const savedUser = localStorage.getItem("authData");
+    if (savedUser) {
+      setAuthData(JSON.parse(savedUser));
     }
-    setInitializing(false);
   }, []);
 
-  // Helper: save authData to localStorage and state
-  const persistAuth = (data) => {
+  // Hàm xử lý đăng nhập
+  const login = (data) => {
+    /**
+     * data sẽ có dạng:
+     * {
+     *   token: "abc",
+     *   user: { id, email, fullName, role }
+     * }
+     */
     setAuthData(data);
     localStorage.setItem("authData", JSON.stringify(data));
-  };
 
-  // Login: call authApi.login(payload)
-  // payload = { email, password }
-  const login = async (payload) => {
-    setLoading(true);
-    try {
-      const res = await authApi.login(payload);
-      // axiosClient interceptor returns axios response (not only data),
-      // but in our axiosClient we returned response; if axios interceptor returns response.data we might get data directly
-      // To be safe, if res.data exists use it, else res
-      const data = res?.data || res;
-
-      if (data?.success) {
-        // We expect backend returns accessToken & refreshToken & user
-        persistAuth(data);
-        toast.success(data.message || "Đăng nhập thành công");
-        // redirect to home
-        navigate("/", { replace: true });
-        setLoading(false);
-        return { ok: true, data };
-      } else {
-        // API returned success: false
-        toast.error(data?.message || "Đăng nhập thất bại");
-        setLoading(false);
-        return { ok: false, message: data?.message };
-      }
-    } catch (err) {
-      // err may be string (from axios interceptor) or Error
-      const message = err?.message || err || "Lỗi khi gọi API đăng nhập";
-      toast.error(message);
-      setLoading(false);
-      return { ok: false, message };
+    // Điều hướng theo role
+    if (data.user.role === "SysAdmin") {
+      navigate("/"); // Sau này đổi lại "/admin/dashboard"
+    } else {
+      navigate("/");
     }
   };
 
-  // Register: call authApi.register(payload)
-  // payload = { fullName, email, password }
-  const register = async (payload) => {
-    setLoading(true);
-    try {
-      const res = await authApi.register(payload);
-      const data = res?.data || res;
-
-      if (data?.success) {
-        toast.success(data.message || "Đăng ký thành công");
-        setLoading(false);
-        // You may want to auto-login after register:
-        // return await login({ email: payload.email, password: payload.password });
-        return { ok: true, data };
-      } else {
-        toast.error(data?.message || "Đăng ký thất bại");
-        setLoading(false);
-        return { ok: false, message: data?.message };
-      }
-    } catch (err) {
-      const message = err?.message || err || "Lỗi khi gọi API đăng ký";
-      toast.error(message);
-      setLoading(false);
-      return { ok: false, message };
-    }
-  };
-
-  // Logout: clear storage and context; redirect to /login
-  const logout = (redirect = true) => {
+  // Hàm đăng xuất
+  const logout = () => {
     setAuthData(null);
     localStorage.removeItem("authData");
-    toast.success("Đăng xuất thành công");
-    if (redirect) {
-      navigate("/login", { replace: true });
-    }
+    navigate("/login");
   };
 
-  // Optional helper to get user
-  const user = authData?.user || null;
-  const isAuthenticated = !!authData?.accessToken;
-
-  // Context value
-  const value = {
-    authData,
-    user,
-    isAuthenticated,
-    loading,
-    initializing,
-    login,
-    register,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // Giá trị cung cấp cho toàn app
+  return (
+    <AuthContext.Provider value={{ authData, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Hook tiện dụng
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+// Hook tiện dụng để dùng Auth ở component khác
+export const useAuth = () => useContext(AuthContext);

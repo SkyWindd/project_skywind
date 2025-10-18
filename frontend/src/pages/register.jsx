@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { Eye, EyeOff, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "react-hot-toast"
 
-// ✅ Schema validate với Zod
+import { authApi } from "@/api/authApi"
+
+// ✅ Validate form
 const registerSchema = z
   .object({
     fullname: z.string().min(3, "Họ tên phải có ít nhất 3 ký tự"),
@@ -24,20 +27,36 @@ const registerSchema = z
   })
 
 export default function Register() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  // ✅ Gắn react-hook-form + zod
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
   })
 
-  const onSubmit = (data) => {
-    console.log("Đăng ký với:", data)
+  // ✅ Xử lý submit
+  const onSubmit = async (data) => {
+    try {
+      const res = await authApi.register({
+        fullName: data.fullname,
+        email: data.email,
+        password: data.password,
+      })
+
+      if (res.success) {
+        toast.success(res.message || "Đăng ký thành công! Vui lòng đăng nhập.")
+        navigate("/login")
+      } else {
+        toast.error(res.message || "Đăng ký thất bại")
+      }
+    } catch (error) {
+      toast.error("Lỗi kết nối server, thử lại sau")
+    }
   }
 
   return (
@@ -56,25 +75,24 @@ export default function Register() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Họ tên */}
-            <div className="space-y-1 text-blue-700">
+            <div>
               <Label htmlFor="fullname">Họ và tên</Label>
               <Input id="fullname" placeholder="Nguyễn Văn A" {...register("fullname")} />
               {errors.fullname && <p className="text-red-500 text-sm">{errors.fullname.message}</p>}
             </div>
 
             {/* Email */}
-            <div className="space-y-1 text-blue-700">
+            <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
 
             {/* Mật khẩu */}
-            <div className="space-y-1 text-blue-700">
-              <Label htmlFor="password">Mật khẩu</Label>
+            <div>
+              <Label>Mật khẩu</Label>
               <div className="relative">
                 <Input
-                  id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("password")}
@@ -90,12 +108,11 @@ export default function Register() {
               {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
 
-            {/* Xác nhận mật khẩu */}
-            <div className="space-y-1 text-blue-700">
-              <Label htmlFor="confirm">Xác nhận mật khẩu</Label>
+            {/* Xác nhận */}
+            <div>
+              <Label>Xác nhận mật khẩu</Label>
               <div className="relative">
                 <Input
-                  id="confirm"
                   type={showConfirm ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("confirm")}
@@ -111,18 +128,13 @@ export default function Register() {
               {errors.confirm && <p className="text-red-500 text-sm">{errors.confirm.message}</p>}
             </div>
 
-            {/* Nút đăng ký */}
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
-            >
-              Tạo tài khoản
+            <Button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 hover:bg-blue-700">
+              {isSubmitting ? "Đang xử lý..." : "Tạo tài khoản"}
             </Button>
 
-            {/* Link chuyển sang đăng nhập */}
             <p className="text-center text-sm text-gray-600 mt-2">
               Đã có tài khoản?{" "}
-              <Link to="/login" className="text-blue-600 hover:underline font-medium">
+              <Link to="/login" className="text-blue-600 hover:underline">
                 Đăng nhập ngay
               </Link>
             </p>

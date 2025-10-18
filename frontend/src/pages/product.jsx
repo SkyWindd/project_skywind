@@ -6,7 +6,7 @@ import ProductCard from "@/components/productcard";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import products from "@/data/products";
 
-export default function Laptop() {
+export default function Product() {
   const { searchParams } = useQueryParams();
   const page = parseInt(searchParams.get("page") || "1");
 
