@@ -1,3 +1,4 @@
+/* --- Hiệu ứng phát sáng --- */
 @keyframes glow {
   0%, 100% {
     box-shadow: 0 0 0 rgba(37, 99, 235, 0.3);
@@ -11,6 +12,7 @@
   animation: glow 2s ease-in-out infinite;
 }
 
+/* --- Hiệu ứng lắc --- */
 @keyframes wiggle {
   0%, 100% {
     transform: rotate(-5deg);
@@ -22,4 +24,51 @@
 
 .animate-wiggle {
   animation: wiggle 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* --- Hiệu ứng xuất hiện --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* --- Layout Chatbox --- */
+.chatbox-container {
+  width: 320px;
+  height: 450px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  border: 2px solid rgba(37, 99, 235, 0.3);
+}
+
+/* --- Body có thanh cuộn cố định --- */
+.chatbox-body {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  background: #f9fafb;
+  scroll-behavior: smooth;
+}
+
+.chatbox-body::-webkit-scrollbar {
+  width: 6px;
+}
+.chatbox-body::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.6);
+  border-radius: 4px;
 }

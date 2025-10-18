@@ -3,129 +3,217 @@
     {
       "tag": "chao_hoi",
       "patterns": [
-        "xin chào", "chào bạn", "hi", "hello", "alo", "có ai không", "chào shop", "bạn ơi", "ad ơi", "chào sidon",
-        "mình muốn hỏi", "cho mình hỏi chút", "hello shop", "bạn ở đó không", "bắt đầu chat nhé"
+        "chào",
+        "xin chào",
+        "hello",
+        "hi",
+        "alo",
+        "bot ơi",
+        "bạn là ai",
+        "bạn tên gì",
+        "ai đây",
+        "có ai không",
+        "cho mình hỏi",
+        "em ơi",
+        "ad ơi"
       ],
       "responses": [
-        "Chào bạn! Tôi là Sidon 🤖, trợ lý ảo của cửa hàng laptop. Tôi có thể giúp gì cho bạn?",
-        "Xin chào! Bạn cần mình hỗ trợ tìm laptop hay tư vấn sản phẩm không?",
-        "Rất vui được gặp bạn 😄! Bạn muốn xem laptop hãng nào ạ?"
-      ]
-    },
-    {
-      "tag": "gioi_thieu",
-      "patterns": [
-        "bạn là ai", "bạn tên gì", "bạn làm gì được", "giới thiệu về bạn", "bạn thuộc cửa hàng nào", 
-        "chatbot này dùng để làm gì", "ai tạo ra bạn", "bạn giúp gì được cho tôi"
-      ],
-      "responses": [
-        "Mình là Sidon – chatbot hỗ trợ khách hàng của cửa hàng laptop 💻.",
-        "Mình giúp bạn tìm sản phẩm, xem giá, và trả lời các câu hỏi về laptop 😎.",
-        "Mình được tạo ra để hỗ trợ bạn mua sắm dễ dàng hơn!"
-      ]
-    },
-    {
-      "tag": "hoi_gia",
-      "patterns": [
-        "giá bao nhiêu", "máy này giá bao nhiêu", "có giảm giá không", "bao nhiêu tiền", "rẻ nhất là bao nhiêu", 
-        "giá rẻ nhất", "có khuyến mãi không", "có ưu đãi gì", "có giảm không", "mấy triệu", "tầm giá 10 triệu có máy gì",
-        "laptop giá rẻ", "máy học sinh giá bao nhiêu", "có freeship không", "máy dưới 15 triệu có không", 
-        "máy khoảng 20 triệu", "giá cao nhất là bao nhiêu", "máy đắt nhất là gì", "mẫu nào đang giảm giá"
-      ],
-      "responses": [
-        "Giá laptop tùy theo hãng và cấu hình ạ 💰. Bạn có thể nói rõ dòng máy để mình kiểm tra giúp?",
-        "Hiện cửa hàng có nhiều phân khúc: học sinh, văn phòng, gaming, cao cấp... Bạn muốn loại nào để mình báo giá?",
-        "Mình có thể tìm cho bạn máy theo tầm giá mong muốn, bạn vui lòng nói rõ ngân sách nhé!"
-      ]
-    },
-    {
-      "tag": "hoi_thuong_hieu",
-      "patterns": [
-        "có laptop asus không", "asus có máy gì", "asus giá bao nhiêu", "dell có không", "máy dell pin lâu không",
-        "hp có dòng nào", "acer có hàng không", "lenovo giá rẻ", "macbook có không", "apple có máy không",
-        "máy msi", "gigabyte có laptop không", "có bán dell xps không", "asus tuf còn hàng không", 
-        "lenovo legion còn hàng không", "macbook air m2 có không"
-      ],
-      "responses": [
-        "Cửa hàng hiện có đủ các hãng phổ biến như Asus, Dell, HP, Acer, Lenovo, Apple,... 🏷️",
-        "Bạn quan tâm hãng nào ạ? Mình sẽ gửi danh sách model và giá chi tiết!",
-        "Hiện các hãng Asus, Dell, HP đang có nhiều mẫu mới ra mắt rất đáng chú ý 💻."
-      ]
-    },
-    {
-      "tag": "hoi_cau_hinh",
-      "patterns": [
-        "máy này cấu hình sao", "cấu hình mạnh không", "ram bao nhiêu", "ssd mấy gb", "cpu gì", 
-        "i5 hay i7", "máy chạy được game không", "chơi liên minh được không", "máy này card rời không",
-        "máy có đồ họa rời không", "máy dùng chip gì", "hiệu năng ổn không", "pin dùng được mấy tiếng", 
-        "máy học online ổn không", "dùng văn phòng có lag không"
-      ],
-      "responses": [
-        "Cấu hình laptop sẽ khác nhau tùy dòng máy bạn chọn. Bạn muốn mình gửi thông tin chi tiết máy cụ thể nào không?",
-        "Máy dùng chip Intel hoặc AMD, RAM từ 8GB trở lên và SSD tốc độ cao 🚀.",
-        "Nếu bạn chơi game hoặc làm đồ họa, nên chọn máy có card rời NVIDIA hoặc AMD nhé 🎮."
-      ]
-    },
-    {
-      "tag": "hoi_bao_hanh",
-      "patterns": [
-        "máy bảo hành mấy năm", "bảo hành sao", "đổi trả thế nào", "lỗi có đổi không", "có bảo hành chính hãng không",
-        "bảo hành ở đâu", "hết hạn bảo hành thì sao", "có đổi mới trong 7 ngày không", 
-        "bảo hành tận nơi không", "chính sách bảo hành thế nào"
-      ],
-      "responses": [
-        "Tất cả laptop đều được bảo hành chính hãng từ 12 đến 24 tháng 🔧.",
-        "Cửa hàng hỗ trợ đổi mới trong 7 ngày nếu lỗi từ nhà sản xuất.",
-        "Bạn có thể mang máy đến cửa hàng hoặc trung tâm bảo hành của hãng để được hỗ trợ."
-      ]
-    },
-    {
-      "tag": "hoi_san_pham_moi",
-      "patterns": [
-        "có sản phẩm mới không", "hàng mới về", "mẫu mới nhất", "có laptop mới ra không", "máy mới ra mắt là gì",
-        "mới cập nhật sản phẩm nào", "máy mới nhất hiện nay", "show hàng mới đi"
-      ],
-      "responses": [
-        "Hiện cửa hàng vừa nhập nhiều mẫu laptop mới 2025 💻. Bạn muốn mình liệt kê theo hãng hay theo giá?",
-        "Có rất nhiều mẫu mới của Asus, Dell, HP vừa cập nhật – bạn muốn xem hãng nào ạ?",
-        "Mình có thể gửi danh sách sản phẩm mới nhất cho bạn xem ngay 🔥."
-      ]
-    },
-    {
-      "tag": "hoi_san_pham_ban_chay",
-      "patterns": [
-        "máy nào bán chạy nhất", "top sản phẩm bán chạy", "máy được mua nhiều", "sản phẩm hot", 
-        "laptop nào nhiều người mua", "top 5 laptop được chọn nhiều nhất", "bán chạy tháng này"
-      ],
-      "responses": [
-        "Top sản phẩm bán chạy gồm: Dell Inspiron, Asus Vivobook, HP Pavilion, Lenovo IdeaPad 💥.",
-        "Máy bán chạy nhất hiện tại là Asus TUF Gaming và Dell Vostro 😍.",
-        "Bạn muốn mình lọc top theo hãng hay theo giá luôn không?"
-      ]
-    },
-    {
-      "tag": "hoi_tu_van",
-      "patterns": [
-        "tư vấn giúp tôi", "nên mua máy nào", "máy nào tốt", "dòng nào ổn định", "chơi game nên mua gì",
-        "học online nên mua máy gì", "dân văn phòng nên dùng loại nào", "lập trình nên mua laptop nào",
-        "đồ họa nên dùng máy nào", "máy học sinh dùng ổn", "máy nào pin trâu", "máy nào bền nhất",
-        "máy nào khởi động nhanh", "máy nào có màn hình đẹp", "máy nào nhẹ", "nên chọn intel hay amd"
-      ],
-      "responses": [
-        "Bạn có thể nói rõ nhu cầu (văn phòng, học tập, chơi game, thiết kế...) để mình tư vấn chính xác hơn 💬.",
-        "Với nhu cầu học và làm việc cơ bản, laptop tầm giá 12–18 triệu là ổn 💻.",
-        "Nếu bạn chơi game hoặc thiết kế đồ họa, nên chọn máy có card rời và CPU mạnh như i7 hoặc Ryzen 7 🎮."
+        "Chào bạn 👋! Mình là Sidon 🤖, trợ lý ảo của cửa hàng laptop. Mình có thể giúp gì cho bạn?",
+        "Xin chào! 😊 Bạn muốn xem laptop nào hôm nay ạ?",
+        "Chào bạn, mình là chatbot hỗ trợ mua laptop. Bạn đang cần tìm dòng máy nào ạ?"
       ]
     },
     {
       "tag": "tam_biet",
       "patterns": [
-        "tạm biệt", "bye", "hẹn gặp lại", "cảm ơn", "goodbye", "chào tạm biệt", "bye bye", "hẹn lần sau"
+        "tạm biệt",
+        "bye",
+        "chào nhé",
+        "hẹn gặp lại",
+        "goodbye",
+        "bye bye",
+        "out đây",
+        "thoát ra"
       ],
       "responses": [
-        "Tạm biệt bạn 👋, chúc bạn một ngày tốt lành!",
-        "Cảm ơn bạn đã ghé thăm cửa hàng 💖, hẹn gặp lại lần sau!",
-        "Rất vui được hỗ trợ bạn 😊."
+        "Hẹn gặp lại bạn 👋, chúc bạn một ngày vui vẻ!",
+        "Bye bye! Hẹn gặp lại bạn lần sau 😊",
+        "Tạm biệt! Nếu cần hỗ trợ gì thêm, bạn cứ nhắn cho mình nhé!"
+      ]
+    },
+    {
+      "tag": "hoi_gia",
+      "patterns": [
+        "máy này giá bao nhiêu",
+        "giá bao nhiêu",
+        "bao nhiêu tiền",
+        "giá rẻ nhất",
+        "máy có đắt không",
+        "giá tầm bao nhiêu",
+        "bao tiền",
+        "có khuyến mãi không",
+        "giảm giá không",
+        "bao nhiêu một cái",
+        "laptop giá rẻ",
+        "máy rẻ nhất",
+        "cho hỏi giá",
+        "mua máy này hết bao nhiêu"
+      ],
+      "responses": [
+        "Giá laptop tùy theo hãng và cấu hình 💻. Bạn có thể nói rõ tên sản phẩm để mình tra giúp nhé?",
+        "Bạn vui lòng cho mình biết tên dòng máy (VD: Dell Inspiron, HP Victus...) để mình báo giá chính xác nhất.",
+        "Giá sản phẩm thay đổi theo cấu hình và chương trình khuyến mãi. Bạn nói rõ mẫu máy giúp mình nhé!"
+      ]
+    },
+    {
+      "tag": "san_pham",
+      "patterns": [
+        "có laptop không",
+        "bán máy gì",
+        "có sản phẩm nào",
+        "cho xem laptop",
+        "các mẫu laptop",
+        "sản phẩm nào nổi bật",
+        "cho xem danh sách laptop",
+        "bán laptop gì vậy",
+        "mẫu mới nhất",
+        "danh sách sản phẩm"
+      ],
+      "responses": [
+        "Bên mình hiện có nhiều dòng laptop như Dell, HP, Asus, Lenovo, Acer... 💻 Bạn quan tâm hãng nào ạ?",
+        "Mình có nhiều mẫu laptop cho học sinh, sinh viên, văn phòng, gaming... Bạn muốn loại nào để mình gợi ý nhé?",
+        "Các mẫu laptop hiện tại được cập nhật mỗi ngày trên website. Bạn muốn mình tìm theo hãng hay theo giá ạ?"
+      ]
+    },
+    {
+      "tag": "tim_san_pham",
+      "patterns": [
+        "laptop dell",
+        "dell inspiron",
+        "asus tuf",
+        "hp victus",
+        "macbook air",
+        "macbook pro",
+        "lenovo thinkpad",
+        "acer nitro",
+        "msi gaming",
+        "surface pro",
+        "tìm laptop dell",
+        "máy hp",
+        "asus vivobook",
+        "tìm sản phẩm",
+        "tìm máy"
+      ],
+      "responses": [
+        "Mình sẽ kiểm tra giúp bạn sản phẩm này nhé 🔍...",
+        "Để mình xem thử dòng laptop đó còn hàng không nhé...",
+        "Đợi chút nhé, mình đang tìm sản phẩm bạn cần..."
+      ]
+    },
+    {
+      "tag": "bao_hanh",
+      "patterns": [
+        "bảo hành sao",
+        "bảo hành thế nào",
+        "bảo hành mấy năm",
+        "chính sách bảo hành",
+        "có bảo hành không",
+        "bảo hành tại đâu",
+        "laptop bảo hành bao lâu"
+      ],
+      "responses": [
+        "Tất cả laptop đều được bảo hành chính hãng 12 - 24 tháng tùy dòng 💼.",
+        "Laptop bên mình đều có bảo hành chính hãng tại trung tâm của hãng bạn nhé.",
+        "Bảo hành từ 12 tháng đến 2 năm, tùy theo từng sản phẩm."
+      ]
+    },
+    {
+      "tag": "khuyen_mai",
+      "patterns": [
+        "có khuyến mãi không",
+        "giảm giá bao nhiêu",
+        "đang có ưu đãi gì",
+        "có giảm giá không",
+        "sale laptop",
+        "ưu đãi hiện tại",
+        "giá khuyến mãi",
+        "săn sale"
+      ],
+      "responses": [
+        "Hiện bên mình đang có nhiều chương trình giảm giá hấp dẫn 🎉! Bạn muốn mình xem khuyến mãi cho dòng nào ạ?",
+        "Một số laptop đang giảm từ 10% - 25%. Bạn muốn mình tra máy cụ thể giúp không?",
+        "Bên mình đang có chương trình khuyến mãi tháng này, bạn cho mình biết mẫu bạn quan tâm nhé!"
+      ]
+    },
+    {
+      "tag": "ho_tro_mua_hang",
+      "patterns": [
+        "mua như thế nào",
+        "cách đặt hàng",
+        "đặt hàng sao",
+        "mua ở đâu",
+        "cách mua",
+        "thanh toán như thế nào",
+        "mua online được không",
+        "mua trực tiếp được không"
+      ],
+      "responses": [
+        "Bạn có thể đặt hàng trực tiếp tại website hoặc đến cửa hàng gần nhất 🏬.",
+        "Bên mình hỗ trợ thanh toán online và trực tiếp. Bạn muốn mình hướng dẫn chi tiết không?",
+        "Bạn chỉ cần chọn sản phẩm và nhấn 'Mua ngay', bên mình sẽ liên hệ xác nhận đơn hàng giúp bạn."
+      ]
+    },
+    {
+      "tag": "dia_chi_cua_hang",
+      "patterns": [
+        "địa chỉ ở đâu",
+        "shop ở đâu",
+        "cửa hàng ở đâu",
+        "bán ở đâu",
+        "địa chỉ shop",
+        "địa điểm cửa hàng",
+        "chỗ bạn ở đâu"
+      ],
+      "responses": [
+        "Cửa hàng chính của bên mình tại: 123 Nguyễn Văn Cừ, TP. Hồ Chí Minh 🏠",
+        "Bên mình có chi nhánh ở TP.HCM và Hà Nội. Bạn ở khu vực nào để mình chỉ gần nhất nhé?",
+        "Bạn có thể đến trực tiếp showroom tại 123 Nguyễn Văn Cừ, Quận 5 để xem máy nhé!"
+      ]
+    },
+    {
+      "tag": "ho_tro_khac",
+      "patterns": [
+        "máy bị chậm",
+        "laptop bị nóng",
+        "không kết nối wifi",
+        "máy bị treo",
+        "laptop không lên nguồn",
+        "máy không sạc được",
+        "máy có bị lỗi không",
+        "bị lỗi win",
+        "máy bị đơ"
+      ],
+      "responses": [
+        "Bạn có thể mang máy đến cửa hàng để kỹ thuật kiểm tra miễn phí 🧰.",
+        "Nếu máy còn trong thời gian bảo hành, bên mình sẽ hỗ trợ sửa chữa miễn phí nhé.",
+        "Mình khuyên bạn khởi động lại máy hoặc cắm lại sạc. Nếu vẫn lỗi, đem qua cửa hàng để kiểm tra nhé!"
+      ]
+    },
+    {
+      "tag": "thank_you",
+      "patterns": [
+        "cảm ơn",
+        "cám ơn",
+        "thanks",
+        "thank you",
+        "ok cảm ơn",
+        "rất cảm ơn",
+        "được rồi cảm ơn"
+      ],
+      "responses": [
+        "Không có gì ạ 😊. Mình luôn sẵn sàng hỗ trợ bạn!",
+        "Rất vui được giúp bạn ❤️",
+        "Cảm ơn bạn! Nếu cần thêm hỗ trợ, cứ hỏi mình nhé."
       ]
     }
   ]

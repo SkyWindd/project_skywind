@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/api/axiosClient.js
 // Axios client chung cho toàn bộ project
 // - gắn access token tự động (lấy từ localStorage.authData.accessToken)
@@ -13,6 +14,9 @@
 // NOTE: file này không phụ thuộc vào AuthContext (tránh vòng lặp import)
 import axios from "axios";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import productApi from "@/api/productApi";
+import ProductCard from "@/components/productcard";
 
 const BASE_URL = "http://localhost:5000/api";
 
@@ -30,6 +34,7 @@ function getAuthData() {
     const raw = localStorage.getItem("authData");
     if (!raw) return null;
     return JSON.parse(raw);
+  // eslint-disable-next-line no-unused-vars
   } catch (err) {
     return null;
   }
@@ -158,3 +163,4 @@ axiosClient.interceptors.response.use(
 );
 
 export default axiosClient;
+
