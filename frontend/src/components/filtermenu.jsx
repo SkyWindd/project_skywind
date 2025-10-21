@@ -52,42 +52,45 @@ export default function FilterMenu() {
       setParam(key, updated);
     }
 
-    // 🧠 Nếu đang đổi filter thì reset page về 1
-    if (searchParams.get("page") && key !== "page") {
-      setParam("page", "1");
-    }
-
     // --- Xử lý riêng phần giá ---
     if (key === "price") {
-      const selectedPrice = updated[0]; // chỉ 1 mức giá được chọn
-      if (!selectedPrice) {
-        removeParam("min_price");
-        removeParam("max_price");
-        return;
-      }
+      const selectedPrices = updated; // cho phép chọn nhiều giá
 
-      switch (selectedPrice) {
-        case "Dưới 15 triệu":
-          setParam("max_price", "15000000");
-          removeParam("min_price");
-          break;
-        case "15 - 20 triệu":
-          setParam("min_price", "15000000");
-          setParam("max_price", "20000000");
-          break;
-        case "20 - 25 triệu":
-          setParam("min_price", "20000000");
-          setParam("max_price", "25000000");
-          break;
-        case "Trên 25 triệu":
-          setParam("min_price", "25000000");
-          removeParam("max_price");
-          break;
-        default:
-          removeParam("min_price");
-          removeParam("max_price");
-      }
+    if (!selectedPrices || selectedPrices.length === 0) {
+    removeParam("min_price");
+    removeParam("max_price");
+    return;
+  }
+
+  // ánh xạ từng mức giá thành khoảng min - max
+      const priceRanges = selectedPrices.map((price) => {
+       switch (price) {
+      case "Dưới 15 triệu":
+        return { min: 0, max: 15000000 };
+      case "15 - 20 triệu":
+        return { min: 15000000, max: 20000000 };
+      case "20 - 25 triệu":
+        return { min: 20000000, max: 25000000 };
+      case "Trên 25 triệu":
+        return { min: 25000000, max: Infinity };
+      default:
+        return null;
     }
+  }).filter(Boolean);
+
+  // tìm khoảng nhỏ nhất & lớn nhất
+  const minPrice = Math.min(...priceRanges.map(p => p.min));
+  const maxPriceRaw = Math.max(...priceRanges.map(p => p.max));
+
+  if (maxPriceRaw === Infinity) {
+    setParam("min_price", minPrice.toString());
+    removeParam("max_price");
+  } else {
+    setParam("min_price", minPrice.toString());
+    setParam("max_price", maxPriceRaw.toString());
+  }
+}
+
   };
 
   return (
