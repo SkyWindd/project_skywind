@@ -9,7 +9,7 @@ export default function CategorySection({ categories }) {
           Danh mục sản phẩm
         </h2>
         <Link
-          to="/laptop"
+          to="/product"
           className="text-sm text-blue-600 hover:underline font-medium"
         >
           Xem tất cả

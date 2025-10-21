@@ -7,7 +7,7 @@ import ProductCard from "@/components/productcard";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import productApi from "@/api/productApi";
 
-export default function Laptop() {
+export default function Product() {
   const { searchParams } = useQueryParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);

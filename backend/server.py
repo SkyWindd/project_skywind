@@ -4,8 +4,9 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from werkzeug.utils import secure_filename
 import os, unicodedata, re, json, random
-from rapidfuzz import fuzz
 from datetime import datetime
+from rapidfuzz import fuzz
+from dotenv import load_dotenv
 
 # ========================
 # ⚙️ Flask config
@@ -44,8 +45,11 @@ def clean_filename(text):
 # ========================
 # 🧠 Load intents
 # ========================
-with open("intents.json", "r", encoding="utf-8") as f:
-    intents = json.load(f)["intents"]
+if os.path.exists("intents.json"):
+    with open("intents.json", "r", encoding="utf-8") as f:
+        intents = json.load(f).get("intents", [])
+else:
+    intents = []
 
 
 # ========================
@@ -102,10 +106,17 @@ def import_images():
         return jsonify({"error": str(e)}), 500
 
 
+# ✅ Route test
+@app.route("/")
+def home():
+    return jsonify({"message": "Flask backend is running 🚀"})
+
+
 # ========================
-# 🧾 API lấy tất cả sản phẩm
+# 🛍️ Lấy danh sách sản phẩm
 # ========================
-@app.route("/api/products", methods=["GET"])
+@app.route("/api/products", methods=["GET"])   # <— ✅ Route chuẩn cho frontend
+@app.route("/api/product_new", methods=["GET"])  # <— alias tương thích
 def get_products():
     try:
         conn = get_connection()
@@ -181,13 +192,16 @@ def get_products():
         return jsonify({"error": str(e)}), 500
 
 
+# ========================
+# 🧩 Bộ lọc sản phẩm
+# ========================
 @app.route("/api/products/filter", methods=["GET"])
 def filter_products():
     try:
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Nhận danh sách từ request args (có thể là ?ssd=256GB&ssd=512GB hoặc ?ssd=256GB,512GB)
+        # Nhận params
         brand = request.args.getlist("brand") or split_if_needed(request.args.get("brand"))
         cpu = request.args.getlist("cpu") or split_if_needed(request.args.get("cpu"))
         vga = request.args.getlist("vga") or split_if_needed(request.args.get("vga"))
@@ -223,7 +237,6 @@ def filter_products():
 
         params = []
 
-        # 🧩 Nhiều giá trị => dùng OR hoặc IN
         def add_multi_filter(column, values):
             nonlocal query, params
             if values:
@@ -251,13 +264,9 @@ def filter_products():
             ORDER BY p.price ASC
         """
 
-        print("🧩 SQL Query:", query)
-        print("📦 Params:", params)
-
         cur.execute(query, params)
         rows = cur.fetchall()
 
-        # 🎯 Xử lý dữ liệu trả về
         today = datetime.now().date()
         products = []
         for r in rows:
@@ -299,7 +308,6 @@ def filter_products():
 
         cur.close()
         conn.close()
-
         return jsonify(products)
 
     except Exception as e:
@@ -307,7 +315,9 @@ def filter_products():
         return jsonify({"error": str(e)}), 500
 
 
-# 🔹 Helper tách chuỗi nếu chỉ có 1 query param kiểu "256GB,512GB"
+# ========================
+# 🔹 Helper
+# ========================
 def split_if_needed(value):
     if not value:
         return []
@@ -317,7 +327,7 @@ def split_if_needed(value):
 
 
 # ========================
-# 💬 Chatbot intent logic
+# 💬 Chatbot
 # ========================
 def get_intent_reply(user_input):
     user_input = user_input.lower()
@@ -344,4 +354,4 @@ def chat_message():
 # 🏁 Run Server
 # ========================
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("FLASK_RUN_PORT", 5000)))

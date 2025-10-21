@@ -120,19 +120,7 @@ export default function Header() {
 
           {/* 🔗 Các liên kết điều hướng */}
           <div className="flex items-center gap-6 font-medium">
-            <Link
-              to="/"
-              className="hover:text-yellow-300 transition-colors"
-            >
-              Trang chủ
-            </Link>
 
-            <Link
-              to="/laptop"
-              className="hover:text-yellow-300 transition-colors"
-            >
-              Laptop
-            </Link>
 
             {/* 🖼️ Thêm mục Upload Ảnh */}
             <Link

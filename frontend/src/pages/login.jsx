@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
+import { authApi } from "@/api/authApi"
+import { useAuth } from "@/context/AuthContext"
 
 // ✅ Zod validation schema
 const loginSchema = z.object({
@@ -18,6 +20,8 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()  // <-- sử dụng AuthContext
 
   // ✅ Gắn react-hook-form + zod
   const {
@@ -28,8 +32,23 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = (data) => {
-    console.log("Đăng nhập với:", data)
+  // ✅ Submit form
+  const onSubmit = async (formData) => {
+    setLoading(true)
+    try {
+      const res = await authApi.login(formData)
+
+      if (!res.success) {
+        toast.error(res.message || "Đăng nhập thất bại")
+      } else {
+        toast.success("Đăng nhập thành công ✅")
+        login(res.data) // Lưu vào AuthContext
+      }
+    } catch {
+      toast.error("Lỗi kết nối server")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -75,15 +94,15 @@ export default function Login() {
               {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
 
-            {/* Nút đăng nhập */}
+            {/* Submit */}
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
             >
-              Đăng nhập
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
 
-            {/* Link chuyển sang đăng ký */}
             <p className="text-center text-sm text-gray-600 mt-2">
               Chưa có tài khoản?{" "}
               <Link to="/register" className="text-blue-600 hover:underline font-medium">
