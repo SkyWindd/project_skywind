@@ -10,7 +10,7 @@ import axiosClient from "./axiosClient";
 // - register success:
 //   { success: true, message: "Đăng ký thành công" }
 
-const authApi = {
+export const authApi = {
   login(payload) {
     // payload: { email, password }
     return axiosClient.post("/auth/login", payload);
