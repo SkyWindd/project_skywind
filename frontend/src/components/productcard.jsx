@@ -2,6 +2,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Cpu, HardDrive, Monitor, Gauge } from "lucide-react";
 import { Link } from "react-router-dom";
 
+
 export default function ProductCard({ product }) {
   const discountPercent =
     product.discount_percent ??
@@ -144,6 +145,7 @@ export default function ProductCard({ product }) {
             </span>
           </div>
         </div>
+        
       </CardContent>
     </Card>
   );

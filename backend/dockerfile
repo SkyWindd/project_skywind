@@ -1,0 +1,26 @@
+# Dùng Python chính thức, slim để nhẹ hơn
+FROM python:3.11-slim
+
+# Tạo thư mục làm việc trong container
+WORKDIR /app
+
+# Cài đặt các thư viện cần thiết
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Cài thêm công cụ reload tự động
+RUN pip install watchdog
+
+# Copy toàn bộ mã nguồn (sau khi dependencies đã được cài)
+COPY . .
+
+# Thiết lập biến môi trường cho Flask
+ENV FLASK_APP=server.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5000
+
+# Mở port 5000 cho Flask
+EXPOSE 5000
+
+# Chạy Flask với chế độ auto-reload
+CMD ["flask", "run", "--reload"]
