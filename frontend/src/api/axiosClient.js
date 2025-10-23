@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import productApi from "@/api/productApi";
 import ProductCard from "@/components/productcard";
 
-const BASE_URL = "http://127.0.0.1:5000/api"; // ✅ dùng 127.0.0.1 thay vì localhost
+const BASE_URL = "http://localhost:5000/api"; // ✅ dùng 127.0.0.1 thay vì localhost
 
 
 const axiosClient = axios.create({

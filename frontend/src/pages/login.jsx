@@ -44,7 +44,9 @@ export default function Login() {
       const data = await authApi.login(formData);
 
       if (data?.success) {
-        toast.success("Đăng nhập thành công ✅");
+        toast.success("Đăng nhập thành công ✅", {
+        autoClose: 3000, // ⏱️ 3 giây rồi tự ẩn
+      })
 
         // ✅ Lưu user + token vào AuthContext
         login({
