@@ -25,7 +25,7 @@ const filtersConfig = {
   cpu: { label: "CPU", options: ["Intel Core i5", "Intel Core i7", "Ryzen 5", "Ryzen 7"] },
   ram: { label: "RAM", options: ["8GB", "16GB", "32GB"] },
   ssd: { label: "SSD", options: ["256GB", "512GB", "1TB"] },
-  vga: { label: "Card đồ họa", options: ["Card Onboard", "RTX 3050", "RTX 3060", "RTX 4050", "RTX 4060"] },
+  vga: { label: "Card đồ họa", options: [ "RTX 3050", "RTX 3060", "RTX 4050", "RTX 4060"] },
 };
 
 export default function FilterMenu() {

@@ -9,12 +9,15 @@ venv/
 
 # Environment files
 .env
+.env.*
 dot.env
 
 # Database files or scripts
 db.py
+database.py
 db/
 *.db
+*.sqlite3
 
 # ---------------------
 # Node
@@ -31,9 +34,23 @@ build/
 # ---------------------
 # Docker
 # ---------------------
+# Docker build folders and logs
+docker/
+Dockerfile
+Dockerfile.*
+docker-compose.yml
+docker-compose.*.yml
+
+# Docker volumes and runtime data
 pgdata/
 *.log
 *.pid
+*.sock
+tmp/
+data/
+volumes/
+.docker/
+.dockerignore
 
 # ---------------------
 # System

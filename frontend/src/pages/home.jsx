@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import ProductCard from "@/components/productcard";
-import CategorySection from "@/components/categorysection";
 import Banner from "@/components/banner";
 import axios from "axios";
-
 function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const banners = [
     "/banner/banner1.jpg",
     "/banner/banner2.jpg",
     "/banner/banner3.jpg",
   ];
 
+   
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/products");
-        setProducts(res.data);
+      const res = await axios.get("http://localhost:5000/api/product");
+      setProducts(res.data);
       } catch (err) {
         console.error("Lỗi khi tải sản phẩm:", err);
       } finally {
@@ -45,7 +45,7 @@ function Home() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {products.map((item) => (
-              <ProductCard key={item.id} product={item} />
+              <ProductCard key={item.product_id} product={item} />
             ))}
           </div>
         )}
@@ -55,3 +55,4 @@ function Home() {
 }
 
 export default Home;
+
