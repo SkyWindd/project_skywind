@@ -22,7 +22,7 @@ const mockReviews = [
   },
 ];
 
-export default function Rating({ productId }) {
+export default function Rating({ product_id }) {
   const [reviews, setReviews] = useState(mockReviews);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");

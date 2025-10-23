@@ -30,7 +30,7 @@ def get_products():
                 pr.start_date,
                 pr.end_date,
                 COALESCE(json_agg(i.path) FILTER (WHERE i.path IS NOT NULL), '[]') AS images
-            FROM product_new p
+            FROM product p
             LEFT JOIN image i ON p.product_id = i.product_id
             LEFT JOIN promotion pr ON p.promo_id = pr.promo_id
             GROUP BY 
@@ -80,16 +80,14 @@ def get_products():
         return jsonify({"error": str(e)}), 500
 
 
-# ========================
-# 🧩 Bộ lọc sản phẩm
-# ========================
 @product_bp.route("/api/products/filter", methods=["GET"])
 def filter_products():
-    print("🔥 Filter API called!")   # <--- THÊM DÒNG NÀY
+    print("🔥 Filter API called!")
     try:
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
+        # 🧩 Lấy các tham số từ query string
         brand = request.args.getlist("brand")
         cpu = request.args.getlist("cpu")
         vga = request.args.getlist("vga")
@@ -97,7 +95,9 @@ def filter_products():
         ssd = request.args.getlist("ssd")
         min_price = request.args.get("min_price", type=float)
         max_price = request.args.get("max_price", type=float)
+        in_stock = request.args.get("in_stock")  # ✅ thêm dòng này
 
+        # 🧩 Câu SQL cơ bản
         query = """
             SELECT 
                 p.product_id,
@@ -113,7 +113,7 @@ def filter_products():
                 pr.start_date,
                 pr.end_date,
                 COALESCE(json_agg(DISTINCT i.path) FILTER (WHERE i.path IS NOT NULL), '[]') AS images
-            FROM product_new p
+            FROM product p
             LEFT JOIN brand b ON p.brand_id = b.brand_id
             LEFT JOIN image i ON p.product_id = i.product_id
             LEFT JOIN promotion pr ON p.promo_id = pr.promo_id
@@ -122,6 +122,7 @@ def filter_products():
 
         params = []
 
+        # 🧩 Hàm thêm nhiều điều kiện (lọc nhiều giá trị)
         def add_multi_filter(column, values):
             nonlocal query, params
             if values:
@@ -137,12 +138,17 @@ def filter_products():
         add_multi_filter("p.ram", ram)
         add_multi_filter("p.ssd", ssd)
 
+        # 🧩 Lọc theo giá
         if min_price is not None:
             query += " AND p.price >= %s"
             params.append(min_price)
         if max_price is not None:
             query += " AND p.price <= %s"
             params.append(max_price)
+
+        # 🧩 ✅ Lọc theo còn hàng
+        if in_stock == "true":
+            query += " AND p.stock > 0"
 
         query += """
             GROUP BY p.product_id, b.name, pr.discount_rate, pr.start_date, pr.end_date
@@ -154,21 +160,42 @@ def filter_products():
 
         today = datetime.now().date()
         products = []
+
         for r in rows:
             base_price = float(r["price"] or 0)
             new_price = base_price
             old_price = None
             discount_percent = None
 
-            if r["discount_rate"] and r["start_date"] and r["end_date"]:
-                if r["start_date"] <= today <= r["end_date"]:
+            # ✅ Kiểm tra và chuyển đổi ngày khuyến mãi an toàn
+            start_date = r.get("start_date")
+            end_date = r.get("end_date")
+
+            if start_date and end_date and r.get("discount_rate"):
+                if isinstance(start_date, datetime):
+                    start_date = start_date.date()
+                if isinstance(end_date, datetime):
+                    end_date = end_date.date()
+
+                if start_date <= today <= end_date:
                     old_price = base_price
                     new_price = base_price * (1 - float(r["discount_rate"]))
                     discount_percent = round(float(r["discount_rate"]) * 100)
 
+            # ✅ Xử lý danh sách ảnh an toàn
+            images_raw = r["images"]
+            if isinstance(images_raw, str):
+                import json
+                try:
+                    images_raw = json.loads(images_raw)
+                except Exception:
+                    images_raw = []
+            elif not isinstance(images_raw, list):
+                images_raw = []
+
             images = [
                 f"http://127.0.0.1:5000/{str(img).replace('\\', '/')}"
-                for img in r["images"] if img
+                for img in images_raw if img
             ]
 
             products.append({
@@ -191,5 +218,7 @@ def filter_products():
         return jsonify(products)
 
     except Exception as e:
+        import traceback
         print("❌ Filter error:", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500

@@ -1,67 +1,37 @@
-// ==========================
-// AuthContext.jsx
-// File này dùng Context API để quản lý trạng thái đăng nhập toàn app
-// ==========================
+// src/context/AuthContext.jsx
+import React, { createContext, useContext, useState, useEffect } from "react";
 
-import { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+const AuthContext = createContext();
 
-// 1. Tạo Context
-const AuthContext = createContext(null);
-
-// 2. Tạo Provider để bọc toàn bộ app
 export const AuthProvider = ({ children }) => {
-  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
-  /**
-   * authData sẽ lưu thông tin đăng nhập hiện tại
-   * gồm token + user {id, email, role,...}
-   * ban đầu nó null vì chưa ai đăng nhập
-   */
-  const [authData, setAuthData] = useState(null);
-
-  // Khi F5 hoặc reload trang, lấy lại thông tin từ localStorage
+  // ✅ Lấy user từ localStorage (khi reload vẫn giữ trạng thái đăng nhập)
   useEffect(() => {
-    const savedUser = localStorage.getItem("authData");
+    const savedUser = localStorage.getItem("user");
     if (savedUser) {
-      setAuthData(JSON.parse(savedUser));
+      setUser(JSON.parse(savedUser));
     }
   }, []);
 
-  // Hàm xử lý đăng nhập
-  const login = (data) => {
-    /**
-     * data sẽ có dạng:
-     * {
-     *   token: "abc",
-     *   user: { id, email, fullName, role }
-     * }
-     */
-    setAuthData(data);
-    localStorage.setItem("authData", JSON.stringify(data));
-
-    // Điều hướng theo role
-    if (data.user.role === "SysAdmin") {
-      navigate("/"); // Sau này đổi lại "/admin/dashboard"
-    } else {
-      navigate("/");
-    }
+  // ✅ Khi đăng nhập thành công
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // Hàm đăng xuất
+  // ✅ Khi đăng xuất
   const logout = () => {
-    setAuthData(null);
-    localStorage.removeItem("authData");
-    navigate("/login");
+    setUser(null);
+    localStorage.removeItem("user");
   };
 
-  // Giá trị cung cấp cho toàn app
   return (
-    <AuthContext.Provider value={{ authData, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook tiện dụng để dùng Auth ở component khác
+// ✅ Custom hook tiện dụng
 export const useAuth = () => useContext(AuthContext);
