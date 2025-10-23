@@ -8,7 +8,7 @@ product_bp = Blueprint("product", __name__)
 # ========================
 # 🛍️ Lấy danh sách sản phẩm
 # ========================
-@product_bp.route("/api/products", methods=["GET"])
+@product_bp.route("/api/product", methods=["GET"])
 def get_products():
     try:
         conn = get_connection()
@@ -26,6 +26,7 @@ def get_products():
                 p.ssd,
                 p.vga,
                 p.man_hinh,
+                p.is_hot,  
                 pr.discount_rate,
                 pr.start_date,
                 pr.end_date,
@@ -70,7 +71,8 @@ def get_products():
                 "ssd": r["ssd"],
                 "vga": r["vga"],
                 "man_hinh": r["man_hinh"],
-                "images": [f"http://127.0.0.1:5000/{img}" for img in r["images"]],
+                "images": ["http://localhost:5000/" + str(img).replace("\\", "/")
+                for img in r["images"] if img],
             })
 
         return jsonify(products)
@@ -80,7 +82,7 @@ def get_products():
         return jsonify({"error": str(e)}), 500
 
 
-@product_bp.route("/api/products/filter", methods=["GET"])
+@product_bp.route("/api/product/filter", methods=["GET"])
 def filter_products():
     print("🔥 Filter API called!")
     try:
@@ -194,7 +196,7 @@ def filter_products():
                 images_raw = []
 
             images = [
-                f"http://127.0.0.1:5000/{str(img).replace('\\', '/')}"
+               "http://localhost:5000/" + str(img).replace("\\", "/")
                 for img in images_raw if img
             ]
 

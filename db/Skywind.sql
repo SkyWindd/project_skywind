@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict hYyYfLYFv7TjtjjEvNyqf2x5weRgFaCzSA7Qi7M5BSjxjyOxisMbI0lXMR9Mnyy
+\restrict 76gf4OtfzqZDwhrJpTGimNQ4QHyCHx2f25CPUJpiMtE2K1RaU8hnbZC6hfL65sN
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
 
--- Started on 2025-10-17 19:50:14
+-- Started on 2025-10-23 14:14:10
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,14 +26,12 @@ SET row_security = off;
 -- Name: skywind; Type: DATABASE; Schema: -; Owner: postgres
 --
 
-CREATE DATABASE skywind WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE = 'en_GB.UTF-8';
-
 
 ALTER DATABASE skywind OWNER TO postgres;
 
-\unrestrict hYyYfLYFv7TjtjjEvNyqf2x5weRgFaCzSA7Qi7M5BSjxjyOxisMbI0lXMR9Mnyy
+\unrestrict 76gf4OtfzqZDwhrJpTGimNQ4QHyCHx2f25CPUJpiMtE2K1RaU8hnbZC6hfL65sN
 \connect skywind
-\restrict hYyYfLYFv7TjtjjEvNyqf2x5weRgFaCzSA7Qi7M5BSjxjyOxisMbI0lXMR9Mnyy
+\restrict 76gf4OtfzqZDwhrJpTGimNQ4QHyCHx2f25CPUJpiMtE2K1RaU8hnbZC6hfL65sN
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -420,11 +418,11 @@ ALTER SEQUENCE public.payment_payment_id_seq OWNED BY public.payment.payment_id;
 
 --
 -- TOC entry 242 (class 1259 OID 17140)
--- Name: product_new; Type: TABLE; Schema: public; Owner: postgres
+-- Name: product; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.product_new (
-    product_id integer NOT NULL,
+CREATE TABLE public.product (
+    product_id integer CONSTRAINT product_new_product_id_not_null NOT NULL,
     name character varying(100),
     price numeric,
     stock integer,
@@ -439,7 +437,7 @@ CREATE TABLE public.product_new (
 );
 
 
-ALTER TABLE public.product_new OWNER TO postgres;
+ALTER TABLE public.product OWNER TO postgres;
 
 --
 -- TOC entry 241 (class 1259 OID 17139)
@@ -463,7 +461,7 @@ ALTER SEQUENCE public.product_new_product_id_seq OWNER TO postgres;
 -- Name: product_new_product_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.product_new_product_id_seq OWNED BY public.product_new.product_id;
+ALTER SEQUENCE public.product_new_product_id_seq OWNED BY public.product.product_id;
 
 
 --
@@ -557,7 +555,7 @@ ALTER SEQUENCE public.rating_rating_id_seq OWNED BY public.rating.rating_id;
 CREATE TABLE public.users (
     user_id integer NOT NULL,
     username character varying(50) NOT NULL,
-    password character varying(100) NOT NULL,
+    password character varying(512) NOT NULL,
     email character varying(100),
     is_active boolean DEFAULT true,
     role character varying(20) DEFAULT 'user'::character varying
@@ -704,10 +702,10 @@ ALTER TABLE ONLY public.payment ALTER COLUMN payment_id SET DEFAULT nextval('pub
 
 --
 -- TOC entry 4831 (class 2604 OID 17143)
--- Name: product_new product_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: product product_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.product_new ALTER COLUMN product_id SET DEFAULT nextval('public.product_new_product_id_seq'::regclass);
+ALTER TABLE ONLY public.product ALTER COLUMN product_id SET DEFAULT nextval('public.product_new_product_id_seq'::regclass);
 
 
 --
@@ -1050,61 +1048,61 @@ INSERT INTO public.image VALUES (239, 96, '1024__3__7ec191a6f2cb43abbe95997fca23
 --
 -- TOC entry 5042 (class 0 OID 17140)
 -- Dependencies: 242
--- Data for Name: product_new; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: product; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.product_new VALUES (4, 'Laptop ASUS Expertbook P1403CVA-i716-50W', 17990000.00, 10, 1, NULL, 'Intel Core i7-13620H', '16GB DDR5', '512GB NVMe PCIe 4.0 SSD', 'Intel UHD Graphics', '14.0 FHD (1920x1080) IPS 60Hz Anti-glare', false);
-INSERT INTO public.product_new VALUES (5, 'Laptop ASUS Vivobook S14 S3407CA LY095WS', 20490000.00, 10, 1, NULL, 'Intel Core Ultra 5 225H', '16GB DDR5 Onboard', '512GB SSD', 'Intel Arc Graphics', '14.0 WUXGA (1920x1200) IPS 60Hz Anti-glare', false);
-INSERT INTO public.product_new VALUES (6, 'Laptop ASUS Vivobook S14 S3407CA LY096WS', 22990000.00, 10, 1, NULL, 'Intel Core Ultra 7 255H', '16GB DDR5 Onboard', '512GB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14.0 WUXGA (1920x1200) IPS 60Hz Anti-glare', false);
-INSERT INTO public.product_new VALUES (7, 'Laptop ASUS Zenbook 14 UX3405CA PZ187WS', 27490000.00, 10, 1, NULL, 'Intel Core Ultra 5 225H', '16GB LPDDR5X', '512GB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14.0 3K OLED 120Hz', false);
-INSERT INTO public.product_new VALUES (8, 'Laptop ASUS Vivobook S16 OLED M5606KA RI016WS', 30990000.00, 10, 1, NULL, 'AMD Ryzen AI 7 350', '24GB LPDDR5X', '512GB NVMe PCIe 4.0 SSD', 'AMD Radeon Graphics', '16.0 3K OLED 120Hz HDR', false);
-INSERT INTO public.product_new VALUES (9, 'Laptop ASUS Zenbook 14 UX3405CA PZ204WS', 34990000.00, 10, 1, NULL, 'Intel Core Ultra 9 285H', '32GB LPDDR5X', '1TB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14.0 3K OLED 120Hz HDR', false);
-INSERT INTO public.product_new VALUES (11, 'Laptop Acer Aspire Lite 14 AL14 71P 55P9', 14990000.00, 10, 2, NULL, 'Intel Core i5-13500H', '16GB DDR5 4800MHz', '512GB PCIe NVMe SSD', 'Intel UHD Graphics', '14 FHD+ (1920x1200) IPS 60Hz', false);
-INSERT INTO public.product_new VALUES (12, 'Laptop Acer Aspire 5 A515 58P 71EJ', 17990000.00, 10, 2, NULL, 'Intel Core i7-1355U', '16GB LPDDR5 4800MHz', '1TB PCIe NVMe SSD', 'Intel UHD Graphics', '15.6 FHD (1920x1080) IPS 60Hz', false);
-INSERT INTO public.product_new VALUES (13, 'Laptop Acer Aspire 5 A515 58M 79R7', 18990000.00, 10, 2, NULL, 'Intel Core i7-13620H', '16GB LPDDR5 4800MHz', '512GB PCIe NVMe Gen4 SSD', 'Intel UHD Graphics', '15.6 FHD (1920x1080) IPS 60Hz', false);
-INSERT INTO public.product_new VALUES (14, 'Laptop Acer Swift Go 14 SFG14 73 57FZ', 22990000.00, 10, 2, NULL, 'Intel Core Ultra 5 125H', '16GB LPDDR5 6400MHz', '512GB PCIe NVMe SSD', 'Intel Arc Graphics', '14 2.8K (2880x1800) OLED 90Hz', false);
-INSERT INTO public.product_new VALUES (15, 'Laptop Acer Swift Go SFG14 74T 55HD', 28990000.00, 10, 2, NULL, 'Intel Core Ultra 5 225H', '16GB LPDDR5 7500MHz', '1TB PCIe NVMe SSD', 'Intel Arc Graphics', '14 FHD+ IPS Touch 60Hz', false);
-INSERT INTO public.product_new VALUES (16, 'Laptop Acer Swift 14 AI SF14 51 53P9', 32490000.00, 10, 2, NULL, 'Intel Core Ultra 5 226V', '16GB LPDDR5 8533MHz', '1TB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14 3K (2880x1800) OLED 90Hz', false);
-INSERT INTO public.product_new VALUES (17, 'Laptop Acer Swift X14 SFX14 72G 77F9', 34490000.00, 10, 2, NULL, 'Intel Core Ultra 7 155H', '32GB LPDDR5 6400MHz', '1TB PCIe NVMe SSD', 'NVIDIA GeForce RTX 4050 6GB', '14.5 2.8K OLED 120Hz', false);
-INSERT INTO public.product_new VALUES (10, 'Laptop gaming ASUS V16 V3607VM RP044W', 33490000.00, 10, 1, NULL, 'Intel Core 7 240H', '16GB DDR5', '1TB NVMe PCIe 4.0 SSD', 'NVIDIA GeForce RTX 5060 8GB', '16.0 WUXGA (1920x1200) 144Hz', false);
-INSERT INTO public.product_new VALUES (3, 'Laptop ASUS Expertbook P1403CVA-i516-50W', 14290000.00, NULL, 1, NULL, 'Intel Core i5-13420H', '16GB DDR5', '512GB NVMe PCIe 4.0 SSD', 'Intel UHD Graphics', '14.0 FHD (1920x1080) IPS 60Hz Anti-glare', false);
-INSERT INTO public.product_new VALUES (62, 'Laptop Dell Inspirion N3530 i5U165W11SLU', 15990000.00, 10, 3, NULL, 'Intel Core i5-1334U up to 4.6GHz', '16GB DDR4 2666MHz', '512GB SSD NVMe PCIe', 'Intel Iris Xe Graphics', '15.6\" FHD 120Hz IPS', false);
-INSERT INTO public.product_new VALUES (63, 'Laptop Dell Inspiron 5440-PUS', 16990000.00, 10, 3, NULL, 'Intel Core i5-1334U up to 4.6GHz', '16GB LPDDR5 4400MHz', '512GB SSD PCIe', 'Intel Graphics', '14.0\" FHD+ IPS 250nits', false);
-INSERT INTO public.product_new VALUES (64, 'Laptop Dell Inspiron T7430 N7430I58W1 Silver', 18990000.00, 10, 3, NULL, 'Intel Core i5-1355U up to 4.6GHz', '8GB LPDDR5 4800MHz', '512GB PCIe SSD', 'Intel Iris Xe Graphics', '14.0\" FHD+ Touch WVA', false);
-INSERT INTO public.product_new VALUES (65, 'Laptop Dell 15 DC15250 i7U161W11SLU', 20990000.00, 10, 3, NULL, 'Intel Core i7-1355U up to 5.0GHz', '16GB DDR4 2666MHz', '1TB PCIe NVMe SSD', 'Intel Iris Xe Graphics', '15.6\" FHD 120Hz IPS', false);
-INSERT INTO public.product_new VALUES (66, 'Laptop Dell Inspiron 15 5502 1XGR11', 20490000.00, 10, 3, NULL, 'Intel Core i5-1135G7 up to 4.2GHz', '8GB DDR4 3200MHz', '512GB NVMe SSD', 'Intel Iris Xe Graphics', '15.6\" FHD 60Hz IPS', false);
-INSERT INTO public.product_new VALUES (67, 'Laptop Dell Vostro 15 5502 70231340', 21990000.00, 10, 3, NULL, 'Intel Core i5-1135G7 up to 4.2GHz', '8GB DDR4 3200MHz', '256GB SSD NVMe', 'Intel Iris Xe Graphics', '15.6\" FHD Anti-Glare', false);
-INSERT INTO public.product_new VALUES (68, 'Laptop Dell Inspiron 15 7501 X3MRY1', 30490000.00, 10, 3, NULL, 'Intel Core i7-10750H up to 5.0GHz', '8GB DDR4 2933MHz', '512GB PCIe SSD', 'NVIDIA GeForce GTX 1650Ti 4GB', '15.6\" FHD 60Hz WVA', true);
-INSERT INTO public.product_new VALUES (69, 'Laptop Dell G15 5530 i7H161W11GR4060', 37990000.00, 10, 3, NULL, 'Intel Core i7-13650HX up to 4.9GHz', '16GB DDR5 4800MHz', '1TB NVMe SSD', 'NVIDIA GeForce RTX 4060 8GB', '15.6\" FHD 165Hz G-SYNC', true);
-INSERT INTO public.product_new VALUES (70, 'Laptop Dell Inspiron 5640 G14 N6I7512W1-IceBlue', 30290000.00, 10, 3, NULL, 'Intel Core i7-150U up to 5.4GHz', '16GB LPDDR5 5200MHz', '1TB PCIe NVMe SSD', 'NVIDIA GeForce MX570A 2GB', '16.0\" 2.5K 300nits WVA', false);
-INSERT INTO public.product_new VALUES (71, 'Laptop HP 240 G9 6L1Y2PA', 15290000.00, 10, 4, NULL, 'Intel Core i5-1235U up to 4.4GHz', '8GB DDR4 3200MHz', '512GB PCIe 3.0 SSD', 'Intel UHD Graphics', '14\" FHD IPS 250nits', false);
-INSERT INTO public.product_new VALUES (72, 'Laptop HP VICTUS 15-fa2731TX B85LNPA', 19990000.00, 10, 4, NULL, 'Intel Core i5-13420H up to 4.6GHz', '16GB DDR4 3200MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 3050 6GB', '15.6\" FHD 144Hz IPS', true);
-INSERT INTO public.product_new VALUES (73, 'Laptop HP Pavilion 15 eg3093TU 8C5L4PA', 19290000.00, 10, 4, NULL, 'Intel Core i5-1335U up to 4.6GHz', '16GB DDR4 3200MHz', '512GB PCIe 3.0 SSD', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 250nits', false);
-INSERT INTO public.product_new VALUES (74, 'Laptop HP Pavilion 15 eg3091TU 8C5L2PA', 22990000.00, 10, 4, NULL, 'Intel Core i7-1355U up to 5.0GHz', '16GB DDR4 3200MHz', '512GB PCIe 3.0 SSD', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 250nits', false);
-INSERT INTO public.product_new VALUES (75, 'Laptop HP VICTUS 15 fb3116AX BX8U4PA', 20990000.00, 10, 4, NULL, 'AMD Ryzen 7 7445H up to 4.7GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 3050 6GB', '15\" FHD 144Hz IPS', true);
-INSERT INTO public.product_new VALUES (76, 'Laptop HP VICTUS 15 fb3115AX BX9C9PA', 22990000.00, 10, 4, NULL, 'AMD Ryzen 7 7445H up to 4.7GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 4050 6GB', '15\" FHD 144Hz IPS', true);
-INSERT INTO public.product_new VALUES (77, 'Laptop HP OMEN 16-am0178TX BX8Y4PA', 34990000.00, 10, 4, NULL, 'Intel Core Ultra 5 225H up to 4.9GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 5060 8GB', '16.1\" 2K 165Hz IPS', true);
-INSERT INTO public.product_new VALUES (78, 'Laptop HP OMEN 16-am0180TX BX8Y6PA', 31990000.00, 10, 4, NULL, 'Intel Core Ultra 5 225H up to 4.9GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 5050 8GB', '16.1\" 2K 165Hz IPS', true);
-INSERT INTO public.product_new VALUES (79, 'Laptop HP Envy 13 BA1534TU 4U6M3PA', 32490000.00, 10, 4, NULL, 'Intel Core i7-1165G7 up to 4.7GHz', '16GB DDR4 3200MHz', '1TB PCIe NVMe SSD', 'Intel Iris Xe Graphics', '13.3\" FHD IPS 400nits', false);
-INSERT INTO public.product_new VALUES (80, 'Laptop Lenovo IdeaPad Slim 3 15IRH10 83K1000JVN', 17990000.00, 10, 5, NULL, 'Intel Core i7-13620H up to 4.9GHz', '8GB soldered + 8GB SO-DIMM DDR5-4800 (16GB)', '512GB SSD M.2 PCIe 4.0x4', 'Intel UHD Graphics', '15.3\" WUXGA IPS 300nits', false);
-INSERT INTO public.product_new VALUES (81, 'Laptop Lenovo V14 G4 IRU 83A000BEVN', 12490000.00, 10, 5, NULL, 'Intel Core i5-13420H up to 4.6GHz', '8GB DDR4 3200MHz', '512GB SSD M.2 PCIe 4.0x4', 'Intel UHD Graphics', '14\" FHD IPS 300nits', false);
-INSERT INTO public.product_new VALUES (82, 'Laptop Lenovo IdeaPad Slim 3 14IRH10 83K0000BVN', 16790000.00, 10, 5, NULL, 'Intel Core i5-13420H up to 4.6GHz', '8GB soldered + 8GB SO-DIMM DDR5-4800 (16GB)', '512GB SSD M.2 PCIe 4.0x4', 'Intel UHD Graphics', '14\" WUXGA OLED 400nits', false);
-INSERT INTO public.product_new VALUES (83, 'Laptop Gigabyte G5 MF E2VN333SH', 21990000.00, 10, 5, NULL, 'Intel Core i5-12500H up to 4.5GHz', '8GB DDR4 3200MHz', '512GB SSD M.2 PCIe G4X4', 'NVIDIA GeForce RTX 4050 6GB', '15.6\" FHD 144Hz IPS', false);
-INSERT INTO public.product_new VALUES (84, 'Laptop Lenovo LOQ 15ARP9 83JC00LVVN', 21490000.00, 10, 5, NULL, 'AMD Ryzen 5 7235HS up to 4.2GHz', '16GB DDR5-4800', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 3050 6GB', '15.6\" FHD 144Hz IPS', true);
-INSERT INTO public.product_new VALUES (85, 'Laptop Lenovo LOQ 15ARP9 83JC00M3VN', 22290000.00, 10, 5, NULL, 'AMD Ryzen 5 7235HS up to 4.2GHz', '16GB DDR5-4800', '1TB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 3050 6GB', '15.6\" FHD 144Hz IPS', true);
-INSERT INTO public.product_new VALUES (86, 'Laptop Lenovo Legion 5 15IRX10 83LY00A7VN', 37490000.00, 10, 5, NULL, 'Intel Core i7-14700HX up to 5.5GHz', '16GB DDR5 5600MHz', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 5050 8GB', '15.1\" WQXGA OLED 165Hz', true);
-INSERT INTO public.product_new VALUES (87, 'Laptop Lenovo Legion 5 15AHP10 83M0002YVN', 36990000.00, 10, 5, NULL, 'AMD Ryzen 7 260 up to 5.1GHz', '16GB DDR5 5600MHz', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 5050 8GB', '15.1\" WQXGA OLED 165Hz', true);
-INSERT INTO public.product_new VALUES (88, 'Laptop Lenovo LOQ 15IRX10 83JE006PVN', 31990000.00, 10, 5, NULL, 'Intel Core i7-13650HX up to 4.9GHz', '24GB DDR5 4800MHz', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 5050 8GB', '15.6\" FHD 144Hz IPS', true);
-INSERT INTO public.product_new VALUES (89, 'Laptop MSI Modern 14 H D13MG 217VN', 17990000.00, 10, 6, NULL, 'Intel Core i7-13700H up to 5.0GHz', '16GB (8x2) DDR4 3200MHz', '1TB NVMe PCIe Gen4x4', 'Intel Iris Xe Graphics', '14.0\" FHD+ (1920x1200) IPS 60Hz', false);
-INSERT INTO public.product_new VALUES (2, 'Laptop ASUS ExpertBook B1 BM1403CDA S60974W', 12190000.00, 10, 1, 1, 'AMD Ryzen 5 7535HS', '16GB DDR5', '512GB NVMe PCIe 4.0 SSD', 'AMD Radeon 680M', '14.0 FHD (1920x1080) IPS 60Hz Anti-glare', true);
-INSERT INTO public.product_new VALUES (90, 'Laptop MSI Modern 15 H AI C2HMG 220VN', 19990000.00, 10, 6, NULL, 'Intel Core Ultra 7 255H up to 5.1GHz', '16GB DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 60Hz', false);
-INSERT INTO public.product_new VALUES (91, 'Laptop MSI Modern 15 H C13M 216VN', 18290000.00, 10, 6, NULL, 'Intel Core i7-13700H up to 5.0GHz', '16GB DDR4 3200MHz', '1TB NVMe PCIe Gen4x4', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 60Hz', false);
-INSERT INTO public.product_new VALUES (92, 'Laptop MSI Prestige 14 AI Evo C1MG 080VN', 26490000.00, 10, 6, NULL, 'Intel Core Ultra 5 125H up to 4.5GHz', '32GB DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'Intel Arc Graphics', '14\" 2.8K (2880x1800) OLED 60Hz', true);
-INSERT INTO public.product_new VALUES (93, 'Laptop MSI Venture A14 AI+ A3HMG 004VN', 21990000.00, 10, 6, NULL, 'AMD Ryzen AI 5 340 up to 4.8GHz', '16GB (2x8) DDR5', '512GB NVMe PCIe Gen4x4', 'AMD Radeon Graphics', '14\" 2.8K (2880x1800) OLED 120Hz', false);
-INSERT INTO public.product_new VALUES (94, 'Laptop MSI Prestige 14 AI Evo C1MG 081VN', 24490000.00, 10, 6, NULL, 'Intel Core Ultra 5 125H up to 4.5GHz', '16GB (8x2) DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'Intel Arc Graphics', '14\" 2.8K OLED 60Hz', true);
-INSERT INTO public.product_new VALUES (95, 'Laptop MSI Katana 15 HX B14WEK 027VN', 33490000.00, 10, 6, NULL, 'Intel Core i7-14650HX up to 5.2GHz', '32GB (2x16) DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'NVIDIA GeForce RTX 5050 8GB', '15.6\" QHD (2560x1440) 165Hz IPS', true);
-INSERT INTO public.product_new VALUES (96, 'Laptop MSI Prestige 14 AI Studio C1VEG 056VN', 33590000.00, 10, 6, NULL, 'Intel Core Ultra 7 155H up to 4.8GHz', '32GB (16x2) DDR5 5600MHz', '1TB NVMe PCIe Gen4x4', 'NVIDIA GeForce RTX 4050 6GB', '14\" 2.8K IPS 100% DCI-P3', true);
-INSERT INTO public.product_new VALUES (97, 'Laptop MSI Prestige 14 AI+ Evo C2VMG 020VN', 35490000.00, 10, 6, NULL, 'Intel Core Ultra 7 258V', '32GB LPDDR5x 8533MHz (onboard)', '1TB NVMe PCIe Gen4', 'Intel Arc 140V', '14\" 2.8K OLED 120Hz', true);
+INSERT INTO public.product VALUES (4, 'Laptop ASUS Expertbook P1403CVA-i716-50W', 17990000.00, 10, 1, NULL, 'Intel Core i7-13620H', '16GB DDR5', '512GB NVMe PCIe 4.0 SSD', 'Intel UHD Graphics', '14.0 FHD (1920x1080) IPS 60Hz Anti-glare', false);
+INSERT INTO public.product VALUES (5, 'Laptop ASUS Vivobook S14 S3407CA LY095WS', 20490000.00, 10, 1, NULL, 'Intel Core Ultra 5 225H', '16GB DDR5 Onboard', '512GB SSD', 'Intel Arc Graphics', '14.0 WUXGA (1920x1200) IPS 60Hz Anti-glare', false);
+INSERT INTO public.product VALUES (6, 'Laptop ASUS Vivobook S14 S3407CA LY096WS', 22990000.00, 10, 1, NULL, 'Intel Core Ultra 7 255H', '16GB DDR5 Onboard', '512GB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14.0 WUXGA (1920x1200) IPS 60Hz Anti-glare', false);
+INSERT INTO public.product VALUES (7, 'Laptop ASUS Zenbook 14 UX3405CA PZ187WS', 27490000.00, 10, 1, NULL, 'Intel Core Ultra 5 225H', '16GB LPDDR5X', '512GB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14.0 3K OLED 120Hz', false);
+INSERT INTO public.product VALUES (8, 'Laptop ASUS Vivobook S16 OLED M5606KA RI016WS', 30990000.00, 10, 1, NULL, 'AMD Ryzen AI 7 350', '24GB LPDDR5X', '512GB NVMe PCIe 4.0 SSD', 'AMD Radeon Graphics', '16.0 3K OLED 120Hz HDR', false);
+INSERT INTO public.product VALUES (9, 'Laptop ASUS Zenbook 14 UX3405CA PZ204WS', 34990000.00, 10, 1, NULL, 'Intel Core Ultra 9 285H', '32GB LPDDR5X', '1TB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14.0 3K OLED 120Hz HDR', false);
+INSERT INTO public.product VALUES (11, 'Laptop Acer Aspire Lite 14 AL14 71P 55P9', 14990000.00, 10, 2, NULL, 'Intel Core i5-13500H', '16GB DDR5 4800MHz', '512GB PCIe NVMe SSD', 'Intel UHD Graphics', '14 FHD+ (1920x1200) IPS 60Hz', false);
+INSERT INTO public.product VALUES (12, 'Laptop Acer Aspire 5 A515 58P 71EJ', 17990000.00, 10, 2, NULL, 'Intel Core i7-1355U', '16GB LPDDR5 4800MHz', '1TB PCIe NVMe SSD', 'Intel UHD Graphics', '15.6 FHD (1920x1080) IPS 60Hz', false);
+INSERT INTO public.product VALUES (13, 'Laptop Acer Aspire 5 A515 58M 79R7', 18990000.00, 10, 2, NULL, 'Intel Core i7-13620H', '16GB LPDDR5 4800MHz', '512GB PCIe NVMe Gen4 SSD', 'Intel UHD Graphics', '15.6 FHD (1920x1080) IPS 60Hz', false);
+INSERT INTO public.product VALUES (14, 'Laptop Acer Swift Go 14 SFG14 73 57FZ', 22990000.00, 10, 2, NULL, 'Intel Core Ultra 5 125H', '16GB LPDDR5 6400MHz', '512GB PCIe NVMe SSD', 'Intel Arc Graphics', '14 2.8K (2880x1800) OLED 90Hz', false);
+INSERT INTO public.product VALUES (15, 'Laptop Acer Swift Go SFG14 74T 55HD', 28990000.00, 10, 2, NULL, 'Intel Core Ultra 5 225H', '16GB LPDDR5 7500MHz', '1TB PCIe NVMe SSD', 'Intel Arc Graphics', '14 FHD+ IPS Touch 60Hz', false);
+INSERT INTO public.product VALUES (16, 'Laptop Acer Swift 14 AI SF14 51 53P9', 32490000.00, 10, 2, NULL, 'Intel Core Ultra 5 226V', '16GB LPDDR5 8533MHz', '1TB NVMe PCIe 4.0 SSD', 'Intel Arc Graphics', '14 3K (2880x1800) OLED 90Hz', false);
+INSERT INTO public.product VALUES (17, 'Laptop Acer Swift X14 SFX14 72G 77F9', 34490000.00, 10, 2, NULL, 'Intel Core Ultra 7 155H', '32GB LPDDR5 6400MHz', '1TB PCIe NVMe SSD', 'NVIDIA GeForce RTX 4050 6GB', '14.5 2.8K OLED 120Hz', false);
+INSERT INTO public.product VALUES (10, 'Laptop gaming ASUS V16 V3607VM RP044W', 33490000.00, 10, 1, NULL, 'Intel Core 7 240H', '16GB DDR5', '1TB NVMe PCIe 4.0 SSD', 'NVIDIA GeForce RTX 5060 8GB', '16.0 WUXGA (1920x1200) 144Hz', false);
+INSERT INTO public.product VALUES (3, 'Laptop ASUS Expertbook P1403CVA-i516-50W', 14290000.00, NULL, 1, NULL, 'Intel Core i5-13420H', '16GB DDR5', '512GB NVMe PCIe 4.0 SSD', 'Intel UHD Graphics', '14.0 FHD (1920x1080) IPS 60Hz Anti-glare', false);
+INSERT INTO public.product VALUES (62, 'Laptop Dell Inspirion N3530 i5U165W11SLU', 15990000.00, 10, 3, NULL, 'Intel Core i5-1334U up to 4.6GHz', '16GB DDR4 2666MHz', '512GB SSD NVMe PCIe', 'Intel Iris Xe Graphics', '15.6\" FHD 120Hz IPS', false);
+INSERT INTO public.product VALUES (63, 'Laptop Dell Inspiron 5440-PUS', 16990000.00, 10, 3, NULL, 'Intel Core i5-1334U up to 4.6GHz', '16GB LPDDR5 4400MHz', '512GB SSD PCIe', 'Intel Graphics', '14.0\" FHD+ IPS 250nits', false);
+INSERT INTO public.product VALUES (64, 'Laptop Dell Inspiron T7430 N7430I58W1 Silver', 18990000.00, 10, 3, NULL, 'Intel Core i5-1355U up to 4.6GHz', '8GB LPDDR5 4800MHz', '512GB PCIe SSD', 'Intel Iris Xe Graphics', '14.0\" FHD+ Touch WVA', false);
+INSERT INTO public.product VALUES (65, 'Laptop Dell 15 DC15250 i7U161W11SLU', 20990000.00, 10, 3, NULL, 'Intel Core i7-1355U up to 5.0GHz', '16GB DDR4 2666MHz', '1TB PCIe NVMe SSD', 'Intel Iris Xe Graphics', '15.6\" FHD 120Hz IPS', false);
+INSERT INTO public.product VALUES (66, 'Laptop Dell Inspiron 15 5502 1XGR11', 20490000.00, 10, 3, NULL, 'Intel Core i5-1135G7 up to 4.2GHz', '8GB DDR4 3200MHz', '512GB NVMe SSD', 'Intel Iris Xe Graphics', '15.6\" FHD 60Hz IPS', false);
+INSERT INTO public.product VALUES (67, 'Laptop Dell Vostro 15 5502 70231340', 21990000.00, 10, 3, NULL, 'Intel Core i5-1135G7 up to 4.2GHz', '8GB DDR4 3200MHz', '256GB SSD NVMe', 'Intel Iris Xe Graphics', '15.6\" FHD Anti-Glare', false);
+INSERT INTO public.product VALUES (68, 'Laptop Dell Inspiron 15 7501 X3MRY1', 30490000.00, 10, 3, NULL, 'Intel Core i7-10750H up to 5.0GHz', '8GB DDR4 2933MHz', '512GB PCIe SSD', 'NVIDIA GeForce GTX 1650Ti 4GB', '15.6\" FHD 60Hz WVA', true);
+INSERT INTO public.product VALUES (69, 'Laptop Dell G15 5530 i7H161W11GR4060', 37990000.00, 10, 3, NULL, 'Intel Core i7-13650HX up to 4.9GHz', '16GB DDR5 4800MHz', '1TB NVMe SSD', 'NVIDIA GeForce RTX 4060 8GB', '15.6\" FHD 165Hz G-SYNC', true);
+INSERT INTO public.product VALUES (70, 'Laptop Dell Inspiron 5640 G14 N6I7512W1-IceBlue', 30290000.00, 10, 3, NULL, 'Intel Core i7-150U up to 5.4GHz', '16GB LPDDR5 5200MHz', '1TB PCIe NVMe SSD', 'NVIDIA GeForce MX570A 2GB', '16.0\" 2.5K 300nits WVA', false);
+INSERT INTO public.product VALUES (71, 'Laptop HP 240 G9 6L1Y2PA', 15290000.00, 10, 4, NULL, 'Intel Core i5-1235U up to 4.4GHz', '8GB DDR4 3200MHz', '512GB PCIe 3.0 SSD', 'Intel UHD Graphics', '14\" FHD IPS 250nits', false);
+INSERT INTO public.product VALUES (72, 'Laptop HP VICTUS 15-fa2731TX B85LNPA', 19990000.00, 10, 4, NULL, 'Intel Core i5-13420H up to 4.6GHz', '16GB DDR4 3200MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 3050 6GB', '15.6\" FHD 144Hz IPS', true);
+INSERT INTO public.product VALUES (73, 'Laptop HP Pavilion 15 eg3093TU 8C5L4PA', 19290000.00, 10, 4, NULL, 'Intel Core i5-1335U up to 4.6GHz', '16GB DDR4 3200MHz', '512GB PCIe 3.0 SSD', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 250nits', false);
+INSERT INTO public.product VALUES (74, 'Laptop HP Pavilion 15 eg3091TU 8C5L2PA', 22990000.00, 10, 4, NULL, 'Intel Core i7-1355U up to 5.0GHz', '16GB DDR4 3200MHz', '512GB PCIe 3.0 SSD', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 250nits', false);
+INSERT INTO public.product VALUES (75, 'Laptop HP VICTUS 15 fb3116AX BX8U4PA', 20990000.00, 10, 4, NULL, 'AMD Ryzen 7 7445H up to 4.7GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 3050 6GB', '15\" FHD 144Hz IPS', true);
+INSERT INTO public.product VALUES (76, 'Laptop HP VICTUS 15 fb3115AX BX9C9PA', 22990000.00, 10, 4, NULL, 'AMD Ryzen 7 7445H up to 4.7GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 4050 6GB', '15\" FHD 144Hz IPS', true);
+INSERT INTO public.product VALUES (77, 'Laptop HP OMEN 16-am0178TX BX8Y4PA', 34990000.00, 10, 4, NULL, 'Intel Core Ultra 5 225H up to 4.9GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 5060 8GB', '16.1\" 2K 165Hz IPS', true);
+INSERT INTO public.product VALUES (78, 'Laptop HP OMEN 16-am0180TX BX8Y6PA', 31990000.00, 10, 4, NULL, 'Intel Core Ultra 5 225H up to 4.9GHz', '16GB DDR5 5600MHz', '512GB PCIe Gen4 SSD', 'NVIDIA GeForce RTX 5050 8GB', '16.1\" 2K 165Hz IPS', true);
+INSERT INTO public.product VALUES (79, 'Laptop HP Envy 13 BA1534TU 4U6M3PA', 32490000.00, 10, 4, NULL, 'Intel Core i7-1165G7 up to 4.7GHz', '16GB DDR4 3200MHz', '1TB PCIe NVMe SSD', 'Intel Iris Xe Graphics', '13.3\" FHD IPS 400nits', false);
+INSERT INTO public.product VALUES (80, 'Laptop Lenovo IdeaPad Slim 3 15IRH10 83K1000JVN', 17990000.00, 10, 5, NULL, 'Intel Core i7-13620H up to 4.9GHz', '8GB soldered + 8GB SO-DIMM DDR5-4800 (16GB)', '512GB SSD M.2 PCIe 4.0x4', 'Intel UHD Graphics', '15.3\" WUXGA IPS 300nits', false);
+INSERT INTO public.product VALUES (81, 'Laptop Lenovo V14 G4 IRU 83A000BEVN', 12490000.00, 10, 5, NULL, 'Intel Core i5-13420H up to 4.6GHz', '8GB DDR4 3200MHz', '512GB SSD M.2 PCIe 4.0x4', 'Intel UHD Graphics', '14\" FHD IPS 300nits', false);
+INSERT INTO public.product VALUES (82, 'Laptop Lenovo IdeaPad Slim 3 14IRH10 83K0000BVN', 16790000.00, 10, 5, NULL, 'Intel Core i5-13420H up to 4.6GHz', '8GB soldered + 8GB SO-DIMM DDR5-4800 (16GB)', '512GB SSD M.2 PCIe 4.0x4', 'Intel UHD Graphics', '14\" WUXGA OLED 400nits', false);
+INSERT INTO public.product VALUES (83, 'Laptop Gigabyte G5 MF E2VN333SH', 21990000.00, 10, 5, NULL, 'Intel Core i5-12500H up to 4.5GHz', '8GB DDR4 3200MHz', '512GB SSD M.2 PCIe G4X4', 'NVIDIA GeForce RTX 4050 6GB', '15.6\" FHD 144Hz IPS', false);
+INSERT INTO public.product VALUES (84, 'Laptop Lenovo LOQ 15ARP9 83JC00LVVN', 21490000.00, 10, 5, NULL, 'AMD Ryzen 5 7235HS up to 4.2GHz', '16GB DDR5-4800', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 3050 6GB', '15.6\" FHD 144Hz IPS', true);
+INSERT INTO public.product VALUES (85, 'Laptop Lenovo LOQ 15ARP9 83JC00M3VN', 22290000.00, 10, 5, NULL, 'AMD Ryzen 5 7235HS up to 4.2GHz', '16GB DDR5-4800', '1TB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 3050 6GB', '15.6\" FHD 144Hz IPS', true);
+INSERT INTO public.product VALUES (86, 'Laptop Lenovo Legion 5 15IRX10 83LY00A7VN', 37490000.00, 10, 5, NULL, 'Intel Core i7-14700HX up to 5.5GHz', '16GB DDR5 5600MHz', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 5050 8GB', '15.1\" WQXGA OLED 165Hz', true);
+INSERT INTO public.product VALUES (87, 'Laptop Lenovo Legion 5 15AHP10 83M0002YVN', 36990000.00, 10, 5, NULL, 'AMD Ryzen 7 260 up to 5.1GHz', '16GB DDR5 5600MHz', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 5050 8GB', '15.1\" WQXGA OLED 165Hz', true);
+INSERT INTO public.product VALUES (88, 'Laptop Lenovo LOQ 15IRX10 83JE006PVN', 31990000.00, 10, 5, NULL, 'Intel Core i7-13650HX up to 4.9GHz', '24GB DDR5 4800MHz', '512GB SSD M.2 PCIe 4.0x4', 'NVIDIA GeForce RTX 5050 8GB', '15.6\" FHD 144Hz IPS', true);
+INSERT INTO public.product VALUES (89, 'Laptop MSI Modern 14 H D13MG 217VN', 17990000.00, 10, 6, NULL, 'Intel Core i7-13700H up to 5.0GHz', '16GB (8x2) DDR4 3200MHz', '1TB NVMe PCIe Gen4x4', 'Intel Iris Xe Graphics', '14.0\" FHD+ (1920x1200) IPS 60Hz', false);
+INSERT INTO public.product VALUES (2, 'Laptop ASUS ExpertBook B1 BM1403CDA S60974W', 12190000.00, 10, 1, 1, 'AMD Ryzen 5 7535HS', '16GB DDR5', '512GB NVMe PCIe 4.0 SSD', 'AMD Radeon 680M', '14.0 FHD (1920x1080) IPS 60Hz Anti-glare', true);
+INSERT INTO public.product VALUES (90, 'Laptop MSI Modern 15 H AI C2HMG 220VN', 19990000.00, 10, 6, NULL, 'Intel Core Ultra 7 255H up to 5.1GHz', '16GB DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 60Hz', false);
+INSERT INTO public.product VALUES (91, 'Laptop MSI Modern 15 H C13M 216VN', 18290000.00, 10, 6, NULL, 'Intel Core i7-13700H up to 5.0GHz', '16GB DDR4 3200MHz', '1TB NVMe PCIe Gen4x4', 'Intel Iris Xe Graphics', '15.6\" FHD IPS 60Hz', false);
+INSERT INTO public.product VALUES (92, 'Laptop MSI Prestige 14 AI Evo C1MG 080VN', 26490000.00, 10, 6, NULL, 'Intel Core Ultra 5 125H up to 4.5GHz', '32GB DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'Intel Arc Graphics', '14\" 2.8K (2880x1800) OLED 60Hz', true);
+INSERT INTO public.product VALUES (93, 'Laptop MSI Venture A14 AI+ A3HMG 004VN', 21990000.00, 10, 6, NULL, 'AMD Ryzen AI 5 340 up to 4.8GHz', '16GB (2x8) DDR5', '512GB NVMe PCIe Gen4x4', 'AMD Radeon Graphics', '14\" 2.8K (2880x1800) OLED 120Hz', false);
+INSERT INTO public.product VALUES (94, 'Laptop MSI Prestige 14 AI Evo C1MG 081VN', 24490000.00, 10, 6, NULL, 'Intel Core Ultra 5 125H up to 4.5GHz', '16GB (8x2) DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'Intel Arc Graphics', '14\" 2.8K OLED 60Hz', true);
+INSERT INTO public.product VALUES (95, 'Laptop MSI Katana 15 HX B14WEK 027VN', 33490000.00, 10, 6, NULL, 'Intel Core i7-14650HX up to 5.2GHz', '32GB (2x16) DDR5 5600MHz', '512GB NVMe PCIe Gen4', 'NVIDIA GeForce RTX 5050 8GB', '15.6\" QHD (2560x1440) 165Hz IPS', true);
+INSERT INTO public.product VALUES (96, 'Laptop MSI Prestige 14 AI Studio C1VEG 056VN', 33590000.00, 10, 6, NULL, 'Intel Core Ultra 7 155H up to 4.8GHz', '32GB (16x2) DDR5 5600MHz', '1TB NVMe PCIe Gen4x4', 'NVIDIA GeForce RTX 4050 6GB', '14\" 2.8K IPS 100% DCI-P3', true);
+INSERT INTO public.product VALUES (97, 'Laptop MSI Prestige 14 AI+ Evo C2VMG 020VN', 35490000.00, 10, 6, NULL, 'Intel Core Ultra 7 258V', '32GB LPDDR5x 8533MHz (onboard)', '1TB NVMe PCIe Gen4', 'Intel Arc 140V', '14\" 2.8K OLED 120Hz', true);
 
 
 --
@@ -1132,6 +1130,8 @@ INSERT INTO public.promotion VALUES (3, 'Khuyến mãi đã hết hạn', 0.15, 
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO public.users VALUES (2, 'Nguyễn Sơn ', 'scrypt:32768:8:1$zTYEqobVOTns9FvH$5c35db6963e490b668ed539c9275010b12fb6daf558b03be684586b1679bfd29d9fc0be5b5475eafb5e083ee97599dc55dea0d65bd21fe1ead95ea4351121c5f', '3122411074@gmail.com', true, 'user');
+INSERT INTO public.users VALUES (3, 'Gia Hưng', 'scrypt:32768:8:1$7pdmzlPsNCrGtbSq$55792e40eb1572f52de18ee4946a69dea405583f5028646e4e5c0fb57610b373055d6e99fcfc9698d19e860a51ee5c7b739d77dc978d762b8e2d0d131e8f9340', 'giahung10092004@gmail.com', true, 'admin');
 
 
 --
@@ -1256,7 +1256,7 @@ SELECT pg_catalog.setval('public.rating_rating_id_seq', 1, false);
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 1, false);
+SELECT pg_catalog.setval('public.users_user_id_seq', 3, true);
 
 
 --
@@ -1351,10 +1351,10 @@ ALTER TABLE ONLY public.payment
 
 --
 -- TOC entry 4860 (class 2606 OID 17148)
--- Name: product_new product_new_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: product product_new_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.product_new
+ALTER TABLE ONLY public.product
     ADD CONSTRAINT product_new_pkey PRIMARY KEY (product_id);
 
 
@@ -1409,7 +1409,7 @@ ALTER TABLE ONLY public.cartitem
 --
 
 ALTER TABLE ONLY public.image
-    ADD CONSTRAINT image_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.product_new(product_id) ON DELETE CASCADE;
+    ADD CONSTRAINT image_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.product(product_id) ON DELETE CASCADE;
 
 
 --
@@ -1441,27 +1441,27 @@ ALTER TABLE ONLY public.payment
 
 --
 -- TOC entry 4869 (class 2606 OID 17149)
--- Name: product_new product_new_brand_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: product product_new_brand_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.product_new
+ALTER TABLE ONLY public.product
     ADD CONSTRAINT product_new_brand_id_fkey FOREIGN KEY (brand_id) REFERENCES public.brand(brand_id);
 
 
 --
 -- TOC entry 4870 (class 2606 OID 17154)
--- Name: product_new product_new_promo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: product product_new_promo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.product_new
+ALTER TABLE ONLY public.product
     ADD CONSTRAINT product_new_promo_id_fkey FOREIGN KEY (promo_id) REFERENCES public.promotion(promo_id);
 
 
--- Completed on 2025-10-17 19:50:15
+-- Completed on 2025-10-23 14:14:10
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict hYyYfLYFv7TjtjjEvNyqf2x5weRgFaCzSA7Qi7M5BSjxjyOxisMbI0lXMR9Mnyy
+\unrestrict 76gf4OtfzqZDwhrJpTGimNQ4QHyCHx2f25CPUJpiMtE2K1RaU8hnbZC6hfL65sN
 
