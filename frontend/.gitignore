@@ -1,23 +1,42 @@
+# ---------------------
 # Python
+# ---------------------
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 venv/
-.env
 
+# Environment files
+.env
+dot.env
+
+# Database files or scripts
+db.py
+db/
+*.db
+
+# ---------------------
 # Node
+# ---------------------
 node_modules/
 dist/
 build/
 
+# ---------------------
 # VSCode
+# ---------------------
 .vscode/
 
+# ---------------------
 # Docker
+# ---------------------
 pgdata/
+*.log
 *.pid
 
+# ---------------------
 # System
+# ---------------------
 .DS_Store
 Thumbs.db

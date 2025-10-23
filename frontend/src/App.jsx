@@ -7,22 +7,36 @@ import ForgotPassword from "@/pages/forgotpassword";
 import Product from "@/pages/product";
 import UploadImage from "./components/UploadImage";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import ProtectedRoute from "@/routes/ProtectedRoute";
+import AdminDashboard from "@/pages/admindasboard";
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Dùng MainLayout để bọc các trang chính */}
+          {/* Layout người dùng */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="forgotpassword" element={<ForgotPassword />} />
             <Route path="laptop" element={<Product />} />
-            {/* 👇 Thêm route upload ảnh */}
             <Route path="upload" element={<UploadImage />} />
           </Route>
+
+          {/* 🔒 Route admin có phân quyền */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Trang lỗi quyền hạn (tuỳ chọn) */}
+          <Route path="/unauthorized" element={<h1>Không có quyền truy cập 🚫</h1>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
