@@ -4,9 +4,10 @@ from config import UPLOAD_FOLDER
 from routes.product import product_bp
 from routes.upload import upload_bp
 from routes.chatbot import chatbot_bp
-
+from routes.auth import auth_bp
 app = Flask(__name__)
-CORS(app)
+app.config["SECRET_KEY"] = "supersecretkey123"
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
@@ -14,6 +15,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.register_blueprint(product_bp)
 app.register_blueprint(upload_bp)
 app.register_blueprint(chatbot_bp)
+app.register_blueprint(auth_bp)
 
 @app.route("/")
 def home():

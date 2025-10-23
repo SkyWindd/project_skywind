@@ -27,7 +27,7 @@ def import_images():
                     relative_path = os.path.relpath(new_path, base_folder).replace("\\", "/")
                     parts = relative_path.split("/")
                     product_name_guess = parts[0]
-                    cur.execute("SELECT product_id FROM product_new WHERE name ILIKE %s LIMIT 1;", (f"%{product_name_guess}%",))
+                    cur.execute("SELECT product_id FROM product WHERE name ILIKE %s LIMIT 1;", (f"%{product_name_guess}%",))
                     product = cur.fetchone()
                     if not product: continue
                     product_id = product["product_id"]

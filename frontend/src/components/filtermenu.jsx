@@ -54,43 +54,53 @@ export default function FilterMenu() {
 
     // --- Xử lý riêng phần giá ---
     if (key === "price") {
-      const selectedPrices = updated; // cho phép chọn nhiều giá
+      const selectedPrices = updated;
 
-    if (!selectedPrices || selectedPrices.length === 0) {
-    removeParam("min_price");
-    removeParam("max_price");
-    return;
-  }
+      if (!selectedPrices || selectedPrices.length === 0) {
+        removeParam("min_price");
+        removeParam("max_price");
+        return;
+      }
 
-  // ánh xạ từng mức giá thành khoảng min - max
-      const priceRanges = selectedPrices.map((price) => {
-       switch (price) {
-      case "Dưới 15 triệu":
-        return { min: 0, max: 15000000 };
-      case "15 - 20 triệu":
-        return { min: 15000000, max: 20000000 };
-      case "20 - 25 triệu":
-        return { min: 20000000, max: 25000000 };
-      case "Trên 25 triệu":
-        return { min: 25000000, max: Infinity };
-      default:
-        return null;
+      const priceRanges = selectedPrices
+        .map((price) => {
+          switch (price) {
+            case "Dưới 15 triệu":
+              return { min: 0, max: 15000000 };
+            case "15 - 20 triệu":
+              return { min: 15000000, max: 20000000 };
+            case "20 - 25 triệu":
+              return { min: 20000000, max: 25000000 };
+            case "Trên 25 triệu":
+              return { min: 25000000, max: Infinity };
+            default:
+              return null;
+          }
+        })
+        .filter(Boolean);
+
+      const minPrice = Math.min(...priceRanges.map((p) => p.min));
+      const maxPriceRaw = Math.max(...priceRanges.map((p) => p.max));
+
+      if (maxPriceRaw === Infinity) {
+        setParam("min_price", minPrice.toString());
+        removeParam("max_price");
+      } else {
+        setParam("min_price", minPrice.toString());
+        setParam("max_price", maxPriceRaw.toString());
+      }
     }
-  }).filter(Boolean);
 
-  // tìm khoảng nhỏ nhất & lớn nhất
-  const minPrice = Math.min(...priceRanges.map(p => p.min));
-  const maxPriceRaw = Math.max(...priceRanges.map(p => p.max));
-
-  if (maxPriceRaw === Infinity) {
-    setParam("min_price", minPrice.toString());
-    removeParam("max_price");
-  } else {
-    setParam("min_price", minPrice.toString());
-    setParam("max_price", maxPriceRaw.toString());
-  }
-}
-
+    // ✅ Xử lý riêng phần "Còn hàng / Hết hàng"
+    if (key === "in_stock") {
+      if (updated.includes("Còn hàng")) {
+        setParam("in_stock", "true");
+      } else if (updated.includes("Hết hàng")) {
+        setParam("in_stock", "false");
+      } else {
+        removeParam("in_stock");
+      }
+    }
   };
 
   return (
@@ -105,6 +115,50 @@ export default function FilterMenu() {
           Bộ lọc
         </Button>
 
+        {/* ✅ Dropdown "Kho hàng" */}
+        <Popover
+          open={openPopover === "in_stock"}
+          onOpenChange={() =>
+            setOpenPopover(openPopover === "in_stock" ? null : "in_stock")
+          }
+        >
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={`rounded-lg bg-gray-100 hover:bg-gray-200 ${
+                getSelected("in_stock").includes("Còn hàng")
+                  ? "text-green-700 border-green-500 bg-green-100"
+                  : ""
+              }`}
+            >
+              {getSelected("in_stock").includes("Còn hàng")
+                ? "✅ Còn hàng"
+                : "Tình trạng "}
+              <ChevronDown size={14} className="ml-2 opacity-70" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56">
+            <Command>
+              <CommandInput placeholder="Tìm trạng thái..." />
+              <CommandList>
+                <CommandGroup>
+                  {["Còn hàng"].map((opt) => (
+                    <CommandItem
+                      key={opt}
+                      onSelect={() => handleToggle("in_stock", opt)}
+                      className="flex gap-2 items-center cursor-pointer"
+                    >
+                      <Checkbox checked={getSelected("in_stock").includes(opt)} />
+                      {opt}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Các bộ lọc còn lại */}
         {Object.entries(filtersConfig).map(([key, { label, options }]) => (
           <Popover
             key={key}
