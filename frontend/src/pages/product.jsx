@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import FilterMenu from "@/components/filtermenu";
-import SortMenu from "@/components/sort";
-import FilterTags from "@/components/filtertags";
-import PaginationSection from "@/components/pagination";
-import ProductCard from "@/components/productcard";
+import FilterMenu from "@/components/ProductPages/filterMenu";
+import SortMenu from "@/components/ProductPages/sort";
+import FilterTags from "@/components/ProductPages/filterTags";
+import PaginationSection from "@/components/ProductPages/pagination";
+import ProductCard from "@/components/Product/productcard";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import productApi from "@/api/productApi";
 
@@ -107,7 +107,7 @@ export default function Product() {
       <SortMenu />
 
       {/* 🧩 Danh sách sản phẩm */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
         {visible.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

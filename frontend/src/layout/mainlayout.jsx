@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Header from "@/layout/header";
 import Footer from "@/layout/footer";
-import BreadcrumbNav from "@/components/breadcrumb";
+import BreadcrumbNav from "@/components/mainLayout/breadCrumb";
 import ChatBox from "../chatbox";
 import { Toaster } from "sonner";
 

@@ -5,6 +5,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgotpassword";
 import Product from "@/pages/product";
+import ProductDetails from "./pages/productdetail";
 import UploadImage from "./components/UploadImage";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="register" element={<Register />} />
             <Route path="forgotpassword" element={<ForgotPassword />} />
             <Route path="laptop" element={<Product />} />
+            <Route path="laptop/:slug" element={<ProductDetails />} />
             <Route path="upload" element={<UploadImage />} />
           </Route>
 
