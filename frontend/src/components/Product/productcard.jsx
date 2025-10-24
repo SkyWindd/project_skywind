@@ -10,6 +10,13 @@ export default function ProductCard({ product }) {
       ? Math.round(((product.old_price - product.price) / product.old_price) * 100)
       : null);
 
+  const slug = product.name
+    .toLowerCase()
+    .normalize("NFD") // bỏ dấu tiếng Việt
+    .replace(/[\u0300-\u036f]/g, "") // loại bỏ ký tự dấu
+    .replace(/\s+/g, "-") // thay khoảng trắng bằng dấu '-'
+    .replace(/[^a-z0-9-]/g, ""); // loại bỏ ký tự đặc biệt
+
   return (
     <Card className="relative hover:shadow-lg transition rounded-xl border border-gray-100 flex flex-col h-full overflow-hidden">
       {/* 🔥 Nhãn giảm giá nổi */}
@@ -21,7 +28,7 @@ export default function ProductCard({ product }) {
 
       {/* 🖼 Hình ảnh sản phẩm */}
       <CardHeader className="p-0 relative">
-        <Link to={`/product/${product.product_id}`}>
+        <Link to={`/laptop/${slug}`} state={{ id: product.product_id }}>
           {product.images && product.images.length > 0 ? (
             <img
               src={product.images[0]}

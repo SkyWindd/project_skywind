@@ -16,7 +16,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import productApi from "@/api/productApi";
-import ProductCard from "@/components/productcard";
+import ProductCard from "@/components/Product/productcard";
 
 const BASE_URL = "http://localhost:5000/api"; // ✅ dùng 127.0.0.1 thay vì localhost
 

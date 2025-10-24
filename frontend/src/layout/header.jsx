@@ -22,7 +22,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import SidebarMenu from "../components/sidebarmenu";
+import SidebarMenu from "../components/mainLayout/sideBarMenu";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {

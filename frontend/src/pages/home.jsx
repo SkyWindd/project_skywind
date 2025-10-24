@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ProductCard from "@/components/productcard";
-import Banner from "@/components/banner";
+import ProductCard from "@/components/Product/productcard";
+import Banner from "@/components/Home/banner";
 import axios from "axios";
 function Home() {
   const [products, setProducts] = useState([]);
@@ -27,6 +27,7 @@ function Home() {
     fetchProducts();
   }, []);
 
+  
   return (
     <div className="w-full">
       <div className="max-w-screen-xl mx-auto px-4 mt-6">
@@ -43,7 +44,7 @@ function Home() {
         {loading ? (
           <p>Đang tải sản phẩm...</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((item) => (
               <ProductCard key={item.product_id} product={item} />
             ))}
