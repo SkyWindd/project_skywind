@@ -17,7 +17,6 @@ export default function AdminSidebar() {
     { to: "/admin/products", label: "Quản lý sản phẩm", icon: Package },
     { to: "/admin/orders", label: "Quản lý đơn hàng", icon: ShoppingCart },
     { to: "/admin/users", label: "Quản lý người dùng", icon: Users },
-    { to: "/admin/upload", label: "Upload hình ảnh", icon: Upload },
   ];
 
   return (
