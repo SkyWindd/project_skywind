@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ProductCard from "@/components/Product/productcard";
 import Banner from "@/components/Home/banner";
 import axios from "axios";
+
 function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,22 +13,27 @@ function Home() {
     "/banner/banner3.jpg",
   ];
 
-   
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchHotProducts = async () => {
+      setLoading(true);
       try {
-      const res = await axios.get("http://localhost:5000/api/product");
-      setProducts(res.data);
+        const res = await axios.get(
+          "http://localhost:5000/api/products/filter",
+          {
+            params: { is_hot: true },
+          }
+        );
+        setProducts(res.data);
       } catch (err) {
-        console.error("Lỗi khi tải sản phẩm:", err);
+        console.error("Lỗi khi tải sản phẩm nổi bật:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+
+    fetchHotProducts();
   }, []);
 
-  
   return (
     <div className="w-full">
       <div className="max-w-screen-xl mx-auto px-4 mt-6">
@@ -43,6 +49,8 @@ function Home() {
 
         {loading ? (
           <p>Đang tải sản phẩm...</p>
+        ) : products.length === 0 ? (
+          <p>Hiện chưa có sản phẩm nổi bật</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((item) => (
@@ -56,4 +64,3 @@ function Home() {
 }
 
 export default Home;
-
