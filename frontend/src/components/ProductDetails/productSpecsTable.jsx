@@ -10,6 +10,13 @@ import {
 import { Card } from "@/components/ui/card";
 
 export default function ProductSpecsTable({ specs }) {
+  if (!specs || specs.length === 0)
+    return (
+      <Card className="p-4 text-gray-500 italic text-center">
+        Không có thông số kỹ thuật
+      </Card>
+    );
+
   return (
     <Card className="p-4 border border-gray-200 shadow-sm mt-4">
       <div className="flex items-center justify-between mb-3">
@@ -34,16 +41,16 @@ export default function ProductSpecsTable({ specs }) {
         </TableHeader>
 
         <TableBody>
-          {Object.entries(specs).map(([key, value], i) => (
+          {specs.map((item, i) => (
             <TableRow
-              key={key}
+              key={i}
               className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
             >
               <TableCell className="font-medium text-gray-700">
-                {key}
+                {item.spec_name}
               </TableCell>
               <TableCell className="text-gray-600 whitespace-pre-line">
-                {value}
+                {item.spec_value}
               </TableCell>
             </TableRow>
           ))}
