@@ -38,12 +38,6 @@ export default function SidebarMenu({ onClose }) {
       </div>
 
       <Separator />
-
-      <div className="p-4 space-y-2 text-sm">
-        <Link to="/about" className="block hover:text-blue-600">
-          Giới thiệu SkyWind
-        </Link>
-      </div>
     </div>
   );
 }

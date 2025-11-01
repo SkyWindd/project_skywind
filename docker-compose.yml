@@ -1,7 +1,7 @@
 services:
   # 🗄️ PostgreSQL Database
   db:
-    image: postgres:18
+    image: postgres:16               # 👉 Dùng 16 thay vì 18 (ổn định, hỗ trợ tốt hơn)
     container_name: postgres_db
     restart: always
     environment:
@@ -11,10 +11,12 @@ services:
     ports:
       - "54321:5432"
     volumes:
+      # ⚠️ PostgreSQL 18+ thay đổi cấu trúc lưu trữ -> lỗi restart loop bạn gặp
+      # Giải pháp: mount vào /var/lib/postgresql/data để tương thích
       - pgdata:/var/lib/postgresql/data
       - ./db/Skywind.sql:/docker-entrypoint-initdb.d/Skywind.sql:ro
 
-  # 🧠 pgAdmin (web UI quản lý database)
+  # 🧠 pgAdmin (Web UI)
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -24,7 +26,6 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@skywind.com
       PGADMIN_DEFAULT_PASSWORD: admin123
-      PYTHONWARNINGS: "ignore"
     depends_on:
       - db
 
@@ -38,7 +39,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/app  # ✅ Gắn code backend vào container để auto reload
+      - ./backend:/app
     environment:
       FLASK_APP: server.py
       FLASK_ENV: development
@@ -49,7 +50,7 @@ services:
       DB_USER: postgres
       DB_PASS: 12345
       DB_PORT: 5432
-    command: flask run --reload  # ✅ Chạy Flask với hot reload
+    command: flask run --reload
     depends_on:
       - db
 
@@ -65,10 +66,11 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./frontend:/app  # ✅ Auto reload code frontend
+      - ./frontend:/app
       - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true  # 👈 Bắt buộc để React Vite hot reload trong Docker
+      - CHOKIDAR_USEPOLLING=true      # 👈 Cho phép Vite theo dõi file trong volume
+      - WATCHPACK_POLLING=true
     command: ["npm", "run", "dev"]
     depends_on:
       - backend
