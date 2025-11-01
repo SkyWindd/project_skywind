@@ -17,8 +17,8 @@ export default function ProductModal({ open, onClose, product, refresh }) {
     man_hinh: "",
     is_hot: false,
   });
-  const [previews, setPreviews] = useState([]); // nhiều ảnh preview
-  const [files, setFiles] = useState([]); // nhiều file
+  const [previews, setPreviews] = useState([]);
+  const [files, setFiles] = useState([]);
 
   const API_URL = "http://localhost:5000/api/products";
   const UPLOAD_URL = "http://localhost:5000/api/products/upload";
@@ -40,7 +40,6 @@ export default function ProductModal({ open, onClose, product, refresh }) {
         is_hot: product.is_hot || false,
       });
 
-      // 🔹 hiển thị tất cả ảnh có sẵn
       if (product.images && product.images.length > 0) {
         setPreviews(
           product.images.map((img) =>
@@ -79,8 +78,6 @@ export default function ProductModal({ open, onClose, product, refresh }) {
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     setFiles(selectedFiles);
-
-    // hiển thị preview
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...newPreviews]);
   };
@@ -131,8 +128,16 @@ export default function ProductModal({ open, onClose, product, refresh }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white w-[500px] rounded-xl shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
+    // 🔹 Lớp nền mờ (click ra ngoài sẽ đóng)
+    <div
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
+      onClick={onClose}
+    >
+      {/* 🔹 Modal chính (chặn click propagation) */}
+      <div
+        className="bg-white w-[500px] rounded-xl shadow-xl p-6 relative max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-500 hover:text-gray-800">
           <X size={22} />
         </button>
@@ -142,46 +147,101 @@ export default function ProductModal({ open, onClose, product, refresh }) {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input name="name" placeholder="Tên sản phẩm" value={form.name} onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200" required />
+          <input
+            name="name"
+            placeholder="Tên sản phẩm"
+            value={form.name}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
+            required
+          />
 
           <div className="grid grid-cols-2 gap-3">
-            <input name="price" type="number" placeholder="Giá (₫)" value={form.price} onChange={handleChange}
-              className="border rounded-lg px-3 py-2 w-full" required />
-            <input name="stock" type="number" placeholder="Tồn kho" value={form.stock} onChange={handleChange}
-              className="border rounded-lg px-3 py-2 w-full" required />
+            <input
+              name="price"
+              type="number"
+              placeholder="Giá (₫)"
+              value={form.price}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2 w-full"
+              required
+            />
+            <input
+              name="stock"
+              type="number"
+              placeholder="Tồn kho"
+              value={form.stock}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2 w-full"
+              required
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <input name="brand_id" placeholder="Thương hiệu ID" value={form.brand_id} onChange={handleChange}
-              className="border rounded-lg px-3 py-2" />
-            <input name="promo_id" placeholder="Mã khuyến mãi ID" value={form.promo_id} onChange={handleChange}
-              className="border rounded-lg px-3 py-2" />
+            <input
+              name="brand_id"
+              placeholder="Thương hiệu ID"
+              value={form.brand_id}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2"
+            />
+            <input
+              name="promo_id"
+              placeholder="Mã khuyến mãi ID"
+              value={form.promo_id}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <input name="cpu" placeholder="CPU" value={form.cpu} onChange={handleChange}
-              className="border rounded-lg px-3 py-2" />
-            <input name="ram" placeholder="RAM" value={form.ram} onChange={handleChange}
-              className="border rounded-lg px-3 py-2" />
+            <input
+              name="cpu"
+              placeholder="CPU"
+              value={form.cpu}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2"
+            />
+            <input
+              name="ram"
+              placeholder="RAM"
+              value={form.ram}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <input name="ssd" placeholder="SSD" value={form.ssd} onChange={handleChange}
-              className="border rounded-lg px-3 py-2" />
-            <input name="vga" placeholder="VGA" value={form.vga} onChange={handleChange}
-              className="border rounded-lg px-3 py-2" />
+            <input
+              name="ssd"
+              placeholder="SSD"
+              value={form.ssd}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2"
+            />
+            <input
+              name="vga"
+              placeholder="VGA"
+              value={form.vga}
+              onChange={handleChange}
+              className="border rounded-lg px-3 py-2"
+            />
           </div>
 
-          <input name="man_hinh" placeholder="Màn hình" value={form.man_hinh} onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2" />
+          <input
+            name="man_hinh"
+            placeholder="Màn hình"
+            value={form.man_hinh}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-3 py-2"
+          />
 
           <label className="flex items-center gap-2">
             <input type="checkbox" name="is_hot" checked={form.is_hot} onChange={handleChange} />
             <span className="text-sm">🔥 Sản phẩm nổi bật</span>
           </label>
 
-          {/* Hiển thị nhiều ảnh */}
+          {/* Ảnh sản phẩm */}
           <div className="border rounded-lg p-3">
             <p className="text-sm font-semibold mb-2">Ảnh sản phẩm:</p>
             {previews.length > 0 ? (
@@ -203,8 +263,10 @@ export default function ProductModal({ open, onClose, product, refresh }) {
             </label>
           </div>
 
-          <button type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition mt-3">
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition mt-3"
+          >
             💾 Lưu
           </button>
         </form>

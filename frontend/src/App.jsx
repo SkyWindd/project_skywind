@@ -9,7 +9,7 @@ import ProductDetails from "./pages/productdetail";
 import UploadImage from "./components/UploadImage";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "@/routes/ProtectedRoute";
-import AdminDashboard from "@/pages/admindasboard";
+import AdminDashboard from "@/admin/admindasboard";
 
 export default function App() {
   return (
@@ -30,6 +30,7 @@ export default function App() {
             <Route path="laptop" element={<Product />} />
             <Route path="laptop/:slug" element={<ProductDetails />} />
             <Route path="upload" element={<UploadImage />} />
+            
           </Route>
 
           {/* 🔒 Admin Dashboard (có nested routes) */}
