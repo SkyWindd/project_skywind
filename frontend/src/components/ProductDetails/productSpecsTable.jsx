@@ -16,9 +16,6 @@ export default function ProductSpecsTable({ specs }) {
         <h2 className="text-lg font-semibold text-gray-800">
           Thông số kỹ thuật
         </h2>
-        <span className="text-blue-600 text-sm font-medium hover:underline cursor-pointer">
-          Xem tất cả →
-        </span>
       </div>
 
       <Table>
