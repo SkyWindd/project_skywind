@@ -1,10 +1,13 @@
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LogOut, LayoutDashboard, Users, Box, Upload } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Box, Upload, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
-import AdminUser from "@/admin/AdminUser";
-import AdminProduct from "@/admin/AdminProduct";
+
+import AdminUser from "@/admin/adminuser";
+import AdminProduct from "@/admin/adminproduct";
 import UploadImage from "@/components/UploadImage";
+import AdminOverview from "@/admin/adminoverview"; 
+import AdminOrders from "@/admin/adminorder"; // ✅ Thêm import cho trang Đơn hàng
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -35,9 +38,11 @@ export default function AdminDashboard() {
     navigate("/login");
   };
 
+  // ✅ Thêm menu Đơn hàng vào đây
   const menuItems = [
     { path: "/admin", label: "Tổng quan", icon: <LayoutDashboard size={20} /> },
     { path: "/admin/products", label: "Sản phẩm", icon: <Box size={20} /> },
+    { path: "/admin/orders", label: "Đơn hàng", icon: <ShoppingCart size={20} /> }, // ✅ mới
     { path: "/admin/users", label: "Người dùng", icon: <Users size={20} /> },
     { path: "/admin/upload", label: "Upload", icon: <Upload size={20} /> },
   ];
@@ -113,11 +118,13 @@ export default function AdminDashboard() {
             Bảng điều khiển Admin
           </h2>
 
+          {/* ✅ Thêm route trang Đơn hàng */}
           <Routes>
+            <Route index element={<AdminOverview />} />
             <Route path="products" element={<AdminProduct />} />
+            <Route path="orders" element={<AdminOrders />} /> {/* ✅ Trang Đơn hàng */}
             <Route path="users" element={<AdminUser />} />
             <Route path="upload" element={<UploadImage />} />
-            <Route index element={<p>Chọn một mục bên trái để quản lý.</p>} />
           </Routes>
         </motion.div>
       </div>

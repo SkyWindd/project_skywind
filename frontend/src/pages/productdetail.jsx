@@ -39,6 +39,7 @@ export default function ProductDetail() {
 
         const fixedData = {
           ...data,
+          id: data.product_id || data.id, // ✅ thêm dòng này để đồng nhất
           images: Array.isArray(data.images) ? data.images : [],
           specifications: Array.isArray(data.specifications)
             ? data.specifications
@@ -59,7 +60,7 @@ export default function ProductDetail() {
   }, [slug, refresh]);
 
   const handleNewRating = () => {
-    setRefresh((prev) => !prev); // reload product sau khi đánh giá
+    setRefresh((prev) => !prev); // reload sản phẩm sau khi có đánh giá
   };
 
   if (loading)
