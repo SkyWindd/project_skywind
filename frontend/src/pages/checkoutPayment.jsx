@@ -15,7 +15,7 @@ export default function CheckoutPayment() {
   const [method, setMethod] = useState(null);
   const [transferOpen, setTransferOpen] = useState(false);
 
-  // 🧮 Lấy tổng tiền và phương thức đã chọn từ localStorage
+  // 🧮 Lấy tổng tiền và phương thức thanh toán
   useEffect(() => {
     const savedTotal = localStorage.getItem("checkout_total_price");
     const savedMethod = localStorage.getItem("payment_method_id");
@@ -31,15 +31,45 @@ export default function CheckoutPayment() {
       return;
     }
 
-    if (method === "qr") {
-      setTransferOpen(true); // 🔓 mở modal chuyển khoản
-    } else if (method === "cod") {
-      toast.success("✅ Đặt hàng thành công! Nhân viên sẽ liên hệ sớm.");
-      setTimeout(() => navigate("/"), 2000);
-    } else {
-      toast.error("Phương thức thanh toán không hợp lệ!");
+    switch (method) {
+      case "qr":
+        // 🔹 Chỉ mở modal khi chọn “Chuyển khoản ngân hàng qua mã QR”
+        setTransferOpen(true);
+        break;
+
+      case "cod":
+        toast.success("✅ Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng.");
+        setTimeout(() => navigate("/"), 2000);
+        break;
+
+      case "vnpay":
+        toast.info("🌐 Chuyển hướng sang cổng thanh toán VNPay...");
+        // Giả lập redirect
+        setTimeout(() => {
+          toast.success("Thanh toán VNPay thành công!");
+          navigate("/");
+        }, 2000);
+        break;
+
+      case "momo":
+        toast.info("📱 Đang mở ứng dụng MoMo...");
+        setTimeout(() => {
+          toast.success("Thanh toán MoMo thành công!");
+          navigate("/");
+        }, 2000);
+        break;
+
+      default:
+        toast.error("Phương thức thanh toán không hợp lệ!");
+        break;
     }
   };
+
+  useEffect(() => {
+  const updateMethod = (e) => setMethod(e.detail);
+  window.addEventListener("paymentMethodChanged", updateMethod);
+  return () => window.removeEventListener("paymentMethodChanged", updateMethod);
+}, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8">
@@ -86,7 +116,7 @@ export default function CheckoutPayment() {
         </div>
       </div>
 
-      {/* 💵 Modal chuyển khoản (chỉ mở khi chọn QR và nhấn Thanh toán) */}
+      {/* 💵 Modal chuyển khoản (chỉ mở khi chọn QR) */}
       <PaymentTransferModal open={transferOpen} onClose={setTransferOpen} />
     </div>
   );

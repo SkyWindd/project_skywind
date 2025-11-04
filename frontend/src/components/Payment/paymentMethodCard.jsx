@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-   CreditCard,
+  CreditCard,
   Banknote,
   Smartphone,
   Wallet,
@@ -35,7 +35,7 @@ export default function PaymentMethodCard() {
       icon: <QrCode className="w-6 h-6 text-blue-600" />,
       description: "Hỗ trợ quét mã từ hầu hết các ngân hàng.",
     },
-     {
+    {
       id: "vnpay",
       name: "VNPay",
       icon: <CreditCard className="w-6 h-6 text-blue-600" />,
@@ -55,26 +55,32 @@ export default function PaymentMethodCard() {
     },
   ];
 
-  // Load từ localStorage
+  // 🔄 Load từ localStorage
   useEffect(() => {
     const saved = localStorage.getItem("payment_method_id");
     if (saved) setSelectedId(saved);
   }, []);
 
-  useEffect(() => {
-    if (selectedId) localStorage.setItem("payment_method_id", selectedId);
-  }, [selectedId]);
-
-  const selectedMethod = paymentMethods.find((m) => m.id === selectedId);
-
+  // ✅ Khi chọn phương thức
   const handleMethodSelect = (method) => {
     setSelectedId(method.id);
-    setOpen(false);
+    localStorage.setItem("payment_method_id", method.id);
+
+    // 🔔 Phát sự kiện để các trang khác (CheckoutPayment) lắng nghe
+    window.dispatchEvent(
+      new CustomEvent("paymentMethodChanged", { detail: method.id })
+    );
+
+    // Đóng modal sau khi chọn
+    setTimeout(() => setOpen(false), 100);
   };
+
+  const selectedMethod = paymentMethods.find((m) => m.id === selectedId);
 
   return (
     <Card className="p-5 mb-6 border border-gray-100 shadow-md rounded-2xl bg-white hover:shadow-lg transition-all duration-300">
       <Dialog open={open} onOpenChange={setOpen}>
+        {/* Click toàn bộ card để mở modal */}
         <DialogTrigger asChild>
           <div
             className="flex items-center justify-between w-full cursor-pointer select-none"
@@ -106,16 +112,16 @@ export default function PaymentMethodCard() {
                   </div>
                 </div>
                 <span className="text-blue-600 text-sm font-medium hover:underline">
-                  Thay đổi 
+                  Thay đổi
                 </span>
               </div>
             )}
           </div>
         </DialogTrigger>
 
-        {/* Danh sách phương thức */}
+        {/* Danh sách phương thức thanh toán */}
         <DialogContent className="max-w-md p-0 rounded-2xl overflow-hidden">
-          <DialogHeader className="border-b px-5 py-3 flex justify-between items-center">
+          <DialogHeader className="border-b px-5 py-3">
             <DialogTitle className="text-lg font-semibold text-gray-800">
               Chọn phương thức thanh toán
             </DialogTitle>
@@ -145,9 +151,7 @@ export default function PaymentMethodCard() {
                         {method.description}
                       </p>
                     </div>
-                    {isSelected && (
-                      <Check className="text-blue-600 w-5 h-5" />
-                    )}
+                    {isSelected && <Check className="text-blue-600 w-5 h-5" />}
                   </motion.div>
                 );
               })}
