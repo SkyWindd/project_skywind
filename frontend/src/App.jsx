@@ -12,6 +12,7 @@ import UploadImage from "./components/UploadImage";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import AdminDashboard from "@/pages/admindasboard";
+import CheckoutPayment from "./pages/checkoutPayment";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="laptop" element={<Product />} />
             <Route path="laptop/:slug" element={<ProductDetails />} />
             <Route path="checkout-info" element={<CheckoutInfo />} />
+            <Route path="checkoutPayment" element={<CheckoutPayment />} />
             <Route path="upload" element={<UploadImage />} />
           </Route>
 
