@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
-import { GoogleOAuthProvider } from "@react-oauth/google"; // ✅ thêm dòng này
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -14,6 +14,7 @@ import ForgotPassword from "@/pages/forgotpassword";
 import Product from "@/pages/product";
 import ProductDetails from "@/pages/productdetail";
 import CheckoutInfo from "@/pages/checkoutInfo";
+import CheckoutPayment from "@/pages/checkoutPayment";
 import UploadImage from "@/components/UploadImage";
 import SearchResults from "@/pages/SearchResults";
 import Profile from "@/pages/profile";
@@ -27,8 +28,8 @@ export default function App() {
         <AuthProvider>
           <CartProvider>
             <Toaster richColors position="top-right" />
-
             <Routes>
+              {/* Layout người dùng */}
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<Home />} />
                 <Route path="login" element={<Login />} />
@@ -37,12 +38,14 @@ export default function App() {
                 <Route path="laptop" element={<Product />} />
                 <Route path="laptop/:slug" element={<ProductDetails />} />
                 <Route path="checkout-info" element={<CheckoutInfo />} />
+                <Route path="checkoutPayment" element={<CheckoutPayment />} />
                 <Route path="upload" element={<UploadImage />} />
                 <Route path="search" element={<SearchResults />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="order" element={<Order />} />
               </Route>
 
+              {/* Admin routes */}
               <Route
                 path="/admin/*"
                 element={
@@ -52,6 +55,7 @@ export default function App() {
                 }
               />
 
+              {/* Unauthorized */}
               <Route
                 path="/unauthorized"
                 element={
@@ -61,6 +65,7 @@ export default function App() {
                 }
               />
 
+              {/* 404 */}
               <Route
                 path="*"
                 element={
