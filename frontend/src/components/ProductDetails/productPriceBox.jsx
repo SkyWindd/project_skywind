@@ -5,9 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 
 export default function ProductPriceBox({ product, onViewRating }) {
-  const discountPercent = Math.round(
-    ((product.old_price - product.price) / product.old_price) * 100
-  );
+  // 🛡️ Nếu chưa có dữ liệu sản phẩm, không render gì cả
+  if (!product) return null;
+
+  // 🧮 Kiểm tra dữ liệu giá hợp lệ trước khi tính toán
+  const hasPrices = product.price && product.old_price;
+  const discountPercent = hasPrices
+    ? Math.round(((product.old_price - product.price) / product.old_price) * 100)
+    : 0;
 
   return (
     <Card className="border border-gray-200 shadow-sm p-5 bg-gray-50 rounded-xl">
@@ -17,14 +22,19 @@ export default function ProductPriceBox({ product, onViewRating }) {
           <p className="text-sm text-gray-500">Giá sản phẩm</p>
           <div className="flex items-center gap-2">
             <p className="text-3xl font-bold text-gray-900">
-              {product.price.toLocaleString("vi-VN")}₫
+              {product.price
+                ? `${product.price.toLocaleString("vi-VN")}₫`
+                : "Đang cập nhật"}
             </p>
-            <Badge
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-0.5 rounded-md"
-            >
-              -{discountPercent}%
-            </Badge>
+
+            {hasPrices && (
+              <Badge
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-0.5 rounded-md"
+              >
+                -{discountPercent}%
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -32,14 +42,16 @@ export default function ProductPriceBox({ product, onViewRating }) {
         <div className="flex-1 border-l border-gray-200 pl-5">
           <p className="text-sm text-gray-500">Giá gốc</p>
           <p className="line-through text-gray-400 font-medium text-lg">
-            {product.old_price.toLocaleString("vi-VN")}₫
+            {product.old_price
+              ? `${product.old_price.toLocaleString("vi-VN")}₫`
+              : "—"}
           </p>
         </div>
       </div>
 
       <Separator className="my-3" />
 
-      {/* Link định giá + xem đánh giá */}
+      {/* Xem đánh giá */}
       <div className="flex justify-between items-center text-sm">
         <button
           onClick={onViewRating}

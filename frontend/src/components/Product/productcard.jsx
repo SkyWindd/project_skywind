@@ -2,7 +2,6 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Cpu, HardDrive, Monitor, Gauge } from "lucide-react";
 import { Link } from "react-router-dom";
 
-
 export default function ProductCard({ product }) {
   const discountPercent =
     product.discount_percent ??
@@ -12,23 +11,25 @@ export default function ProductCard({ product }) {
 
   const slug = product.name
     .toLowerCase()
-    .normalize("NFD") // bỏ dấu tiếng Việt
-    .replace(/[\u0300-\u036f]/g, "") // loại bỏ ký tự dấu
-    .replace(/\s+/g, "-") // thay khoảng trắng bằng dấu '-'
-    .replace(/[^a-z0-9-]/g, ""); // loại bỏ ký tự đặc biệt
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+
+  const productLink = `/laptop/${slug}`;
 
   return (
     <Card className="relative hover:shadow-lg transition rounded-xl border border-gray-100 flex flex-col h-full overflow-hidden">
-      {/* 🔥 Nhãn giảm giá nổi */}
+      {/* Nhãn giảm giá */}
       {discountPercent && (
         <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md z-10">
           -{discountPercent}%
         </div>
       )}
 
-      {/* 🖼 Hình ảnh sản phẩm */}
+      {/* Hình ảnh */}
       <CardHeader className="p-0 relative">
-        <Link to={`/laptop/${slug}`} state={{ id: product.product_id }}>
+        <Link to={productLink} state={{ id: product.product_id }}>
           {product.images && product.images.length > 0 ? (
             <img
               src={product.images[0]}
@@ -43,15 +44,15 @@ export default function ProductCard({ product }) {
         </Link>
       </CardHeader>
 
-      {/* 📋 Thông tin chi tiết */}
+      {/* Tên sản phẩm */}
       <CardContent className="p-4 flex flex-col flex-grow">
-        <Link to={`/product/${product.product_id}`}>
+        <Link to={productLink} state={{ id: product.product_id }}>
           <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px] hover:text-blue-600 transition-colors duration-200">
             {product.name}
           </h3>
         </Link>
 
-        {/* ⚙️ Thông tin cấu hình */}
+        {/* Thông tin cấu hình */}
         <div className="bg-gray-100 text-gray-700 rounded-lg p-2 text-xs mt-2 space-y-1">
           <div className="flex items-center gap-2">
             <Cpu className="w-3.5 h-3.5" /> {product.cpu}
@@ -67,7 +68,7 @@ export default function ProductCard({ product }) {
           </div>
         </div>
 
-        {/* 💰 Giá sản phẩm */}
+        {/* Giá */}
         <div className="mt-3">
           {product.old_price && product.old_price > product.price ? (
             <>
@@ -89,44 +90,16 @@ export default function ProductCard({ product }) {
             </p>
           )}
 
-          {/* 📦 Trạng thái tồn kho */}
-<div className="flex items-center gap-1 mt-1">
-  {product.stock > 0 ? (
-    <>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-        stroke="green"
-        className="w-4 h-4"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      <span className="text-green-600 text-xs font-medium">Còn hàng</span>
-    </>
-  ) : (
-    <>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-        stroke="red"
-        className="w-4 h-4"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-      <span className="text-red-500 text-xs font-medium">Hết hàng</span>
-    </>
-  )}
-</div>
+          {/* Tồn kho */}
+          <div className="flex items-center gap-1 mt-1">
+            {product.stock > 0 ? (
+              <span className="text-green-600 text-xs font-medium">Còn hàng</span>
+            ) : (
+              <span className="text-red-500 text-xs font-medium">Hết hàng</span>
+            )}
+          </div>
 
-          {/* ⭐ Đánh giá */}
+          {/* Đánh giá */}
           <div className="flex items-center gap-1 text-sm text-yellow-500 mt-1">
             {[...Array(5)].map((_, i) => (
               <svg
@@ -144,15 +117,12 @@ export default function ProductCard({ product }) {
                 />
               </svg>
             ))}
-            <span className="text-gray-700 text-sm ml-1">
-              {product.rating ?? 0}
-            </span>
+            <span className="text-gray-700 text-sm ml-1">{product.rating ?? 0}</span>
             <span className="text-gray-500 text-xs">
               ({product.reviews ?? 0} đánh giá)
             </span>
           </div>
         </div>
-        
       </CardContent>
     </Card>
   );
