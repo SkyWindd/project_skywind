@@ -2,11 +2,16 @@ from flask import Blueprint, request, jsonify
 from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_connection
+from flask_cors import cross_origin
 import jwt
 from datetime import datetime, timedelta
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
+import secrets
 
 auth_bp = Blueprint("auth", __name__)
 SECRET_KEY = "supersecretkey123"
+GOOGLE_CLIENT_ID = "1023332032947-c0ao141cco290tnrbbr7darlivpsr934.apps.googleusercontent.com"  # chỉnh lại Client ID thật
 
 
 # ---------------------- HELPER ----------------------
@@ -16,7 +21,7 @@ def create_tokens(user):
         "user_id": user["user_id"],
         "email": user["email"],
         "role": user["role"],
-        "exp": datetime.utcnow() + timedelta(minutes=15)
+        "exp": datetime.utcnow() + timedelta(minutes=30)
     }
     access_token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -35,8 +40,6 @@ def create_tokens(user):
 def register():
     try:
         data = request.get_json()
-        print("📩 Dữ liệu đăng ký:", data)
-
         username = data.get("username") or data.get("fullName")
         email = data.get("email")
         password = data.get("password")
@@ -48,14 +51,11 @@ def register():
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Kiểm tra email trùng
         cur.execute("SELECT * FROM users WHERE email = %s", (email,))
         if cur.fetchone():
             return jsonify({"success": False, "message": "Email đã tồn tại"}), 400
 
-        # Mã hóa mật khẩu
         hashed = generate_password_hash(password)
-
         cur.execute("""
             INSERT INTO users (username, email, password, role, is_active)
             VALUES (%s, %s, %s, %s, %s)
@@ -63,8 +63,6 @@ def register():
         """, (username, email, hashed, role, True))
         user_id = cur.fetchone()["user_id"]
         conn.commit()
-
-        print(f"✅ Đăng ký thành công: {email}")
 
         return jsonify({
             "success": True,
@@ -75,7 +73,6 @@ def register():
     except Exception as e:
         print("❌ Lỗi đăng ký:", e)
         return jsonify({"success": False, "message": str(e)}), 500
-
     finally:
         if "cur" in locals(): cur.close()
         if "conn" in locals(): conn.close()
@@ -86,8 +83,6 @@ def register():
 def login_user():
     try:
         data = request.get_json()
-        print("📩 Dữ liệu đăng nhập:", data)
-
         email = data.get("email")
         password = data.get("password")
 
@@ -101,22 +96,12 @@ def login_user():
 
         if not user:
             return jsonify({"success": False, "message": "Email không tồn tại"}), 400
-
-        # 🚫 Kiểm tra nếu user bị khóa
         if not user["is_active"]:
-            print("🚫 Tài khoản bị khóa:", email)
-            return jsonify({
-                "success": False,
-                "message": "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
-            }), 403
-
-        # Kiểm tra mật khẩu
+            return jsonify({"success": False, "message": "Tài khoản bị khóa"}), 403
         if not check_password_hash(user["password"], password):
-            return jsonify({"success": False, "message": "Mật khẩu không đúng"}), 400
+            return jsonify({"success": False, "message": "Sai mật khẩu"}), 400
 
         access_token, refresh_token = create_tokens(user)
-        print(f"✅ Đăng nhập thành công: {email}")
-
         return jsonify({
             "success": True,
             "message": "Đăng nhập thành công",
@@ -153,7 +138,7 @@ def refresh_token():
 
         new_access = jwt.encode({
             "user_id": decoded["user_id"],
-            "exp": datetime.utcnow() + timedelta(minutes=15)
+            "exp": datetime.utcnow() + timedelta(minutes=30)
         }, SECRET_KEY, algorithm="HS256")
 
         return jsonify({"success": True, "accessToken": new_access}), 200
@@ -163,3 +148,58 @@ def refresh_token():
     except Exception as e:
         print("❌ Lỗi refresh:", e)
         return jsonify({"success": False, "message": str(e)}), 400
+
+
+# ---------------------- GOOGLE LOGIN ----------------------
+@auth_bp.route("/api/auth/google-login", methods=["POST"])
+@cross_origin()
+def google_login():
+    try:
+        data = request.get_json()
+        token = data.get("token") or data.get("credential")
+
+        if not token:
+            return jsonify({"success": False, "message": "Thiếu Google token"}), 400
+
+        # Xác minh token Google
+        idinfo = id_token.verify_oauth2_token(token, grequests.Request(), GOOGLE_CLIENT_ID)
+
+        email = idinfo.get("email")
+        name = idinfo.get("name", email.split("@")[0])
+
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+
+        if not user:
+            # Tạo password giả để tránh lỗi NULL mà không ảnh hưởng user cũ
+            random_password = secrets.token_hex(16)
+            hashed_password = generate_password_hash(random_password)
+
+            cur.execute("""
+                INSERT INTO users (username, email, password, role, is_active)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING user_id, username, email, role
+            """, (name, email, hashed_password, "user", True))
+            user = cur.fetchone()
+            conn.commit()
+
+        access_token, refresh_token = create_tokens(user)
+        return jsonify({
+            "success": True,
+            "message": "Đăng nhập Google thành công",
+            "accessToken": access_token,
+            "refreshToken": refresh_token,
+            "user": user
+        }), 200
+
+    except ValueError as e:
+        print("❌ Lỗi xác minh Google token:", e)
+        return jsonify({"success": False, "message": "Google token không hợp lệ"}), 401
+    except Exception as e:
+        print("❌ Lỗi Google login:", e)
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        if "cur" in locals(): cur.close()
+        if "conn" in locals(): conn.close()
