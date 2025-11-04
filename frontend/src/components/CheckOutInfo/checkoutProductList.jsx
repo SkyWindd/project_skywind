@@ -29,7 +29,7 @@ export default function CheckoutProductList() {
                     alt={item.name}
                     className="w-16 h-16 object-cover rounded-xl border border-gray-200 shadow-sm"
                   />
-                  <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-semibold px-2 py-[2px] rounded-full shadow">
+                  <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow">
                     x{item.quantity}
                   </span>
                 </div>
@@ -48,7 +48,7 @@ export default function CheckoutProductList() {
               </div>
 
               {/* Thành tiền */}
-              <p className="text-blue-700 font-bold text-sm sm:text-base min-w-[80px] text-right">
+              <p className="text-blue-700 font-bold text-sm sm:text-base min-w-20 text-right">
                 {(item.price * item.quantity).toLocaleString()}₫
               </p>
             </div>

@@ -142,7 +142,7 @@ export default function PaymentMethodCard() {
                         : "hover:border-blue-300 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex-shrink-0">{method.icon}</div>
+                    <div className="shrink-0">{method.icon}</div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-800">
                         {method.name}

@@ -108,7 +108,7 @@ export default function CheckoutPayment() {
           {/* Thanh toán */}
           <Button
             onClick={handlePayment}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base py-6 rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base py-6 rounded-lg shadow-md hover:shadow-lg transition-all"
           >
             <CreditCard size={18} />
             Thanh toán ngay
