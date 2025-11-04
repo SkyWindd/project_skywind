@@ -1,25 +1,8 @@
-/* eslint-disable no-unused-vars */
 // src/api/axiosClient.js
-// Axios client chung cho toàn bộ project
-// - gắn access token tự động (lấy từ localStorage.authData.accessToken)
-// - khi nhận 401 => gọi refresh token (/auth/refresh-token) và retry request
-// - queue các request chờ refresh để tránh race condition
-//
-// Backend cần endpoint:
-// POST /auth/refresh-token
-// body: { refreshToken: "..." }
-// response: { success: true, accessToken: "newAccessToken" }
-// (theo spec FE đã thống nhất)
-//
-// NOTE: file này không phụ thuộc vào AuthContext (tránh vòng lặp import)
 import axios from "axios";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
-import productApi from "@/api/productApi";
-import ProductCard from "@/components/Product/productcard";
 
-const BASE_URL = "http://localhost:5000/api"; // ✅ dùng 127.0.0.1 thay vì localhost
-
+const BASE_URL = "http://127.0.0.1:5000/api"; // ✅ nên dùng 127.0.0.1 để tránh lỗi CORS ngẫu nhiên
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,
@@ -29,19 +12,21 @@ const axiosClient = axios.create({
   timeout: 15000,
 });
 
-// ---------- Helper: get authData from localStorage ----------
+// ============================
+// 🔹 Helper: Lấy authData từ localStorage
+// ============================
 function getAuthData() {
   try {
     const raw = localStorage.getItem("authData");
-    if (!raw) return null;
-    return JSON.parse(raw);
-  // eslint-disable-next-line no-unused-vars
-  } catch (err) {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
     return null;
   }
 }
 
-// ---------- Attach access token if exists ----------
+// ============================
+// 🔹 Gắn Access Token vào Header
+// ============================
 axiosClient.interceptors.request.use((config) => {
   const auth = getAuthData();
   if (auth?.accessToken) {
@@ -50,97 +35,84 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ---------- Refresh token logic ----------
+// ============================
+// 🔹 Cơ chế Refresh Token tự động
+// ============================
 let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
   failedQueue = [];
 };
 
-// create a plain axios instance for refresh request (no interceptors)
+// Dùng axios riêng để tránh vòng lặp interceptor khi refresh
 const refreshClient = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 15000,
+  headers: { "Content-Type": "application/json" },
 });
 
 axiosClient.interceptors.response.use(
-  (response) => response, // successful response: pass through
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If no response or not 401, just forward error message
+    // ❌ Không có response (network lỗi)
     if (!error.response) {
-      // network error
-      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra mạng.");
+      toast.error("Không thể kết nối đến server. Kiểm tra mạng hoặc backend.");
       return Promise.reject(error);
     }
 
-    // If response is 401 and request has not been retried
+    // 🔁 Nếu lỗi 401 → cần refresh token
     if (error.response.status === 401 && !originalRequest._retry) {
       const auth = getAuthData();
       const refreshToken = auth?.refreshToken;
 
-      // if no refresh token -> force logout on FE (AuthContext should handle)
       if (!refreshToken) {
-        // Optionally show toast
-        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        // queue the request until refresh completes
-        return new Promise(function (resolve, reject) {
+        // Hàng đợi chờ refresh hoàn tất
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
             originalRequest.headers.Authorization = "Bearer " + token;
             return axiosClient(originalRequest);
           })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // call refresh endpoint
         const res = await refreshClient.post("/auth/refresh-token", {
           refreshToken,
         });
 
-        // Expect backend returns { success: true, accessToken: "..." }
-        if (res?.data?.accessToken || res?.accessToken) {
-          // support both axios "data" extracted or not depending on instance
-          const newAccessToken = res.data?.accessToken || res.accessToken || res?.accessToken;
+        const newAccessToken =
+          res.data?.accessToken || res.accessToken || null;
 
-          // Update localStorage authData.accessToken (preserve other authData fields)
-          const current = getAuthData();
-          const updated = { ...(current || {}), accessToken: newAccessToken };
+        if (newAccessToken) {
+          // Cập nhật localStorage
+          const current = getAuthData() || {};
+          const updated = { ...current, accessToken: newAccessToken };
           localStorage.setItem("authData", JSON.stringify(updated));
 
-          // process queued requests
           processQueue(null, newAccessToken);
 
-          // set header and retry original request
+          // Gắn token mới và gửi lại request cũ
           originalRequest.headers.Authorization = "Bearer " + newAccessToken;
           return axiosClient(originalRequest);
         } else {
-          // refresh failed
-          processQueue(new Error("Refresh token failed"), null);
-          toast.error("Không thể gia hạn phiên. Vui lòng đăng nhập lại.");
+          processQueue(new Error("Refresh token thất bại"), null);
+          toast.error("Không thể làm mới phiên. Vui lòng đăng nhập lại.");
           return Promise.reject(error);
         }
       } catch (refreshError) {
@@ -152,16 +124,14 @@ axiosClient.interceptors.response.use(
       }
     }
 
-    // Other errors
+    // 🧱 Các lỗi khác
     const msg =
       error.response?.data?.message ||
       error.message ||
       "Có lỗi xảy ra. Vui lòng thử lại.";
-    // optional: show toast for unexpected errors
     // toast.error(msg);
     return Promise.reject(error);
   }
 );
 
 export default axiosClient;
-
