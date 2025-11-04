@@ -1,106 +1,125 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { LayoutDashboard, Users, Package, ShoppingCart, LogOut, Bell } from "lucide-react";
+import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { LogOut, LayoutDashboard, Users, Box, Upload } from "lucide-react";
+import { motion } from "framer-motion";
+import AdminUser from "@/admin/AdminUser";
+import AdminProduct from "@/admin/AdminProduct";
+import UploadImage from "@/components/UploadImage";
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [username, setUsername] = useState("Admin");
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        if (parsedUser?.username) {
+          setUsername(parsedUser.username);
+        } else {
+          navigate("/login");
+        }
+      } catch {
+        navigate("/login");
+      }
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem("user");
     navigate("/login");
   };
 
-  const stats = [
-    { title: "Người dùng", value: 128, icon: <Users size={20} /> },
-    { title: "Sản phẩm", value: 56, icon: <Package size={20} /> },
-    { title: "Đơn hàng", value: 42, icon: <ShoppingCart size={20} /> },
+  const menuItems = [
+    { path: "/admin", label: "Tổng quan", icon: <LayoutDashboard size={20} /> },
+    { path: "/admin/products", label: "Sản phẩm", icon: <Box size={20} /> },
+    { path: "/admin/users", label: "Người dùng", icon: <Users size={20} /> },
+    { path: "/admin/upload", label: "Upload", icon: <Upload size={20} /> },
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-blue-700 text-white flex flex-col">
-        <div className="p-4 font-bold text-xl border-b border-blue-600 flex items-center gap-2">
-          <LayoutDashboard size={20} /> Admin Panel
+    <div className="flex min-h-screen bg-gray-100 text-gray-800">
+      {/* 🌙 SIDEBAR */}
+      <motion.aside
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+        animate={{ width: isExpanded ? 220 : 80 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="bg-gradient-to-b from-blue-700 to-blue-800 text-white flex flex-col justify-between shadow-lg p-4"
+      >
+        <div>
+          <div className="flex items-center justify-center mb-8">
+            <h2
+              className={`text-xl font-bold tracking-wide transition-all duration-300 ${
+                !isExpanded && "opacity-0 w-0"
+              }`}
+            >
+              Admin
+            </h2>
+          </div>
+
+          {/* Menu items */}
+          <nav className="space-y-2">
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive ? "bg-blue-600 shadow-md" : "hover:bg-blue-600/70"
+                  }`}
+                >
+                  {item.icon}
+                  {isExpanded && <span className="text-sm">{item.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        <nav className="flex-1 p-2 space-y-1">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-white hover:bg-blue-600 gap-2"
-            onClick={() => navigate("/admin")}
-          >
-            <LayoutDashboard size={18} /> Dashboard
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-white hover:bg-blue-600 gap-2"
-            onClick={() => navigate("/admin/products")}
-          >
-            <Package size={18} /> Quản lý sản phẩm
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-white hover:bg-blue-600 gap-2"
-            onClick={() => navigate("/admin/users")}
-          >
-            <Users size={18} /> Quản lý người dùng
-          </Button>
-        </nav>
-
-        <div className="p-4 border-t border-blue-600">
-          <Button
-            variant="destructive"
+        {/* Footer */}
+        <div className="flex flex-col items-center border-t border-blue-500 pt-3">
+          {isExpanded && (
+            <p className="text-sm mb-2">
+              Xin chào, <span className="font-semibold">{username}</span>
+            </p>
+          )}
+          <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2"
+            className="p-2 rounded-full bg-red-500 hover:bg-red-600 transition"
+            title="Đăng xuất"
           >
-            <LogOut size={18} /> Đăng xuất
-          </Button>
+            <LogOut size={18} />
+          </button>
+          <p className="text-[10px] opacity-75 mt-2">© 2025 SkyWind</p>
         </div>
-      </aside>
+      </motion.aside>
 
-      {/* MAIN CONTENT */}
+      {/* 🌞 MAIN CONTENT */}
       <div className="flex-1 flex flex-col">
-        {/* HEADER */}
-        <header className="flex items-center justify-between px-6 py-3 border-b bg-white shadow-sm">
-          <h1 className="text-xl font-semibold text-gray-800">Trang quản trị</h1>
+        <motion.div
+          className="flex-1 p-6 overflow-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h2 className="text-2xl font-bold mb-4 text-blue-700">
+            Bảng điều khiển Admin
+          </h2>
 
-          <div className="flex items-center gap-4">
-            <button className="relative text-gray-600 hover:text-blue-600">
-              <Bell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                {user?.name?.[0]?.toUpperCase() || "A"}
-              </div>
-              <span className="text-sm font-medium text-gray-700">{user?.name || "Admin"}</span>
-            </div>
-          </div>
-        </header>
-
-        {/* CONTENT */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="grid md:grid-cols-3 gap-6">
-            {stats.map((s) => (
-              <Card key={s.title} className="shadow-sm">
-                <CardHeader className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-gray-700">{s.title}</CardTitle>
-                  {s.icon}
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-blue-700">{s.value}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </main>
+          <Routes>
+            <Route path="products" element={<AdminProduct />} />
+            <Route path="users" element={<AdminUser />} />
+            <Route path="upload" element={<UploadImage />} />
+            <Route index element={<p>Chọn một mục bên trái để quản lý.</p>} />
+          </Routes>
+        </motion.div>
       </div>
     </div>
   );

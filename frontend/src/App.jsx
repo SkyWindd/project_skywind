@@ -16,11 +16,16 @@ import CheckoutPayment from "./pages/checkoutPayment";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AuthProvider>
          <CartProvider>
         <Routes>
-          {/* Layout người dùng */}
+          {/* 🏠 Layout người dùng */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
@@ -33,9 +38,9 @@ export default function App() {
             <Route path="upload" element={<UploadImage />} />
           </Route>
 
-          {/* 🔒 Route admin có phân quyền */}
+          {/* 🔒 Admin Dashboard (có nested routes) */}
           <Route
-            path="/admin"
+            path="/admin/*"
             element={
               <ProtectedRoute role="admin">
                 <AdminDashboard />
@@ -43,7 +48,7 @@ export default function App() {
             }
           />
 
-          {/* Trang lỗi quyền hạn (tuỳ chọn) */}
+          {/* 🚫 Trang lỗi quyền hạn */}
           <Route path="/unauthorized" element={<h1>Không có quyền truy cập 🚫</h1>} />
         </Routes>
         </CartProvider>
