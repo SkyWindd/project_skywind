@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
-import CheckoutProgress from "@/components/Checkout/checkoutProgress";
-import CheckoutProductList from "@/components/Checkout/checkoutProductList";
-import CheckoutCustomerInfo from "@/components/Checkout/checkoutCustomerInfo";
-import CheckoutDeliveryInfo from "@/components/Checkout/checkoutDeliveryInfo";
+import CheckoutProgress from "@/components/CheckOutInfo/checkoutProgress";
+import CheckoutProductList from "@/components/CheckOutInfo/checkoutProductList";
+import CheckoutCustomerInfo from "@/components/CheckOutInfo/checkoutCustomerInfo";
+import CheckoutDeliveryInfo from "@/components/CheckOutInfo/checkoutDeliveryInfo";
 import { Toaster, toast } from "sonner";
 
 export default function CheckoutInfo() {
   const { total } = useCart();
   const navigate = useNavigate();
 
-  // 🚚 Loại giao hàng
+  // 🚚 Loại giao hàng (giao tận nơi, nhận tại cửa hàng)
   const [deliveryType, setDeliveryType] = useState("delivery");
 
-  // 📝 Form thông tin
+  // 🧾 Thông tin form khách hàng
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -26,7 +26,25 @@ export default function CheckoutInfo() {
     address: "",
   });
 
-  // 🔄 Cập nhật form
+  // 🧠 Khôi phục dữ liệu khi quay lại trang
+  useEffect(() => {
+    const saved = localStorage.getItem("checkout_delivery_form");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setForm(parsed);
+      } catch (err) {
+        console.warn("⚠️ Lỗi đọc dữ liệu localStorage:", err);
+      }
+    }
+  }, []);
+
+  // 💾 Lưu dữ liệu mỗi khi thay đổi
+  useEffect(() => {
+    localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
+  }, [form]);
+
+  // ✏️ Cập nhật dữ liệu form
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -34,65 +52,53 @@ export default function CheckoutInfo() {
     }));
   };
 
-  // 💾 Lưu vào localStorage
-  useEffect(() => {
-    const savedForm = localStorage.getItem("checkout_delivery_form");
-    if (savedForm) {
-      try {
-        setForm(JSON.parse(savedForm));
-      } catch {
-        console.warn("⚠️ Lỗi parse localStorage: checkout_delivery_form");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
-  }, [form]);
-
-  // ✅ Kiểm tra dữ liệu
+  // ✅ Xác thực trước khi chuyển bước
   const handleNext = () => {
     const missingFields = [];
-    if (!form.name.trim()) missingFields.push("họ tên");
-    if (!form.phone.trim()) missingFields.push("số điện thoại");
-    if (!form.province) missingFields.push("tỉnh / thành phố");
-    if (!form.ward) missingFields.push("phường / xã");
-    if (!form.address.trim()) missingFields.push("địa chỉ");
+    if (!form.name.trim()) missingFields.push("Họ tên");
+    if (!form.phone.trim()) missingFields.push("Số điện thoại");
+    if (!form.province) missingFields.push("Tỉnh / Thành phố");
+    if (!form.ward) missingFields.push("Phường / Xã");
+    if (!form.address.trim()) missingFields.push("Địa chỉ");
 
     if (missingFields.length > 0) {
-      toast.error(`Vui lòng nhập ${missingFields.join(", ")} trước khi tiếp tục`, {
-        position: "top-center",
-      });
+      toast.error(
+        `Vui lòng điền ${missingFields.join(", ")} trước khi tiếp tục.`,
+        { position: "top-center" }
+      );
       return;
     }
 
+    // ✅ Lưu cả form & tổng tiền
+  localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
+  localStorage.setItem("checkout_total_price", total.toString());
+
     toast.success("✅ Thông tin hợp lệ! Đang chuyển đến trang thanh toán...", {
       position: "top-center",
-      duration: 2000,
+      duration: 1800,
     });
 
-    setTimeout(() => {
-      navigate("/checkout/payment");
-    }, 1500);
+    // ⏳ Chuyển sang trang thanh toán sau 1.5 giây
+    setTimeout(() => navigate("/checkoutPayment"), 1500);
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8">
-      {/* Toaster Sonner */}
-      <Toaster richColors expand position="top-center" />
+      {/* 🔔 Sonner Toaster */}
+      <Toaster richColors position="top-center" expand />
 
-      {/* 🧭 Tiến trình */}
+      {/* 🧭 Thanh tiến trình */}
       <div className="mb-8">
         <CheckoutProgress step={1} />
       </div>
 
-      {/* 🛒 Giỏ hàng */}
+      {/* 🛒 Danh sách sản phẩm */}
       <CheckoutProductList />
 
-      {/* 👤 Khách hàng */}
+      {/* 👤 Thông tin khách hàng */}
       <CheckoutCustomerInfo form={form} onChange={handleChange} />
 
-      {/* 🚚 Giao hàng */}
+      {/* 🚚 Thông tin giao hàng */}
       <CheckoutDeliveryInfo
         deliveryType={deliveryType}
         setDeliveryType={setDeliveryType}
@@ -115,7 +121,7 @@ export default function CheckoutInfo() {
         onClick={handleNext}
         className="w-full mt-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
       >
-        Tiếp tục
+        Tiếp tục thanh toán
       </Button>
     </div>
   );
