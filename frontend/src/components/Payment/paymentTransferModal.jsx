@@ -8,11 +8,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Copy, CheckCircle2, Banknote } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom"; // ✅ import thêm
 
 export default function PaymentTransferModal({ open, onClose }) {
   const [orderId, setOrderId] = useState("");
   const [customer, setCustomer] = useState({});
   const [total, setTotal] = useState(0);
+  const navigate = useNavigate(); // ✅ khởi tạo điều hướng
 
   // 🧾 Lấy dữ liệu từ localStorage
   useEffect(() => {
@@ -33,6 +35,17 @@ export default function PaymentTransferModal({ open, onClose }) {
   };
 
   const transferContent = `Thanh toan don hang ${orderId} - ${customer.name || "Khach hang"}`;
+
+  // ✅ Hàm xử lý khi bấm “Tôi đã chuyển tiền”
+  const handleConfirmPayment = () => {
+    toast.success("💸 Thanh toán thành công!");
+    onClose(false);
+
+    // Đợi 1s cho toast hiển thị rồi quay lại trang chính
+    setTimeout(() => {
+      navigate("/");
+    }, 1000);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -131,10 +144,7 @@ export default function PaymentTransferModal({ open, onClose }) {
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
-              onClick={() => {
-                toast.success("✅ Thanh toán thử thành công!");
-                onClose(false);
-              }}
+              onClick={handleConfirmPayment} // ✅ Gọi hàm xử lý
             >
               <CheckCircle2 size={16} />
               Tôi đã chuyển tiền

@@ -119,7 +119,7 @@ export default function CheckoutInfo() {
       {/* 🔘 Nút Tiếp tục */}
       <Button
         onClick={handleNext}
-        className="w-full mt-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+        className="w-full mt-8 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
       >
         Tiếp tục thanh toán
       </Button>

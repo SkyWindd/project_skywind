@@ -12,7 +12,6 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import {
   User,
-  ShoppingCart,
   Settings,
   Package,
   LogOut,
