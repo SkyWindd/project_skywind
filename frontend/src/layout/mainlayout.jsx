@@ -22,9 +22,6 @@ function MainLayout() {
         <Outlet /> {/* Render các trang như Home, Login, Upload... */}
       </main>
 
-      {/* 💬 Chatbox hiển thị ở góc phải dưới */}
-      <ChatBox />
-
       {/* ⚓ Footer */}
       <footer className="bg-white border-t">
         <Footer />
