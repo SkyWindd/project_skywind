@@ -2,22 +2,60 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
-import { useCart } from "@/context/CartContext"; // ✅ import
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductActionBox({ product }) {
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart(); // ✅ dùng context giỏ hàng
+  const { cartItems, addToCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const increase = () => setQuantity((prev) => prev + 1);
   const decrease = () => setQuantity((prev) => Math.max(1, prev - 1));
 
+  // 🛒 Thêm vào giỏ hàng
   const handleAddToCart = () => {
-    addToCart(product, quantity); // ✅ Gửi tới giỏ hàng thật
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng 🔒");
+      return;
+    }
 
-    toast.success("Đã thêm vào giỏ hàng 🛒", {
+    const isExist = cartItems.some((item) => item.id === product.id);
+    addToCart(product, quantity);
+
+    if (isExist) {
+      toast.info("Đã cập nhật số lượng sản phẩm 🛒", {
+        description: `${product.name} × ${quantity}`,
+        duration: 2500,
+      });
+    } else {
+      toast.success("Đã thêm sản phẩm vào giỏ hàng 🛒", {
+        description: `${product.name} × ${quantity}`,
+        duration: 2500,
+      });
+    }
+  };
+
+  // 💳 Mua ngay → yêu cầu đăng nhập
+  const handleBuyNow = () => {
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để mua hàng 🔒");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    // Nếu chưa có trong giỏ → thêm luôn
+    const isExist = cartItems.some((item) => item.id === product.id);
+    if (!isExist) addToCart(product, quantity);
+
+    toast.success("Chuyển đến trang thanh toán 💳", {
       description: `${product.name} × ${quantity}`,
-      duration: 2500,
+      duration: 1500,
     });
+
+    setTimeout(() => navigate("/checkout-info"), 1200);
   };
 
   return (
@@ -47,10 +85,15 @@ export default function ProductActionBox({ product }) {
         </div>
       </div>
 
-      <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-base py-6 rounded-md">
+      {/* Nút Mua ngay */}
+      <Button
+        onClick={handleBuyNow}
+        className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-base py-6 rounded-md"
+      >
         <CreditCard className="mr-2 w-4 h-4" /> MUA NGAY
       </Button>
 
+      {/* Nút thêm giỏ hàng */}
       <Button
         variant="outline"
         className="w-full border border-red-600 text-red-600 hover:bg-red-50 font-semibold py-6 rounded-md"

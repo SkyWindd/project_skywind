@@ -3,16 +3,16 @@ import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function ProductRatingBox({ product }) {
+export default function ProductRatingBox({ product, onNewRating }) {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
   const [ratingsList, setRatingsList] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [user, setUser] = useState(null); // ✅ Lưu thông tin người dùng đăng nhập
+  const [user, setUser] = useState(null);
 
-  // ✅ Lấy thông tin user từ localStorage
+  // ✅ Lấy thông tin người dùng từ localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
@@ -22,14 +22,16 @@ export default function ProductRatingBox({ product }) {
   useEffect(() => {
     const fetchRatings = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/rating/${product.product_id || product.id}`)
+        const res = await fetch(
+          `http://localhost:5000/api/rating/${product.product_id || product.id}`
+        );
         const data = await res.json();
         if (data.success) setRatingsList(data.data);
       } catch (err) {
         console.error("❌ Lỗi khi tải đánh giá:", err);
       }
     };
-    if (product?.id) fetchRatings();
+    if (product?.id || product?.product_id) fetchRatings();
   }, [product]);
 
   // ✅ Gửi đánh giá
@@ -46,12 +48,13 @@ export default function ProductRatingBox({ product }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          product_id:product.product_id,
-          user_id: user.user_id, // ✅ Lấy user_id từ localStorage
+          product_id: product.id || product.product_id,
+          user_id: user.user_id,
           rating,
           comment,
         }),
       });
+
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message);
 
@@ -59,10 +62,19 @@ export default function ProductRatingBox({ product }) {
       setRating(0);
       setComment("");
 
-      // 🔄 Load lại danh sách đánh giá sau khi gửi
-      const updated = await fetch(`http://localhost:5000/api/rating/${product.product_id || product.id}`)
-      const updatedData = await updated.json();
-      if (updatedData.success) setRatingsList(updatedData.data);
+      // ✅ Thêm đánh giá mới ngay lập tức vào danh sách
+      const newRating = {
+        rating_id: Date.now(),
+        user_name: user.name || "Bạn",
+        rating,
+        comment,
+        created_at: new Date().toISOString(),
+      };
+      setRatingsList((prev) => [newRating, ...prev]);
+
+      // ✅ Báo component cha (ProductDetail) reload lại nếu cần
+      if (onNewRating) onNewRating();
+
     } catch (err) {
       console.error("❌ Lỗi gửi đánh giá:", err);
       setMessage("❌ " + err.message);
@@ -149,7 +161,9 @@ export default function ProductRatingBox({ product }) {
                     ))}
                   </div>
                 </div>
-                {r.comment && <p className="text-gray-700 mt-2">{r.comment}</p>}
+                {r.comment && (
+                  <p className="text-gray-700 mt-2">{r.comment}</p>
+                )}
                 <p className="text-xs text-gray-400 mt-1">
                   {new Date(r.created_at).toLocaleString("vi-VN")}
                 </p>
