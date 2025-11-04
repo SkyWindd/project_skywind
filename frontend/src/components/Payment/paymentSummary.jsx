@@ -23,7 +23,7 @@ export default function PaymentSummary() {
       </div>
 
       {/* 🌈 Đường phân cách gradient */}
-      <div className="h-[1px] w-full bg-gradient-to-r from-blue-400/20 via-gray-200 to-blue-400/20 mb-5"></div>
+      <div className="h-px w-full bg-linear-to-r from-blue-400/20 via-gray-200 to-blue-400/20 mb-5"></div>
 
       <CardContent className="space-y-5 p-0">
         {/* 🎟️ Mã giảm giá */}
@@ -60,7 +60,7 @@ export default function PaymentSummary() {
           </div>
 
           {/* Đường ngăn và tổng cộng */}
-          <div className="h-[1px] bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 my-2"></div>
+          <div className="h-px bg-linear-to-r from-gray-100 via-gray-200 to-gray-100 my-2"></div>
 
           <div className="flex justify-between items-center font-semibold text-base">
             <span className="text-gray-800">Tổng tiền</span>

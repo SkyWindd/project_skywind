@@ -11,7 +11,7 @@ import secrets
 
 auth_bp = Blueprint("auth", __name__)
 SECRET_KEY = "supersecretkey123"
-GOOGLE_CLIENT_ID = "1023332032947-c0ao141cco290tnrbbr7darlivpsr934.apps.googleusercontent.com"  # chỉnh lại Client ID thật
+GOOGLE_CLIENT_ID = "1021298070223-mvdt4u4itl5vecpjsc2aibbvrs2l9hai.apps.googleusercontent.com"  # chỉnh lại Client ID thật
 
 
 # ---------------------- HELPER ----------------------

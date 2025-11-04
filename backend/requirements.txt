@@ -5,3 +5,5 @@ python-dotenv==1.0.1
 PyJWT==2.8.0
 vietnam-provinces
 unidecode
+google-auth
+google-auth-oauthlib
