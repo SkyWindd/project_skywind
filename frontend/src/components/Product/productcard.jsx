@@ -18,6 +18,11 @@ export default function ProductCard({ product }) {
 
   const productLink = `/laptop/${slug}`;
 
+  // ✅ Xử lý sao và đánh giá an toàn
+  const avgRating = Number(product.avg_rating || 0);
+  const fullStars = Math.floor(avgRating);
+  const hasHalfStar = avgRating - fullStars >= 0.5;
+
   return (
     <Card className="relative hover:shadow-lg transition rounded-xl border border-gray-100 flex flex-col h-full overflow-hidden">
       {/* Nhãn giảm giá */}
@@ -44,7 +49,7 @@ export default function ProductCard({ product }) {
         </Link>
       </CardHeader>
 
-      {/* Tên sản phẩm */}
+      {/* Nội dung */}
       <CardContent className="p-4 flex flex-col flex-grow">
         <Link to={productLink} state={{ id: product.product_id }}>
           <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px] hover:text-blue-600 transition-colors duration-200">
@@ -99,27 +104,70 @@ export default function ProductCard({ product }) {
             )}
           </div>
 
-          {/* Đánh giá */}
+          {/* ⭐ Đánh giá */}
           <div className="flex items-center gap-1 text-sm text-yellow-500 mt-1">
-            {[...Array(5)].map((_, i) => (
-              <svg
-                key={i}
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill={i < (product.rating || 0) ? "#facc15" : "none"}
-                stroke="#facc15"
-                className="w-4 h-4"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M9.049 2.927a.75.75 0 011.402 0l1.637 4.341 4.66.18a.75.75 0 01.43 1.37l-3.61 2.944 1.234 4.53a.75.75 0 01-1.14.832L10 14.347l-3.662 2.777a.75.75 0 01-1.14-.832l1.234-4.53-3.61-2.944a.75.75 0 01.43-1.37l4.66-.18L9.049 2.927z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            ))}
-            <span className="text-gray-700 text-sm ml-1">{product.rating ?? 0}</span>
+            {[...Array(5)].map((_, i) => {
+              if (i < fullStars)
+                return (
+                  <svg
+                    key={i}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="#facc15"
+                    stroke="#facc15"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9.049 2.927a.75.75 0 011.402 0l1.637 4.341 4.66.18a.75.75 0 01.43 1.37l-3.61 2.944 1.234 4.53a.75.75 0 01-1.14.832L10 14.347l-3.662 2.777a.75.75 0 01-1.14-.832l1.234-4.53-3.61-2.944a.75.75 0 01.43-1.37l4.66-.18L9.049 2.927z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                );
+              else if (i === fullStars && hasHalfStar)
+                return (
+                  <svg
+                    key={i}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    className="w-4 h-4"
+                  >
+                    <defs>
+                      <linearGradient id={`half-${product.product_id}`}>
+                        <stop offset="50%" stopColor="#facc15" />
+                        <stop offset="50%" stopColor="none" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      fill={`url(#half-${product.product_id})`}
+                      stroke="#facc15"
+                      d="M9.049 2.927a.75.75 0 011.402 0l1.637 4.341 4.66.18a.75.75 0 01.43 1.37l-3.61 2.944 1.234 4.53a.75.75 0 01-1.14.832L10 14.347l-3.662 2.777a.75.75 0 01-1.14-.832l1.234-4.53-3.61-2.944a.75.75 0 01.43-1.37l4.66-.18L9.049 2.927z"
+                    />
+                  </svg>
+                );
+              else
+                return (
+                  <svg
+                    key={i}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="#facc15"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9.049 2.927a.75.75 0 011.402 0l1.637 4.341 4.66.18a.75.75 0 01.43 1.37l-3.61 2.944 1.234 4.53a.75.75 0 01-1.14.832L10 14.347l-3.662 2.777a.75.75 0 01-1.14-.832l1.234-4.53-3.61-2.944a.75.75 0 01.43-1.37l4.66-.18L9.049 2.927z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                );
+            })}
+            <span className="text-gray-700 text-sm ml-1">
+              {avgRating.toFixed(1)}
+            </span>
             <span className="text-gray-500 text-xs">
-              ({product.reviews ?? 0} đánh giá)
+              ({product.rating_count ?? 0} đánh giá)
             </span>
           </div>
         </div>

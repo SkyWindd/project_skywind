@@ -1,11 +1,23 @@
+/* ✅ Font Google */
 @import url('https://fonts.googleapis.com/css2?family=Birthstone&display=swap');
+
+/* ✅ Tailwind core imports */
 @import "tailwindcss";
-@import "tw-animate-css";
-button{
+
+/* ✅ Tailwind layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ Global styles */
+button {
   cursor: pointer;
 }
+
+/* ✅ Custom variants */
 @custom-variant dark (&:is(.dark *));
 
+/* ✅ Custom theme variables */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -44,6 +56,7 @@ button{
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ✅ Light mode (mặc định) */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -79,6 +92,7 @@ button{
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ✅ Dark mode */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -113,11 +127,12 @@ button{
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ✅ Base styles */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }

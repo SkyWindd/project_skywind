@@ -530,3 +530,34 @@ def update_product(product_id):
         print("❌ update_product error:", e)
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+
+@product_bp.route("/search", methods=["GET"])
+def search_products():
+    from psycopg2.extras import RealDictCursor
+    from db import get_connection
+
+    try:
+        query = request.args.get("query", "").strip()
+        if not query:
+            return jsonify({"success": False, "message": "Thiếu từ khóa tìm kiếm"}), 400
+
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Tìm kiếm không phân biệt hoa thường (ILIKE trong PostgreSQL)
+        cursor.execute("""
+            SELECT * FROM products 
+            WHERE name ILIKE %s
+            ORDER BY id DESC
+        """, (f"%{query}%",))
+
+        products = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"success": True, "data": products}), 200
+
+    except Exception as e:
+        print("❌ Lỗi tìm kiếm sản phẩm:", e)
+        return jsonify({"success": False, "message": "Lỗi server"}), 500

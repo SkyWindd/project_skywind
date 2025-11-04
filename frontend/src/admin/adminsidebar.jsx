@@ -13,11 +13,13 @@ export default function AdminSidebar() {
   const [isHovered, setIsHovered] = useState(false);
 
   const menuItems = [
-    { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/admin/products", label: "Quản lý sản phẩm", icon: Package },
-    { to: "/admin/orders", label: "Quản lý đơn hàng", icon: ShoppingCart },
-    { to: "/admin/users", label: "Quản lý người dùng", icon: Users },
-  ];
+  { path: "/admin", label: "Tổng quan", icon: <LayoutDashboard size={20} /> },
+  { path: "/admin/products", label: "Sản phẩm", icon: <Box size={20} /> },
+  { path: "/admin/orders", label: "Đơn hàng", icon: <ShoppingBag size={20} /> }, // ✅ mới thêm
+  { path: "/admin/users", label: "Người dùng", icon: <Users size={20} /> },
+  { path: "/admin/upload", label: "Upload", icon: <Upload size={20} /> },
+];
+
 
   return (
     <motion.aside
