@@ -1,84 +1,250 @@
-from flask import Blueprint, jsonify, request
-from db import get_connection
+from flask import Blueprint, request, jsonify
 from psycopg2.extras import RealDictCursor
+from db import get_connection
+from datetime import datetime
+import traceback
 
-orders_bp = Blueprint("orders", __name__, url_prefix="/orders")
-
-# 📦 Lấy tất cả đơn hàng
-@orders_bp.route("/", methods=["GET"])
-def get_orders():
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("""
-        SELECT o.order_id, o.user_id, u.username, o.total_amount, o.status, o.order_date
-        FROM orders o
-        JOIN users u ON o.user_id = u.user_id
-        ORDER BY o.order_date DESC;
-    """)
-    data = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify(data)
+orders_bp = Blueprint("orders", __name__, url_prefix="/api/orders")
 
 
-# 🧾 Tạo đơn hàng mới
-@orders_bp.route("/", methods=["POST"])
+# =========================================================
+# 🧾 API: Tạo đơn hàng mới
+# =========================================================
+@orders_bp.route("/create", methods=["POST"])
 def create_order():
-    data = request.json
-    user_id = data.get("user_id")
-    total_amount = data.get("total_amount")
-    status = data.get("status", "pending")
+    conn = None
+    try:
+        data = request.get_json()
+        print("📩 Dữ liệu nhận được:", data)
+        user_id = data.get("user_id")
+        items = data.get("cart_items")  # [{product_id, quantity, price}]
+        payment_method = data.get("payment_method", "cod")
+        total_amount = sum(item["price"] * item["quantity"] for item in items)
 
-    if not user_id or total_amount is None:
-        return jsonify({"error": "Thiếu thông tin bắt buộc"}), 400
+        if not user_id or not items:
+            return jsonify({"error": "Thiếu dữ liệu đầu vào"}), 400
 
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("""
-        INSERT INTO orders (user_id, total_amount, status, order_date)
-        VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
-        RETURNING order_id;
-    """, (user_id, total_amount, status))
-    new_id = cur.fetchone()["order_id"]
-    conn.commit()
-    cur.close()
-    conn.close()
+        conn = get_connection()
+        cur = conn.cursor()
 
-    return jsonify({"message": "Tạo đơn hàng thành công", "order_id": new_id})
+        # 1️⃣ Tạo đơn hàng
+        cur.execute("""
+            INSERT INTO orders (user_id, order_date, total_amount, status)
+            VALUES (%s, %s, %s, %s)
+            RETURNING order_id
+        """, (user_id, datetime.now(), total_amount, "Đang xử lý"))
+        order_id = cur.fetchone()[0]
+
+        # 2️⃣ Thêm chi tiết đơn hàng
+        for item in items:
+            cur.execute("""
+                INSERT INTO orderdetail (order_id, product_id, quantity, price)
+                VALUES (%s, %s, %s, %s)
+            """, (order_id, item["product_id"], item["quantity"], item["price"]))
+
+        # 3️⃣ Tạo bản ghi thanh toán
+        cur.execute("""
+            INSERT INTO payment (order_id, payment_date, method, status, amount)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (order_id, datetime.now(), payment_method, "Chờ xử lý", total_amount))
+
+        conn.commit()
+        cur.close()
+
+        return jsonify({
+            "message": "Tạo đơn hàng thành công",
+            "order_id": order_id
+        }), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
-# ✏️ Cập nhật đơn hàng
-@orders_bp.route("/<int:order_id>", methods=["PUT"])
-def update_order(order_id):
-    data = request.json
-    status = data.get("status")
+# =========================================================
+# 📦 API: Lấy danh sách đơn hàng của user
+# =========================================================
+@orders_bp.route("/user/<int:user_id>", methods=["GET"])
+def get_orders_by_user(user_id):
+    conn = None
+    try:
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        print("📩 Lấy đơn hàng cho user:", user_id)
+        # 🔹 Lấy danh sách đơn hàng
+        cur.execute("""
+            SELECT 
+                o.order_id,
+                o.order_date,
+                o.total_amount,
+                o.status AS order_status,
+                p.payment_id,
+                p.method AS payment_method,
+                p.status AS payment_status,
+                p.amount AS payment_amount
+            FROM orders o
+            LEFT JOIN payment p ON o.order_id = p.order_id
+            WHERE o.user_id = %s
+            ORDER BY o.order_date DESC
+        """, (user_id,))
+        orders = cur.fetchall()
 
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("UPDATE orders SET status=%s WHERE order_id=%s RETURNING *;", (status, order_id))
-    updated = cur.fetchone()
-    conn.commit()
-    cur.close()
-    conn.close()
+        result = []
+        for order in orders:
+            order_id = order["order_id"]
 
-    if not updated:
-        return jsonify({"error": "Không tìm thấy đơn hàng"}), 404
+            # 🔹 Lấy danh sách sản phẩm trong từng đơn
+            cur.execute("""
+                SELECT 
+                    od.product_id,
+                    pr.name AS product_name,
+                    od.quantity,
+                    od.price
+                FROM orderdetail od
+                JOIN product pr ON od.product_id = pr.product_id
+                WHERE od.order_id = %s
+            """, (order_id,))
+            items = cur.fetchall()
 
-    return jsonify({"message": "Cập nhật thành công", "order": updated})
+            result.append({
+                "order_id": order["order_id"],
+                "order_date": order["order_date"].strftime("%Y-%m-%d %H:%M:%S"),
+                "total_amount": order["total_amount"],
+                "order_status": order["order_status"],
+                "payment": {
+                    "method": order["payment_method"],
+                    "status": order["payment_status"],
+                    "amount": order["payment_amount"]
+                },
+                "items": items
+            })
+
+        cur.close()
+        return jsonify(result), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
-# 🗑️ Xóa đơn hàng
-@orders_bp.route("/<int:order_id>", methods=["DELETE"])
-def delete_order(order_id):
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("DELETE FROM orders WHERE order_id=%s RETURNING *;", (order_id,))
-    deleted = cur.fetchone()
-    conn.commit()
-    cur.close()
-    conn.close()
+# =========================================================
+# 🔍 API: Lấy chi tiết đơn hàng
+# =========================================================
+@orders_bp.route("/<int:order_id>", methods=["GET"])
+def get_order_detail(order_id):
+    conn = None
+    try:
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    if not deleted:
-        return jsonify({"error": "Không tìm thấy đơn hàng"}), 404
+        # 🔹 Thông tin đơn hàng
+        cur.execute("""
+            SELECT 
+                o.order_id,
+                o.user_id,
+                o.order_date,
+                o.total_amount,
+                o.status AS order_status,
+                p.method AS payment_method,
+                p.status AS payment_status,
+                p.amount AS payment_amount
+            FROM orders o
+            LEFT JOIN payment p ON o.order_id = p.order_id
+            WHERE o.order_id = %s
+        """, (order_id,))
+        order = cur.fetchone()
 
-    return jsonify({"message": "Đã xóa đơn hàng", "order": deleted})
+        if not order:
+            return jsonify({"error": "Không tìm thấy đơn hàng"}), 404
+
+        # 🔹 Chi tiết sản phẩm trong đơn hàng
+        cur.execute("""
+            SELECT 
+                od.product_id,
+                pr.name AS product_name,
+                pr.image_url,
+                od.quantity,
+                od.price
+            FROM orderdetail od
+            JOIN product pr ON od.product_id = pr.product_id
+            WHERE od.order_id = %s
+        """, (order_id,))
+        items = cur.fetchall()
+
+        order_detail = {
+            "order_id": order["order_id"],
+            "user_id": order["user_id"],
+            "order_date": order["order_date"].strftime("%Y-%m-%d %H:%M:%S"),
+            "total_amount": order["total_amount"],
+            "order_status": order["order_status"],
+            "payment": {
+                "method": order["payment_method"],
+                "status": order["payment_status"],
+                "amount": order["payment_amount"]
+            },
+            "items": items
+        }
+
+        cur.close()
+        return jsonify(order_detail), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+# =========================================================
+# 🧰 API (Admin): Cập nhật trạng thái đơn hàng
+# =========================================================
+@orders_bp.route("/update-status/<int:order_id>", methods=["PUT"])
+def update_order_status(order_id):
+    conn = None
+    try:
+        data = request.get_json()
+        new_order_status = data.get("order_status")
+        new_payment_status = data.get("payment_status")
+
+        if not new_order_status and not new_payment_status:
+            return jsonify({"error": "Không có dữ liệu để cập nhật"}), 400
+
+        conn = get_connection()
+        cur = conn.cursor()
+
+        if new_order_status:
+            cur.execute("""
+                UPDATE orders
+                SET status = %s
+                WHERE order_id = %s
+            """, (new_order_status, order_id))
+
+        if new_payment_status:
+            cur.execute("""
+                UPDATE payment
+                SET status = %s
+                WHERE order_id = %s
+            """, (new_payment_status, order_id))
+
+        conn.commit()
+        cur.close()
+
+        return jsonify({"message": "Cập nhật trạng thái thành công"}), 200
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
