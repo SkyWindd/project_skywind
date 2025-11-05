@@ -16,8 +16,13 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Khi đăng nhập thành công
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    const fixedUser = {
+      ...userData,
+      id: userData.id || userData._id, // 👈 thêm dòng này để đảm bảo có id
+    };
+
+    setUser(fixedUser);
+    localStorage.setItem("user", JSON.stringify(fixedUser));
   };
 
   // ✅ Khi đăng xuất

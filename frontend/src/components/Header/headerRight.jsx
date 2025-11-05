@@ -55,12 +55,13 @@ export default function HeaderRight() {
             >
               <Settings className="h-4 w-4" /> Thông tin cá nhân
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => navigate("/orders")}
-              className="flex items-center gap-2"
-            >
-              <Package className="h-4 w-4" /> Đơn hàng của tôi
+          <DropdownMenuItem
+            onClick={() => navigate("/profile", { state: { section: "orders" } })}
+            className="flex items-center gap-2"
+              >
+            <Package className="h-4 w-4" /> Đơn hàng của tôi
             </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={logout}
