@@ -37,14 +37,18 @@ export default function ProductDetail() {
 
         if (!res.ok) throw new Error(data.error || "Không thể tải sản phẩm");
 
+        // ✅ Chuẩn hóa dữ liệu để dùng thống nhất
         const fixedData = {
           ...data,
-          id: data.product_id || data.id, // ✅ thêm dòng này để đồng nhất
+          id: data.product_id || data.id,
           images: Array.isArray(data.images) ? data.images : [],
           specifications: Array.isArray(data.specifications)
             ? data.specifications
             : [],
           promos: Array.isArray(data.promos) ? data.promos : [],
+          // ✅ Chuẩn hóa tên biến tồn kho
+          stock: data.stock ?? data.quantity ?? 0,
+          outOfStock: (data.stock ?? data.quantity ?? 0) <= 0,
         };
 
         setProduct(fixedData);
@@ -60,7 +64,7 @@ export default function ProductDetail() {
   }, [slug, refresh]);
 
   const handleNewRating = () => {
-    setRefresh((prev) => !prev); // reload sản phẩm sau khi có đánh giá
+    setRefresh((prev) => !prev);
   };
 
   if (loading)
@@ -89,6 +93,7 @@ export default function ProductDetail() {
         <div className="w-full lg:w-5/12 flex flex-col gap-5">
           <ProductPriceBox product={product} onViewRating={scrollToRating} />
           <ProductPromoBox promos={product.promos} />
+          {/* ✅ Truyền stock và outOfStock xuống */}
           <ProductActionBox product={product} />
         </div>
       </div>

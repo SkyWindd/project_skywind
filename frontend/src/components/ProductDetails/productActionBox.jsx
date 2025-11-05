@@ -15,6 +15,8 @@ export default function ProductActionBox({ product }) {
   const increase = () => setQuantity((prev) => prev + 1);
   const decrease = () => setQuantity((prev) => Math.max(1, prev - 1));
 
+  const outOfStock = !product?.stock || product.stock <= 0; // ✅ Kiểm tra hết hàng
+
   // 🛒 Thêm vào giỏ hàng
   const handleAddToCart = () => {
     if (!user) {
@@ -46,7 +48,6 @@ export default function ProductActionBox({ product }) {
       return;
     }
 
-    // Nếu chưa có trong giỏ → thêm luôn
     const isExist = cartItems.some((item) => item.id === product.id);
     if (!isExist) addToCart(product, quantity);
 
@@ -66,7 +67,12 @@ export default function ProductActionBox({ product }) {
         <div className="flex items-center border rounded-md overflow-hidden">
           <button
             onClick={decrease}
-            className="w-8 h-8 flex items-center justify-center border-r hover:bg-gray-100 active:scale-95 transition"
+            disabled={outOfStock}
+            className={`w-8 h-8 flex items-center justify-center border-r transition ${
+              outOfStock
+                ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                : "hover:bg-gray-100 active:scale-95"
+            }`}
           >
             <Minus size={14} />
           </button>
@@ -78,29 +84,46 @@ export default function ProductActionBox({ product }) {
           />
           <button
             onClick={increase}
-            className="w-8 h-8 flex items-center justify-center border-l hover:bg-gray-100 active:scale-95 transition"
+            disabled={outOfStock}
+            className={`w-8 h-8 flex items-center justify-center border-l transition ${
+              outOfStock
+                ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                : "hover:bg-gray-100 active:scale-95"
+            }`}
           >
             <Plus size={14} />
           </button>
         </div>
       </div>
 
-      {/* Nút Mua ngay */}
-      <Button
-        onClick={handleBuyNow}
-        className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-base py-6 rounded-md"
-      >
-        <CreditCard className="mr-2 w-4 h-4" /> MUA NGAY
-      </Button>
+      {/* Nếu hết hàng → chỉ hiện 1 nút "Hết hàng" */}
+      {outOfStock ? (
+        <Button
+          disabled
+          className="w-full bg-gray-400 text-white font-semibold text-base py-6 rounded-md opacity-70 cursor-not-allowed"
+        >
+          HẾT HÀNG
+        </Button>
+      ) : (
+        <>
+          {/* Nút Mua ngay */}
+          <Button
+            onClick={handleBuyNow}
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-base py-6 rounded-md"
+          >
+            <CreditCard className="mr-2 w-4 h-4" /> MUA NGAY
+          </Button>
 
-      {/* Nút thêm giỏ hàng */}
-      <Button
-        variant="outline"
-        className="w-full border border-red-600 text-red-600 hover:bg-red-50 font-semibold py-6 rounded-md"
-        onClick={handleAddToCart}
-      >
-        <ShoppingCart className="mr-2 w-4 h-4" /> THÊM VÀO GIỎ HÀNG
-      </Button>
+          {/* Nút thêm giỏ hàng */}
+          <Button
+            variant="outline"
+            className="w-full border border-red-600 text-red-600 hover:bg-red-50 font-semibold py-6 rounded-md"
+            onClick={handleAddToCart}
+          >
+            <ShoppingCart className="mr-2 w-4 h-4" /> THÊM VÀO GIỎ HÀNG
+          </Button>
+        </>
+      )}
     </div>
   );
 }

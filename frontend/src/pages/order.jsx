@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Order() {
   const { user } = useAuth();
@@ -9,31 +10,31 @@ export default function Order() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log("⚠️ Không có user trong context");
+      return;
+    }
 
-    // 🔹 Giả lập dữ liệu đơn hàng (sau này thay bằng API hoặc localStorage)
-    const mockOrders = [
-      {
-        id: "DH001",
-        date: "2025-11-02",
-        total: 20490000,
-        status: "Đang giao",
-        items: [
-          { name: "Laptop Lenovo LOQ 15", quantity: 1, price: 20490000 },
-        ],
-      },
-      {
-        id: "DH002",
-        date: "2025-10-25",
-        total: 15990000,
-        status: "Hoàn tất",
-        items: [
-          { name: "Laptop Acer Nitro 5", quantity: 1, price: 15990000 },
-        ],
-      },
-    ];
+    // ✅ Đảm bảo có ID người dùng (vì backend có thể trả user_id thay vì id)
+    const userId = user.id || user.user_id;
 
-    setOrders(mockOrders);
+    if (!userId) {
+      console.warn("⚠️ userId bị undefined. Kiểm tra lại dữ liệu user:", user);
+      return;
+    }
+
+    const fetchOrders = async () => {
+      try {
+        console.log("📡 Gọi API với userId:", userId);
+        const res = await axios.get(`http://127.0.0.1:5000/api/orders/user/${userId}`);
+        console.log("📦 Dữ liệu đơn hàng trả về:", res.data);
+        setOrders(res.data);
+      } catch (error) {
+        console.error("❌ Lỗi khi tải đơn hàng:", error);
+      }
+    };
+
+    fetchOrders();
   }, [user]);
 
   if (!user) {
@@ -42,7 +43,10 @@ export default function Order() {
         <p className="text-gray-600 text-lg">
           ⚠️ Bạn cần đăng nhập để xem đơn hàng của mình.
         </p>
-        <Button onClick={() => navigate("/login")} className="ml-4 bg-blue-600 text-white">
+        <Button
+          onClick={() => navigate("/login")}
+          className="ml-4 bg-blue-600 text-white"
+        >
           Đăng nhập
         </Button>
       </div>
@@ -63,42 +67,74 @@ export default function Order() {
         <div className="space-y-6">
           {orders.map((order) => (
             <div
-              key={order.id}
+              key={order.order_id}
               className="border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition"
             >
+              {/* Thông tin đơn hàng */}
               <div className="flex justify-between items-center mb-3">
                 <p className="font-medium">
-                  Mã đơn hàng: <span className="text-blue-600">{order.id}</span>
+                  Mã đơn hàng:{" "}
+                  <span className="text-blue-600">{order.order_id}</span>
                 </p>
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    order.status === "Hoàn tất"
+                    order.order_status === "Hoàn tất"
                       ? "bg-green-100 text-green-600"
                       : "bg-yellow-100 text-yellow-600"
                   }`}
                 >
-                  {order.status}
+                  {order.order_status}
                 </span>
               </div>
 
+              {/* Ngày đặt */}
               <p className="text-gray-600 text-sm mb-2">
-                Ngày đặt: {new Date(order.date).toLocaleDateString("vi-VN")}
+                Ngày đặt:{" "}
+                {new Date(order.order_date).toLocaleDateString("vi-VN")}
               </p>
 
+              {/* Danh sách sản phẩm */}
               <div className="border-t pt-3 space-y-2">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span>
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span>{item.price.toLocaleString()}₫</span>
-                  </div>
-                ))}
+                {Array.isArray(order.items) && order.items.length > 0 ? (
+                  order.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between text-sm text-gray-700"
+                    >
+                      <span>
+                        {item.product_name} × {item.quantity}
+                      </span>
+                      <span>{Number(item.price).toLocaleString()}₫</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">Không có sản phẩm.</p>
+                )}
               </div>
 
+              {/* Thanh toán */}
+              <div className="border-t mt-3 pt-3 flex justify-between text-sm text-gray-600">
+                <span>Phương thức thanh toán:</span>
+                <span className="font-medium uppercase">
+                  {order.payment?.method === "cod"
+                    ? "Thanh toán khi nhận hàng"
+                    : order.payment?.method || "Không rõ"}
+                </span>
+              </div>
+
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Trạng thái thanh toán:</span>
+                <span className="font-medium">
+                  {order.payment?.status || "Chờ xử lý"}
+                </span>
+              </div>
+
+              {/* Tổng cộng */}
               <div className="border-t mt-3 pt-3 flex justify-between font-semibold">
                 <span>Tổng cộng:</span>
-                <span className="text-blue-600">{order.total.toLocaleString()}₫</span>
+                <span className="text-blue-600">
+                  {Number(order.total_amount).toLocaleString()}₫
+                </span>
               </div>
             </div>
           ))}
