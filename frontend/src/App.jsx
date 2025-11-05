@@ -18,7 +18,7 @@ import CheckoutPayment from "@/pages/checkoutPayment";
 import UploadImage from "@/components/UploadImage";
 import SearchResults from "@/pages/SearchResults";
 import Profile from "@/pages/profile";
-import Order from "@/pages/order";
+import Order from "@/pages/userOrder";
 import AdminDashboard from "@/admin/admindasboard";
 
 export default function App() {
