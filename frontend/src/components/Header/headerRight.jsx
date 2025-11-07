@@ -10,25 +10,21 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/AuthContext";
-import {
-  User,
-  Settings,
-  Package,
-  LogOut,
-  Car,
-} from "lucide-react";
+import { User, Settings, Package, LogOut } from "lucide-react";
 import HeaderSearch from "./headerSearch.jsx";
 import CartDrawer from "../Cart/cartDrawer.jsx";
+
 export default function HeaderRight() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   return (
     <div className="flex items-center gap-4">
-      {/* Search (mobile) */}
-      <div className="flex md:hidden">
-        <HeaderSearch />
-      </div>
+
+    {/* Search (mobile only) */}
+    <div className="flex md:hidden">
+      <HeaderSearch />
+    </div>
 
       {/* User account */}
       {user ? (
@@ -36,44 +32,59 @@ export default function HeaderRight() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 hover:bg-gray-100 rounded-full px-3"
+              className="relative flex items-center gap-2 hover:bg-blue-50 rounded-full px-3 py-2 transition-all duration-200 group"
             >
-              <User className="h-5 w-5 text-blue-600" />
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold group-hover:bg-blue-200 transition">
+                {user.username?.charAt(0).toUpperCase() || "U"}
+              </div>
               <span className="font-medium text-gray-700 hidden md:inline">
                 {user.username || user.fullName || "Người dùng"}
               </span>
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+          <DropdownMenuContent
+            align="end"
+            className="w-52 rounded-lg shadow-md border border-gray-100 p-1 bg-white"
+          >
+            <DropdownMenuLabel className="text-gray-600 text-sm px-3 py-1.5">
+              Tài khoản của tôi
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-gray-200" />
+
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-md hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer"
             >
-              <Settings className="h-4 w-4" /> Thông tin cá nhân
-            </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => navigate("/profile", { state: { section: "orders" } })}
-            className="flex items-center gap-2"
-              >
-            <Package className="h-4 w-4" /> Đơn hàng của tôi
+              <Settings size={16} className="text-blue-500" />
+              <span>Thông tin cá nhân</span>
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                navigate("/profile", { state: { section: "orders" } })
+              }
+              className="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-md hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer"
+            >
+              <Package size={16} className="text-blue-500" />
+              <span>Đơn hàng của tôi</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="bg-gray-200" />
+
             <DropdownMenuItem
               onClick={logout}
-              className="flex items-center gap-2 text-red-600 font-medium"
+              className="flex items-center gap-2 px-3 py-2 text-red-600 rounded-md hover:bg-red-50 hover:text-red-700 transition-all cursor-pointer font-medium"
             >
-              <LogOut className="h-4 w-4" /> Đăng xuất
+              <LogOut size={16} />
+              <span>Đăng xuất</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
         <Link
           to="/login"
-          className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+          className="flex items-center gap-1 text-gray-700 hover:text-blue-600 transition-colors"
         >
           <User className="h-5 w-5" />
           <span className="hidden md:inline text-sm font-medium">
