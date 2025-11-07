@@ -5,9 +5,7 @@
 @import "tailwindcss";
 
 /* ✅ Tailwind layers */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 /* ✅ Global styles */
 button {
@@ -16,6 +14,21 @@ button {
 
 /* ✅ Custom variants */
 @custom-variant dark (&:is(.dark *));
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out;
+}
 
 /* ✅ Custom theme variables */
 @theme inline {
