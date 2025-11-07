@@ -86,36 +86,39 @@ export default function PaymentMethodCard() {
             className="flex items-center justify-between w-full cursor-pointer select-none"
             onClick={() => setOpen(true)}
           >
-            {!selectedMethod ? (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="text-blue-600 w-5 h-5" />
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      Chọn phương thức thanh toán
-                    </p>
-                  </div>
-                </div>
-                <span className="text-blue-600 text-sm font-medium">›</span>
+           {!selectedMethod ? (
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <CreditCard className="text-blue-600 w-5 h-5" />
+              <div>
+                <p className="font-medium text-gray-800 text-sm sm:text-base">
+                  Chọn phương thức thanh toán
+                </p>
               </div>
-            ) : (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  {selectedMethod.icon}
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      {selectedMethod.name}
-                    </p>
-                    <p className="text-gray-500 text-xs">
-                      Phương thức bạn đã chọn
-                    </p>
-                  </div>
-                </div>
-                <span className="text-blue-600 text-sm font-medium hover:underline">
-                  Thay đổi
-                </span>
+            </div>
+            <span className="text-blue-600 text-sm font-medium">›</span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between w-full gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {selectedMethod.icon}
+              <div className="min-w-0">
+                {/* Tên phương thức (truncate khi quá dài) */}
+                <p className="font-medium text-gray-800 text-sm sm:text-base truncate max-w-[150px] sm:max-w-[250px]">
+                  {selectedMethod.name}
+                </p>
+                <p className="text-gray-500 text-xs sm:text-sm mt-0.5 truncate max-w-[160px] sm:max-w-[260px]">
+                  Phương thức bạn đã chọn
+                </p>
               </div>
-            )}
+            </div>
+
+            {/* Nút Thay đổi */}
+            <span className="text-blue-600 text-sm font-medium hover:underline flex-shrink-0">
+              Thay đổi
+            </span>
+          </div>
+        )}
           </div>
         </DialogTrigger>
 

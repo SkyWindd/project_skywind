@@ -18,7 +18,6 @@ import CheckoutPayment from "@/pages/checkoutPayment";
 import UploadImage from "@/components/UploadImage";
 import SearchResults from "@/pages/SearchResults";
 import Profile from "@/pages/profile";
-import Order from "@/pages/userOrder";
 import AdminDashboard from "@/admin/admindasboard";
 
 export default function App() {
@@ -42,7 +41,6 @@ export default function App() {
                 <Route path="upload" element={<UploadImage />} />
                 <Route path="search" element={<SearchResults />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="order" element={<Order />} />
               </Route>
 
               {/* Admin routes */}
