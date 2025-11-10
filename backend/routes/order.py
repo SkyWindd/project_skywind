@@ -248,3 +248,32 @@ def update_order_status(order_id):
     finally:
         if conn:
             conn.close()
+# =========================================================
+# 📋 API: Lấy tất cả đơn hàng (Admin + tương thích đường dẫn cũ)
+# =========================================================
+@orders_bp.route("/", methods=["GET"])
+@orders_bp.route("", methods=["GET"])  # Cho phép không có dấu / cuối
+def get_all_orders():
+    conn = None
+    try:
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT 
+                o.order_id,
+                o.user_id,
+                o.order_date,
+                o.total_amount,
+                o.status
+            FROM orders o
+            ORDER BY o.order_date DESC
+        """)
+        orders = cur.fetchall()
+        cur.close()
+        return jsonify(orders), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
