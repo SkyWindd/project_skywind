@@ -8,48 +8,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, Home, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Home, MapPin, Loader2 } from "lucide-react";
 
-export default function CheckoutDeliveryInfo({ form, onChange }) {
-  const navigate = useNavigate();
-
+export default function CheckoutDeliveryInfo({ form, onChange, setForm }) {
   const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
+
   const [loadingProvinces, setLoadingProvinces] = useState(true);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
 
-  // 🧠 Lưu & khôi phục thông tin người dùng
-  useEffect(() => {
-    // Khi load lại trang => lấy dữ liệu từ localStorage
-    const savedForm = localStorage.getItem("checkout_delivery_form");
-    if (savedForm) {
-      try {
-        const parsed = JSON.parse(savedForm);
-        onChange({ target: { name: "province", value: parsed.province || "" } });
-        onChange({ target: { name: "ward", value: parsed.ward || "" } });
-        onChange({ target: { name: "address", value: parsed.address || "" } });
-      } catch (err) {
-        console.warn("⚠️ Lỗi parse dữ liệu lưu:", err);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    // Khi người dùng thay đổi form => tự lưu vào localStorage
-    localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
-  }, [form]);
-
-  // 🛰️ Fetch danh sách tỉnh / thành phố
+  // ⭐ Load Provinces
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/provinces");
-        const data = await res.json();
-        setProvinces(data);
-      } catch (err) {
-        console.error("❌ Lỗi tải tỉnh/thành:", err);
+        const res = await fetch("http://localhost:5000/api/address/provinces");
+        setProvinces(await res.json());
       } finally {
         setLoadingProvinces(false);
       }
@@ -57,63 +32,70 @@ export default function CheckoutDeliveryInfo({ form, onChange }) {
     fetchProvinces();
   }, []);
 
-  // 🏙️ Khi chọn Tỉnh / Thành phố
-  const handleProvinceChange = async (provinceName) => {
-    onChange({ target: { name: "province", value: provinceName } });
-    onChange({ target: { name: "ward", value: "" } });
-    setWards([]);
-    setLoadingWards(true);
+  // ⭐ Khi province có sẵn → load districts
+  useEffect(() => {
+    const loadDistricts = async () => {
+      if (!form.province) return;
+      const selected = provinces.find((p) => p.name === form.province);
+      if (!selected) return;
 
-    const selectedProvince = provinces.find((p) => p.name === provinceName);
-    if (!selectedProvince) return setLoadingWards(false);
-
-    try {
+      setLoadingDistricts(true);
       const res = await fetch(
-        `http://localhost:5000/api/wards?province_code=${selectedProvince.code}`
+        `http://localhost:5000/api/address/districts?province_code=${selected.code}`
+      );
+      const data = await res.json();
+      setDistricts(data);
+      setLoadingDistricts(false);
+    };
+
+    loadDistricts();
+  }, [form.province, provinces]);
+
+  // ⭐ Khi district có sẵn → load wards
+  useEffect(() => {
+    const loadWards = async () => {
+      if (!form.district) return;
+      const selected = districts.find((d) => d.name === form.district);
+      if (!selected) return;
+
+      setLoadingWards(true);
+      const res = await fetch(
+        `http://localhost:5000/api/address/wards?district_code=${selected.code}`
       );
       const data = await res.json();
       setWards(data);
-    } catch (err) {
-      console.error("❌ Lỗi tải phường:", err);
-    } finally {
       setLoadingWards(false);
-    }
-  };
+    };
 
-  const handleWardChange = (wardName) => {
-    onChange({ target: { name: "ward", value: wardName } });
-  };
+    loadWards();
+  }, [form.district, districts]);
 
   return (
-    <div className="bg-white shadow-sm border border-gray-100 rounded-2xl p-6 mb-8 transition-all duration-200 hover:shadow-lg">
-      <div className="flex items-center gap-2 mb-5">
-        <MapPin className="w-5 h-5 text-blue-600" />
-        <h2 className="text-lg font-semibold text-gray-800">
-          Thông tin giao hàng
-        </h2>
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+
+      <div className="flex items-center gap-2 mb-4">
+        <MapPin className="text-blue-600" />
+        <h2 className="font-semibold text-lg">Thông tin giao hàng</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-        {/* 🏙️ Tỉnh / Thành phố */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        {/* Province */}
         <div>
-          <Label className="text-gray-700 font-medium mb-2 block">
-            Tỉnh / Thành phố
-          </Label>
+          <Label>Tỉnh / Thành phố</Label>
           <Select
-            value={form.province || ""}
-            onValueChange={handleProvinceChange}
+            value={form.province}
+            onValueChange={(v) => {
+              onChange({ target: { name: "province", value: v } });
+              onChange({ target: { name: "district", value: "" } });
+              onChange({ target: { name: "ward", value: "" } });
+            }}
             disabled={loadingProvinces}
           >
-            <SelectTrigger className="w-full h-11 rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-              <SelectValue
-                placeholder={
-                  loadingProvinces
-                    ? "Đang tải dữ liệu..."
-                    : "Chọn tỉnh / thành phố"
-                }
-              />
+            <SelectTrigger className="h-11 rounded-lg border-gray-300">
+              <SelectValue placeholder="Chọn tỉnh" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectContent>
               {provinces.map((p) => (
                 <SelectItem key={p.code} value={p.name}>
                   {p.name}
@@ -123,28 +105,42 @@ export default function CheckoutDeliveryInfo({ form, onChange }) {
           </Select>
         </div>
 
-        {/* 🏘️ Phường / Xã */}
+        {/* District */}
         <div>
-          <Label className="text-gray-700 font-medium mb-2 block">
-            Phường / Xã
-          </Label>
+          <Label>Quận / Huyện</Label>
           <Select
-            value={form.ward || ""}
-            onValueChange={handleWardChange}
-            disabled={!form.province || loadingWards}
+            value={form.district}
+            onValueChange={(v) => {
+              onChange({ target: { name: "district", value: v } });
+              onChange({ target: { name: "ward", value: "" } });
+            }}
+            disabled={!form.province || loadingDistricts}
           >
-            <SelectTrigger className="w-full h-11 rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-              <SelectValue
-                placeholder={
-                  loadingWards
-                    ? "Đang tải phường..."
-                    : form.province
-                    ? "Chọn phường / xã"
-                    : "Chọn tỉnh trước"
-                }
-              />
+            <SelectTrigger className="h-11 rounded-lg border-gray-300">
+              <SelectValue placeholder="Chọn quận / huyện" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectContent>
+              {districts.map((d) => (
+                <SelectItem key={d.code} value={d.name}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Ward */}
+        <div>
+          <Label>Phường / Xã</Label>
+          <Select
+            value={form.ward}
+            onValueChange={(v) => onChange({ target: { name: "ward", value: v } })}
+            disabled={!form.district || loadingWards}
+          >
+            <SelectTrigger className="h-11 rounded-lg border-gray-300">
+              <SelectValue placeholder="Chọn phường / xã" />
+            </SelectTrigger>
+            <SelectContent>
               {wards.map((w) => (
                 <SelectItem key={w.code} value={w.name}>
                   {w.name}
@@ -152,46 +148,30 @@ export default function CheckoutDeliveryInfo({ form, onChange }) {
               ))}
             </SelectContent>
           </Select>
+
+          {loadingWards && (
+            <div className="flex items-center mt-1 text-blue-600 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              Đang tải phường...
+            </div>
+          )}
         </div>
 
-        {/* 🏡 Địa chỉ chi tiết */}
+        {/* Address */}
         <div className="sm:col-span-2">
-          <Label
-            htmlFor="address"
-            className="text-gray-700 font-medium mb-2 block"
-          >
-            Số nhà, tên đường
-          </Label>
+          <Label>Địa chỉ chi tiết</Label>
           <div className="relative">
-            <Home className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <Home className="absolute left-3 top-3 text-gray-400" />
             <Input
-              id="address"
               name="address"
               value={form.address}
               onChange={onChange}
-              placeholder="VD: 10 Nguyễn Thượng Hiền"
-              className="h-11 pl-9 rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              placeholder="VD: 10 Nguyễn Trãi"
+              className="h-11 pl-10 rounded-lg border-gray-300"
             />
           </div>
         </div>
       </div>
-
-      <div className="flex justify-end mt-6">
-        <Button
-          variant="outline"
-          onClick={() => navigate("/")}
-          className="text-gray-700 border-gray-300 hover:bg-gray-100 hover:text-gray-900 px-5 py-2 rounded-lg flex items-center gap-2 transition"
-        >
-          <ArrowLeft className="w-4 h-4" /> Tiếp tục mua sắm
-        </Button>
-      </div>
-
-      {loadingWards && (
-        <div className="flex justify-center mt-3 text-blue-600">
-          <Loader2 className="animate-spin w-5 h-5" />
-          <span className="ml-2 text-sm">Đang tải danh sách phường...</span>
-        </div>
-      )}
     </div>
   );
 }

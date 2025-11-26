@@ -18,12 +18,11 @@ import CheckoutPayment from "@/pages/checkoutPayment";
 import UploadImage from "@/components/UploadImage";
 import SearchResults from "@/pages/SearchResults";
 import Profile from "@/pages/profile";
-import Order from "@/pages/order";
 import AdminDashboard from "@/admin/admindasboard";
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId="1023332032947-c0ao141cco290tnrbbr7darlivpsr934.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="1021298070223-mvdt4u4itl5vecpjsc2aibbvrs2l9hai.apps.googleusercontent.com">
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
@@ -42,7 +41,6 @@ export default function App() {
                 <Route path="upload" element={<UploadImage />} />
                 <Route path="search" element={<SearchResults />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="order" element={<Order />} />
               </Route>
 
               {/* Admin routes */}

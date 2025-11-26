@@ -1,146 +1,162 @@
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+// Màu trạng thái
+const STATUS_COLORS = {
+  "Chờ xác nhận": "bg-yellow-100 text-yellow-700",
+  "Đã xác nhận": "bg-blue-100 text-blue-700",
+  "Đang vận chuyển": "bg-indigo-100 text-indigo-700",
+  "Đã giao hàng": "bg-green-100 text-green-700",
+  "Đã hủy": "bg-red-100 text-red-700",
+};
 
 const STATUS_LIST = [
   "Chờ xác nhận",
   "Đã xác nhận",
   "Đang vận chuyển",
-  "Đã giao xong",
-  "Đã hủy"
+  "Đã giao hàng",
+  "Đã hủy",
 ];
-
-const STATUS_COLORS = {
-  "Chờ xác nhận": "bg-yellow-100 text-yellow-700",
-  "Đã xác nhận": "bg-blue-100 text-blue-700",
-  "Đang vận chuyển": "bg-purple-100 text-purple-700",
-  "Đã giao xong": "bg-green-100 text-green-700",
-  "Đã hủy": "bg-red-100 text-red-700"
-};
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
-  const [filterStatus, setFilterStatus] = useState("Tất cả");
+  const [filter, setFilter] = useState("Tất cả");
+  const [loading, setLoading] = useState(true);
 
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/orders");
-      const data = await res.json();
-      setOrders(data);
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách đơn hàng", err);
-    }
+  const loadOrders = () => {
+    setLoading(true);
+    fetch("http://localhost:5000/api/orders")
+      .then((res) => res.json())
+      .then((data) => {
+        setOrders(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        alert("Không thể tải đơn hàng.");
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
-    fetchOrders();
+    loadOrders();
   }, []);
 
-  const updateOrderStatus = async (orderId, newStatus) => {
-    try {
-      await fetch(`http://localhost:5000/api/orders/update-status/${orderId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_status: newStatus })
-      });
-
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.order_id === orderId ? { ...o, status: newStatus } : o
-        )
-      );
-    } catch (err) {
-      console.error("Lỗi khi cập nhật trạng thái:", err);
-    }
+  const updateStatus = (id, status) => {
+    fetch(`http://localhost:5000/api/orders/update-status/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_status: status }),
+    })
+      .then(() => loadOrders())
+      .catch(() => alert("Không thể cập nhật trạng thái!"));
   };
 
-  const filteredOrders =
-    filterStatus === "Tất cả"
-      ? orders
-      : orders.filter((o) => o.status === filterStatus);
+  const filtered =
+    filter === "Tất cả" ? orders : orders.filter((o) => o.status === filter);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-      <h2 className="text-2xl font-bold text-blue-700 mb-4">
-        Quản lý đơn hàng
-      </h2>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <h2 className="text-2xl font-bold text-blue-700">Quản lý đơn hàng</h2>
 
-      {/* Tabs trạng thái */}
-      <div className="flex gap-2 mb-4">
-        <button
-          className={`px-4 py-1 rounded font-semibold ${
-            filterStatus === "Tất cả" ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-          onClick={() => setFilterStatus("Tất cả")}
-        >
-          Tất cả
-        </button>
-        {STATUS_LIST.map((status) => (
+      {/* Tabs lọc */}
+      <div className="flex gap-3 mb-3 overflow-auto">
+        {["Tất cả", ...STATUS_LIST].map((stt) => (
           <button
-            key={status}
-            className={`px-4 py-1 rounded font-semibold ${
-              filterStatus === status ? "bg-blue-600 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setFilterStatus(status)}
+            key={stt}
+            onClick={() => setFilter(stt)}
+            className={`px-5 py-2 rounded-full font-medium transition whitespace-nowrap
+              ${
+                filter === stt
+                  ? "bg-red-500 text-white shadow"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              }`}
           >
-            {status}
+            {stt}
           </button>
         ))}
       </div>
 
-      <Card className="shadow-md bg-white">
+      {/* Bảng đơn hàng FIX căn thẳng */}
+      <Card className="shadow-lg border rounded-xl bg-white">
         <CardHeader>
-          <CardTitle className="text-blue-700">Danh sách đơn hàng</CardTitle>
+          <CardTitle className="text-blue-700 text-lg">Danh sách đơn hàng</CardTitle>
         </CardHeader>
+
         <CardContent>
-          <table className="w-full text-sm border-t">
-            <thead className="bg-blue-50 text-blue-700">
-              <tr>
-                <th className="px-4 py-2 text-left">Mã đơn</th>
-                <th className="px-4 py-2 text-left">Người dùng</th>
-                <th className="px-4 py-2 text-left">Tổng tiền</th>
-                <th className="px-4 py-2 text-left">Ngày</th>
-                <th className="px-4 py-2 text-left">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map((order) => (
-                <tr
-                  key={order.order_id}
-                  className="border-b hover:bg-blue-50 transition"
-                >
-                  <td className="px-4 py-2">{order.order_id}</td>
-                  <td className="px-4 py-2">{order.user_id}</td>
-                  <td className="px-4 py-2 text-green-600 font-semibold">
-                    ${order.total_amount.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2">{order.order_date}</td>
-                  <td className="px-4 py-2">
-                    <select
-                      value={order.status}
-                      onChange={(e) =>
-                        updateOrderStatus(order.order_id, e.target.value)
-                      }
-                      className={`px-2 py-1 rounded text-xs font-semibold border ${
-                        STATUS_COLORS[order.status] || "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {STATUS_LIST.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+          {loading ? (
+            <p className="text-center text-blue-600 font-medium">Đang tải...</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-blue-50 text-blue-700 h-12 text-center">
+                  <th className="w-[80px]">Mã đơn</th>
+                  <th className="w-[110px]">Người dùng</th>
+                  <th className="w-[150px]">Tổng tiền</th>
+                  <th className="w-[210px]">Ngày đặt</th>
+                  <th className="w-[150px]">Trạng thái</th>
+                  <th className="w-[180px]">Cập nhật</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {filtered.map((order) => (
+                  <tr
+                    key={order.order_id}
+                    className="border-b h-14 text-center hover:bg-gray-50 transition"
+                  >
+                    <td className="font-semibold">#{order.order_id}</td>
+
+                    <td>{order.user_id}</td>
+
+                    <td className="text-green-600 font-bold">
+                      {order.total_amount.toLocaleString()}₫
+                    </td>
+
+                    <td className="text-gray-600">
+                      {new Date(order.order_date).toLocaleString("vi-VN")}
+                    </td>
+
+                    {/* Badge trạng thái */}
+                    <td>
+                      <span
+                        className={`px-3 py-1 text-xs rounded-full font-semibold inline-block ${STATUS_COLORS[order.status]}`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+
+                    {/* Dropdown cập nhật */}
+                    <td>
+                      <Select
+                        value={order.status}
+                        onValueChange={(v) => updateStatus(order.order_id, v)}
+                      >
+                        <SelectTrigger className="w-[150px] bg-gray-50 text-gray-700">
+                          <SelectValue placeholder="Chọn" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {STATUS_LIST.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              {st}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </CardContent>
       </Card>
     </motion.div>

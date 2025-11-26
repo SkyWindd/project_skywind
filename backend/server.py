@@ -12,7 +12,9 @@ from routes.user import user_bp
 from routes.rating import rating_bp
 from routes.order import orders_bp
 from routes.dashboard import dashboard_bp
-
+from routes import cart, product, user, order, rating, upload, auth
+from routes.cart import cart_bp
+from routes.address import address_bp
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "supersecretkey123"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -29,7 +31,8 @@ app.register_blueprint(user_bp)
 app.register_blueprint(rating_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(orders_bp)
-
+app.register_blueprint(cart_bp)
+app.register_blueprint(address_bp)
 # ✅ Cập nhật slug sản phẩm khi server khởi động
 update_missing_slugs()
 
