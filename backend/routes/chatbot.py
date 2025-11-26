@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
 from utils.chatbot_core import get_intent_reply
-
-
+from utils.productservice import find_products
 
 chatbot_bp = Blueprint("chatbot", __name__)
 
@@ -9,7 +8,26 @@ chatbot_bp = Blueprint("chatbot", __name__)
 def chat_message():
     data = request.get_json()
     msg = data.get("message", "").strip()
-    reply, tag = get_intent_reply(msg)
-    if reply:
-        return jsonify({"reply": reply})
-    return jsonify({"reply": "Xin lỗi, tôi chưa hiểu ý bạn 😅. Bạn có thể nói rõ hơn không?"})
+
+    reply, tag, keyword = get_intent_reply(msg)
+
+    # 🔥 Nếu là intent tìm sản phẩm → query DB
+    if tag == "product_info":
+        products = find_products(keyword)
+
+        if len(products) == 0:
+            return jsonify({
+                "reply": "Mình không tìm thấy sản phẩm nào phù hợp 😢",
+                "products": []
+            })
+
+        return jsonify({
+            "reply": reply,
+            "products": products  # list sản phẩm (name, price, image, desc)
+        })
+
+    # 🔹 Các intent khác (bình thường)
+    return jsonify({
+        "reply": reply,
+        "tag": tag
+    })

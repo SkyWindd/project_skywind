@@ -8,21 +8,21 @@ orders_bp = Blueprint("orders", __name__, url_prefix="/api/orders")
 
 
 # =========================================================
-# 🧾 API: Tạo đơn hàng mới
+# 🧾 API: Tạo đơn hàng mới + TRỪ STOCK
 # =========================================================
 @orders_bp.route("/create", methods=["POST"])
 def create_order():
     conn = None
     try:
         data = request.get_json()
-        print("📩 Dữ liệu nhận được:", data)
         user_id = data.get("user_id")
-        items = data.get("cart_items")  # [{product_id, quantity, price}]
+        items = data.get("cart_items")
         payment_method = data.get("payment_method", "cod")
-        total_amount = sum(item["price"] * item["quantity"] for item in items)
 
         if not user_id or not items:
             return jsonify({"error": "Thiếu dữ liệu đầu vào"}), 400
+
+        total_amount = sum(item["price"] * item["quantity"] for item in items)
 
         conn = get_connection()
         cur = conn.cursor()
@@ -33,16 +33,46 @@ def create_order():
             VALUES (%s, %s, %s, %s)
             RETURNING order_id
         """, (user_id, datetime.now(), total_amount, "Đang xử lý"))
+
         order_id = cur.fetchone()[0]
 
-        # 2️⃣ Thêm chi tiết đơn hàng
+        # 2️⃣ Lặp toàn bộ sản phẩm trong giỏ → thêm vào orderdetail và trừ stock
         for item in items:
+
+            product_id = item["product_id"]
+            quantity = item["quantity"]
+            price = item["price"]
+
+            # 2.1 ⛔ Kiểm tra tồn kho
+            cur.execute("""
+                SELECT stock FROM product WHERE product_id = %s
+            """, (product_id,))
+            result = cur.fetchone()
+
+            if not result:
+                conn.rollback()
+                return jsonify({"error": f"Sản phẩm {product_id} không tồn tại"}), 400
+
+            stock = result[0]
+
+            if stock < quantity:
+                conn.rollback()
+                return jsonify({"error": f"Sản phẩm {product_id} không đủ số lượng. Còn {stock} cái."}), 400
+
+            # 2.2 📝 Thêm vào bảng orderdetail
             cur.execute("""
                 INSERT INTO orderdetail (order_id, product_id, quantity, price)
                 VALUES (%s, %s, %s, %s)
-            """, (order_id, item["product_id"], item["quantity"], item["price"]))
+            """, (order_id, product_id, quantity, price))
 
-        # 3️⃣ Tạo bản ghi thanh toán
+            # 2.3 🔥 TRỪ STOCK
+            cur.execute("""
+                UPDATE product
+                SET stock = stock - %s
+                WHERE product_id = %s
+            """, (quantity, product_id))
+
+        # 3️⃣ Tạo thông tin thanh toán
         cur.execute("""
             INSERT INTO payment (order_id, payment_date, method, status, amount)
             VALUES (%s, %s, %s, %s, %s)
@@ -61,10 +91,10 @@ def create_order():
             conn.rollback()
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
     finally:
         if conn:
             conn.close()
-
 
 # =========================================================
 # 📦 API: Lấy danh sách đơn hàng của user
@@ -75,15 +105,14 @@ def get_orders_by_user(user_id):
     try:
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        print("📩 Lấy đơn hàng cho user:", user_id)
-        # 🔹 Lấy danh sách đơn hàng
+
+        # Lấy đơn hàng
         cur.execute("""
             SELECT 
                 o.order_id,
                 o.order_date,
                 o.total_amount,
-                o.status AS order_status,
-                p.payment_id,
+                o.status,
                 p.method AS payment_method,
                 p.status AS payment_status,
                 p.amount AS payment_amount
@@ -95,19 +124,24 @@ def get_orders_by_user(user_id):
         orders = cur.fetchall()
 
         result = []
+
+        # Lấy sản phẩm + ảnh
         for order in orders:
             order_id = order["order_id"]
 
-            # 🔹 Lấy danh sách sản phẩm trong từng đơn
             cur.execute("""
                 SELECT 
                     od.product_id,
                     pr.name AS product_name,
                     od.quantity,
-                    od.price
+                    od.price,
+                    img.path AS image_url
                 FROM orderdetail od
                 JOIN product pr ON od.product_id = pr.product_id
+                LEFT JOIN image img ON od.product_id = img.product_id
                 WHERE od.order_id = %s
+                ORDER BY img.image_id ASC
+                LIMIT 1
             """, (order_id,))
             items = cur.fetchall()
 
@@ -115,13 +149,13 @@ def get_orders_by_user(user_id):
                 "order_id": order["order_id"],
                 "order_date": order["order_date"].strftime("%Y-%m-%d %H:%M:%S"),
                 "total_amount": order["total_amount"],
-                "order_status": order["order_status"],
+                "status": order["status"],
                 "payment": {
                     "method": order["payment_method"],
                     "status": order["payment_status"],
-                    "amount": order["payment_amount"]
+                    "amount": order["payment_amount"],
                 },
-                "items": items
+                "items": items,
             })
 
         cur.close()
@@ -145,14 +179,14 @@ def get_order_detail(order_id):
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # 🔹 Thông tin đơn hàng
+        # Lấy thông tin đơn
         cur.execute("""
             SELECT 
                 o.order_id,
                 o.user_id,
                 o.order_date,
                 o.total_amount,
-                o.status AS order_status,
+                o.status,
                 p.method AS payment_method,
                 p.status AS payment_status,
                 p.amount AS payment_amount
@@ -165,17 +199,20 @@ def get_order_detail(order_id):
         if not order:
             return jsonify({"error": "Không tìm thấy đơn hàng"}), 404
 
-        # 🔹 Chi tiết sản phẩm trong đơn hàng
+        # Lấy sản phẩm + ảnh
         cur.execute("""
             SELECT 
                 od.product_id,
                 pr.name AS product_name,
-                pr.image_url,
                 od.quantity,
-                od.price
+                od.price,
+                img.path AS image_url
             FROM orderdetail od
             JOIN product pr ON od.product_id = pr.product_id
+            LEFT JOIN image img ON od.product_id = img.product_id
             WHERE od.order_id = %s
+            ORDER BY img.image_id ASC
+            LIMIT 1
         """, (order_id,))
         items = cur.fetchall()
 
@@ -184,7 +221,7 @@ def get_order_detail(order_id):
             "user_id": order["user_id"],
             "order_date": order["order_date"].strftime("%Y-%m-%d %H:%M:%S"),
             "total_amount": order["total_amount"],
-            "order_status": order["order_status"],
+            "status": order["status"],
             "payment": {
                 "method": order["payment_method"],
                 "status": order["payment_status"],
@@ -202,7 +239,6 @@ def get_order_detail(order_id):
     finally:
         if conn:
             conn.close()
-
 
 # =========================================================
 # 🧰 API (Admin): Cập nhật trạng thái đơn hàng
@@ -238,7 +274,11 @@ def update_order_status(order_id):
         conn.commit()
         cur.close()
 
-        return jsonify({"message": "Cập nhật trạng thái thành công"}), 200
+        return jsonify({
+            "message": "Cập nhật trạng thái thành công",
+            "new_status": new_order_status,
+            "new_payment_status": new_payment_status
+        }), 200
 
     except Exception as e:
         if conn:
@@ -248,16 +288,19 @@ def update_order_status(order_id):
     finally:
         if conn:
             conn.close()
+
+
 # =========================================================
-# 📋 API: Lấy tất cả đơn hàng (Admin + tương thích đường dẫn cũ)
+# 📋 API: Lấy tất cả đơn hàng (Admin)
 # =========================================================
 @orders_bp.route("/", methods=["GET"])
-@orders_bp.route("", methods=["GET"])  # Cho phép không có dấu / cuối
+@orders_bp.route("", methods=["GET"])
 def get_all_orders():
     conn = None
     try:
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
+
         cur.execute("""
             SELECT 
                 o.order_id,
@@ -269,11 +312,14 @@ def get_all_orders():
             ORDER BY o.order_date DESC
         """)
         orders = cur.fetchall()
+
         cur.close()
         return jsonify(orders), 200
+
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
     finally:
         if conn:
             conn.close()

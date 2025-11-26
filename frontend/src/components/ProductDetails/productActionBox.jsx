@@ -12,10 +12,20 @@ export default function ProductActionBox({ product }) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const increase = () => setQuantity((prev) => prev + 1);
-  const decrease = () => setQuantity((prev) => Math.max(1, prev - 1));
+  const outOfStock = !product?.stock || product.stock <= 0; // Kiểm tra hết hàng
 
-  const outOfStock = !product?.stock || product.stock <= 0; // ✅ Kiểm tra hết hàng
+  // 🔼 Tăng số lượng nhưng không vượt quá số lượng tồn kho
+  const increase = () => {
+    setQuantity((prev) => {
+      if (prev < product.stock) return prev + 1;
+
+      toast.error(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+      return prev;
+    });
+  };
+
+  // 🔽 Giảm tối thiểu còn 1
+  const decrease = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   // 🛒 Thêm vào giỏ hàng
   const handleAddToCart = () => {
@@ -40,7 +50,7 @@ export default function ProductActionBox({ product }) {
     }
   };
 
-  // 💳 Mua ngay → yêu cầu đăng nhập
+  // 💳 Mua ngay
   const handleBuyNow = () => {
     if (!user) {
       toast.error("Vui lòng đăng nhập để mua hàng 🔒");
@@ -65,6 +75,8 @@ export default function ProductActionBox({ product }) {
       <div className="flex items-center justify-start gap-3">
         <span className="font-medium text-gray-700 text-sm">Số lượng:</span>
         <div className="flex items-center border rounded-md overflow-hidden">
+          
+          {/* Nút giảm */}
           <button
             onClick={decrease}
             disabled={outOfStock}
@@ -76,17 +88,21 @@ export default function ProductActionBox({ product }) {
           >
             <Minus size={14} />
           </button>
+
+          {/* Hiển thị số lượng */}
           <input
             type="text"
             readOnly
             value={quantity}
             className="w-10 text-center text-sm font-medium focus:outline-none"
           />
+
+          {/* Nút tăng */}
           <button
             onClick={increase}
-            disabled={outOfStock}
+            disabled={outOfStock || quantity >= product.stock}
             className={`w-8 h-8 flex items-center justify-center border-l transition ${
-              outOfStock
+              outOfStock || quantity >= product.stock
                 ? "cursor-not-allowed bg-gray-100 text-gray-400"
                 : "hover:bg-gray-100 active:scale-95"
             }`}
@@ -96,7 +112,7 @@ export default function ProductActionBox({ product }) {
         </div>
       </div>
 
-      {/* Nếu hết hàng → chỉ hiện 1 nút "Hết hàng" */}
+      {/* Nếu hết hàng → hiện nút HẾT HÀNG */}
       {outOfStock ? (
         <Button
           disabled
@@ -106,7 +122,7 @@ export default function ProductActionBox({ product }) {
         </Button>
       ) : (
         <>
-          {/* Nút Mua ngay */}
+          {/* Mua ngay */}
           <Button
             onClick={handleBuyNow}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-base py-6 rounded-md"
@@ -114,7 +130,7 @@ export default function ProductActionBox({ product }) {
             <CreditCard className="mr-2 w-4 h-4" /> MUA NGAY
           </Button>
 
-          {/* Nút thêm giỏ hàng */}
+          {/* Thêm giỏ hàng */}
           <Button
             variant="outline"
             className="w-full border border-red-600 text-red-600 hover:bg-red-50 font-semibold py-6 rounded-md"
