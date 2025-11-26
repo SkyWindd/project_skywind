@@ -5,6 +5,9 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import OrderDetailModal from "./OrderDetailModal";
 
+// 👉 Import hàm format tiền
+import { formatCurrency } from "@/utils/formatCurrency";
+
 export default function OrderCard({ order }) {
   const [open, setOpen] = useState(false);
 
@@ -52,8 +55,10 @@ export default function OrderCard({ order }) {
             <p className="font-semibold text-gray-800 text-sm sm:text-base leading-snug line-clamp-2">
               {order.product_name}
             </p>
+
+            {/* Giá sản phẩm */}
             <p className="text-gray-500 text-sm mt-1">
-              Giá: {order.price.toLocaleString()}₫
+              Giá: {formatCurrency(order.price)}
             </p>
 
             {/* Tổng tiền + trạng thái */}
@@ -61,7 +66,7 @@ export default function OrderCard({ order }) {
               <p className="text-sm font-medium text-gray-700">
                 Tổng thanh toán:{" "}
                 <span className="text-red-600 font-semibold">
-                  {order.total_amount.toLocaleString()}₫
+                  {formatCurrency(order.total_amount)}
                 </span>
               </p>
 

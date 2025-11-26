@@ -11,7 +11,7 @@ export default function ChatBox() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // ✅ Tự động cuộn xuống cuối khi có tin nhắn mới
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -19,8 +19,10 @@ export default function ChatBox() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const newMsg = { sender: "user", text: input };
-    setMessages((prev) => [...prev, newMsg]);
+    const userMsg = { sender: "user", text: input };
+    setMessages((prev) => [...prev, userMsg]);
+
+    const sendText = input;
     setInput("");
     setLoading(true);
 
@@ -28,15 +30,18 @@ export default function ChatBox() {
       const res = await fetch("http://127.0.0.1:5000/api/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: sendText }),
       });
 
       const data = await res.json();
 
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: data.reply || "Không có phản hồi từ server" },
-      ]);
+      const botMsg = {
+        sender: "bot",
+        text: data.reply,
+        products: data.products || [],
+      };
+
+      setMessages((prev) => [...prev, botMsg]);
     } catch (error) {
       console.error("Fetch error:", error);
       setMessages((prev) => [
@@ -48,11 +53,24 @@ export default function ChatBox() {
     }
   };
 
+  // 🟦 Hàm xử lý ảnh – đảm bảo đúng URL backend
+  const getImageUrl = (img) => {
+    if (!img) {
+      return "https://via.placeholder.com/80x80?text=No+Image";
+    }
+
+    // Nếu backend đã trả full URL → dùng luôn
+    if (img.startsWith("http")) return img;
+
+    // Nếu backend trả "uploads/xxx" → thêm domain backend vào
+    return `http://127.0.0.1:5000/${img}`;
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen ? (
         <div className="chatbox-container animate-fade-in">
-          {/* Header */}
+          {/* HEADER */}
           <div className="flex justify-between items-center bg-blue-600 text-white px-4 py-2">
             <div className="flex items-center gap-2 font-semibold">
               <Bot size={18} className="animate-wiggle" />
@@ -63,15 +81,16 @@ export default function ChatBox() {
             </button>
           </div>
 
-          {/* Body */}
+          {/* BODY */}
           <div className="chatbox-body">
             {messages.map((msg, index) => (
               <div
                 key={index}
                 className={`${
                   msg.sender === "user" ? "text-right" : "text-left"
-                }`}
+                } mb-2`}
               >
+                {/* BUBBLE */}
                 <div
                   className={`inline-block px-3 py-2 rounded-lg ${
                     msg.sender === "user"
@@ -81,17 +100,64 @@ export default function ChatBox() {
                 >
                   {msg.text}
                 </div>
+
+                {/* PRODUCT LIST */}
+                {msg.products && msg.products.length > 0 && (
+                  <div className="mt-3 space-y-3">
+                    {msg.products.map((p) => (
+                      <div
+                        key={p.product_id}
+                        className="flex gap-3 border rounded-lg p-3 bg-white shadow"
+                      >
+                        <img
+                          src={getImageUrl(p.images?.[0])}
+                          alt={p.name}
+                          className="w-20 h-20 object-cover rounded border"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src =
+                              "https://via.placeholder.com/80x80?text=No+Image";
+                          }}
+                        />
+
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">{p.name}</div>
+
+                          <div className="text-blue-600 font-bold text-sm">
+                            {p.price.toLocaleString()}₫
+                          </div>
+
+                          {p.old_price && (
+                            <div className="text-gray-400 text-xs line-through">
+                              {p.old_price.toLocaleString()}₫
+                            </div>
+                          )}
+
+                          <a
+                            href={`/laptop/${p.slug}`}
+                            target="_blank"
+                            className="text-xs text-blue-500 underline"
+                          >
+                            Xem chi tiết
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
+
             {loading && (
               <div className="text-left text-gray-400 italic">
                 Đang trả lời...
               </div>
             )}
+
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Footer */}
+          {/* FOOTER */}
           <div className="p-3 border-t flex gap-2">
             <input
               type="text"

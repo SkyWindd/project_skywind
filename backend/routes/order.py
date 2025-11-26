@@ -27,23 +27,23 @@ def create_order():
         conn = get_connection()
         cur = conn.cursor()
 
-        # 1️⃣ Tạo đơn hàng
+        # 1️⃣ Tạo đơn hàng trạng thái mặc định = "Chờ xác nhận"
         cur.execute("""
             INSERT INTO orders (user_id, order_date, total_amount, status)
             VALUES (%s, %s, %s, %s)
             RETURNING order_id
-        """, (user_id, datetime.now(), total_amount, "Đang xử lý"))
+        """, (user_id, datetime.now(), total_amount, "Chờ xác nhận"))
 
         order_id = cur.fetchone()[0]
 
-        # 2️⃣ Lặp toàn bộ sản phẩm trong giỏ → thêm vào orderdetail và trừ stock
+        # 2️⃣ Lặp sản phẩm → thêm vào orderdetail + trừ stock
         for item in items:
 
             product_id = item["product_id"]
             quantity = item["quantity"]
             price = item["price"]
 
-            # 2.1 ⛔ Kiểm tra tồn kho
+            # Kiểm tra tồn kho
             cur.execute("""
                 SELECT stock FROM product WHERE product_id = %s
             """, (product_id,))
@@ -59,24 +59,24 @@ def create_order():
                 conn.rollback()
                 return jsonify({"error": f"Sản phẩm {product_id} không đủ số lượng. Còn {stock} cái."}), 400
 
-            # 2.2 📝 Thêm vào bảng orderdetail
+            # Thêm chi tiết đơn hàng
             cur.execute("""
                 INSERT INTO orderdetail (order_id, product_id, quantity, price)
                 VALUES (%s, %s, %s, %s)
             """, (order_id, product_id, quantity, price))
 
-            # 2.3 🔥 TRỪ STOCK
+            # Trừ stock
             cur.execute("""
                 UPDATE product
                 SET stock = stock - %s
                 WHERE product_id = %s
             """, (quantity, product_id))
 
-        # 3️⃣ Tạo thông tin thanh toán
+        # 3️⃣ Thanh toán trạng thái mặc định = "Chờ xác nhận"
         cur.execute("""
             INSERT INTO payment (order_id, payment_date, method, status, amount)
             VALUES (%s, %s, %s, %s, %s)
-        """, (order_id, datetime.now(), payment_method, "Chờ xử lý", total_amount))
+        """, (order_id, datetime.now(), payment_method, "Chờ xác nhận", total_amount))
 
         conn.commit()
         cur.close()
@@ -95,6 +95,7 @@ def create_order():
     finally:
         if conn:
             conn.close()
+
 
 # =========================================================
 # 📦 API: Lấy danh sách đơn hàng của user

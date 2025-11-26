@@ -11,10 +11,21 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+// 👉 Import format tiền
+import { formatCurrency } from "@/utils/formatCurrency";
+
 export default function OrderDetailModal({ open, onClose, order }) {
+  if (!order) return null;
+
+  // ❗ Lấy dữ liệu thật từ API
+  const item = order.items?.[0]; // vì mỗi order chỉ lưu 1 sản phẩm tại API của bạn
+  const quantity = item?.quantity || 1;
+  const price = item?.price || 0;
+  const total = order.total_amount || 0;
+
   return (
     <AnimatePresence>
-      {open && order && (
+      {open && (
         <Dialog open={open} onOpenChange={onClose}>
           <DialogContent
             className="
@@ -34,21 +45,19 @@ export default function OrderDetailModal({ open, onClose, order }) {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="p-4 sm:p-6 space-y-6"
             >
-              {/* Tiêu đề */}
+              {/* Title */}
               <DialogHeader>
                 <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-800 tracking-tight text-center sm:text-left">
                   Chi tiết đơn hàng #{order.order_id}
                 </DialogTitle>
               </DialogHeader>
 
-              {/* Tổng quan đơn hàng */}
+              {/* Tổng quan */}
               <Card className="p-4 sm:p-6 border border-gray-100 rounded-xl shadow-sm bg-white hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 text-sm text-gray-600">
                   <div className="space-y-1">
                     <p>
-                      <span className="font-medium text-gray-800">
-                        Đơn hàng:
-                      </span>{" "}
+                      <span className="font-medium text-gray-800">Đơn hàng:</span>{" "}
                       <span className="text-blue-600 font-semibold">
                         #{order.order_id}
                       </span>
@@ -79,25 +88,27 @@ export default function OrderDetailModal({ open, onClose, order }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <img
-                      src={order.image_url}
-                      alt={order.product_name}
+                      src={item?.image_url}
+                      alt={item?.product_name}
                       className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border border-gray-200 shadow-sm"
                     />
                     <div>
                       <p className="font-medium text-gray-800 leading-snug text-sm sm:text-base">
-                        {order.product_name}
+                        {item?.product_name}
                       </p>
                       <p className="text-gray-500 text-sm mt-1">
-                        {order.price.toLocaleString()}₫
+                        Giá: {formatCurrency(price)}
                       </p>
-                      <p className="text-gray-500 text-sm">Số lượng: 1</p>
+                      <p className="text-gray-500 text-sm">
+                        Số lượng: {quantity}
+                      </p>
                     </div>
                   </div>
 
                   <div className="text-right">
                     <p className="text-sm text-gray-600 mb-1">Tổng cộng</p>
                     <p className="text-lg font-semibold text-red-600">
-                      {order.total_amount.toLocaleString()}₫
+                      {formatCurrency(total)}
                     </p>
                   </div>
                 </div>
@@ -114,22 +125,26 @@ export default function OrderDetailModal({ open, onClose, order }) {
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Họ và tên:</span>
                       <span className="font-medium text-gray-900">
-                        Minh Quan Nguyen
+                        {order.customer_name || "Người dùng"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Số điện thoại:</span>
-                      <span className="font-medium text-gray-900">0918684954</span>
+                      <span className="font-medium text-gray-900">
+                        {order.phone || "Không có"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Địa chỉ:</span>
                       <span className="text-gray-900 text-right truncate max-w-[150px] sm:max-w-none">
-                        Đường Chính
+                        {order.address || "Không có"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Ghi chú:</span>
-                      <span className="text-gray-500">-</span>
+                      <span className="text-gray-500">
+                        {order.note || "-"}
+                      </span>
                     </div>
                   </div>
                 </Card>
@@ -142,22 +157,13 @@ export default function OrderDetailModal({ open, onClose, order }) {
                   <div className="space-y-2 text-sm text-gray-700">
                     <div className="flex justify-between">
                       <span>Số lượng sản phẩm:</span>
-                      <span>1</span>
+                      <span>{quantity}</span>
                     </div>
+
                     <div className="flex justify-between">
                       <span>Tổng tiền hàng:</span>
                       <span className="font-medium">
-                        {order.price.toLocaleString()}₫
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-green-600">
-                      <span>Giảm giá:</span>
-                      <span>-2.450.000₫</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Phí vận chuyển:</span>
-                      <span className="text-green-600 font-medium">
-                        Miễn phí
+                        {formatCurrency(price * quantity)}
                       </span>
                     </div>
 
@@ -166,17 +172,25 @@ export default function OrderDetailModal({ open, onClose, order }) {
                     <div className="flex justify-between font-semibold">
                       <span>Tổng số tiền:</span>
                       <span className="text-red-600 text-base">
-                        14.540.000₫
+                        {formatCurrency(total)}
                       </span>
                     </div>
+
                     <div className="flex justify-between text-gray-500">
                       <span>Đã thanh toán:</span>
-                      <span>0₫</span>
+                      <span>
+                        {order.payment?.status === "Đã thanh toán"
+                          ? formatCurrency(total)
+                          : "0đ"}
+                      </span>
                     </div>
+
                     <div className="flex justify-between text-gray-800 font-medium">
                       <span>Còn lại:</span>
                       <span className="text-red-600 text-base">
-                        14.540.000₫
+                        {order.payment?.status === "Đã thanh toán"
+                          ? "0đ"
+                          : formatCurrency(total)}
                       </span>
                     </div>
                   </div>
