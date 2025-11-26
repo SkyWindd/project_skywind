@@ -534,9 +534,6 @@ def update_product(product_id):
 
 @product_bp.route("/search", methods=["GET"])
 def search_products():
-    from psycopg2.extras import RealDictCursor
-    from db import get_connection
-
     try:
         query = request.args.get("query", "").strip()
         if not query:
@@ -545,14 +542,18 @@ def search_products():
         conn = get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Tìm kiếm không phân biệt hoa thường (ILIKE trong PostgreSQL)
+        # 🔥 SỬA bảng "products" → "product"
+        # 🔥 SỬA cột "id" → "product_id"
         cursor.execute("""
-            SELECT * FROM products 
+            SELECT 
+                product_id, name, price, description, slug, brand_id
+            FROM product 
             WHERE name ILIKE %s
-            ORDER BY id DESC
+            ORDER BY product_id DESC
         """, (f"%{query}%",))
 
         products = cursor.fetchall()
+
         cursor.close()
         conn.close()
 
@@ -561,3 +562,76 @@ def search_products():
     except Exception as e:
         print("❌ Lỗi tìm kiếm sản phẩm:", e)
         return jsonify({"success": False, "message": "Lỗi server"}), 500
+
+
+def find_products(keyword):
+    from db import get_connection
+    from psycopg2.extras import RealDictCursor
+    from datetime import date
+
+    keyword = keyword.lower()
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            SELECT 
+                p.product_id,
+                p.name,
+                p.slug,
+                p.price AS base_price,
+                b.name AS brand_name,
+                COALESCE(json_agg(DISTINCT i.path) FILTER (WHERE i.path IS NOT NULL), '[]') AS images,
+                pr.discount_rate,
+                pr.start_date,
+                pr.end_date
+            FROM product p
+            LEFT JOIN brand b ON p.brand_id = b.brand_id
+            LEFT JOIN image i ON p.product_id = i.product_id
+            LEFT JOIN promotion pr ON p.promo_id = pr.promo_id
+            WHERE LOWER(b.name) ILIKE %s OR LOWER(p.name) ILIKE %s
+            GROUP BY 
+                p.product_id, p.name, p.slug, p.price,
+                b.name, pr.discount_rate, pr.start_date, pr.end_date
+            ORDER BY p.product_id DESC
+        """, (f"%{keyword}%", f"%{keyword}%"))
+
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        today = date.today()
+        results = []
+
+        for r in rows:
+            base_price = float(r.get("base_price") or 0)
+            new_price = base_price
+            old_price = None
+            discount_percent = None
+
+            start_date = safe_date(r.get("start_date")) or date.min
+            end_date = safe_date(r.get("end_date")) or date.max
+
+            if r.get("discount_rate") and start_date <= today <= end_date:
+                rate = float(r["discount_rate"])
+                old_price = base_price
+                new_price = base_price * (1 - rate)
+                discount_percent = round(rate * 100)
+
+            results.append({
+                "product_id": r["product_id"],
+                "name": r["name"],
+                "slug": r["slug"],
+                "brand": r["brand_name"],
+                "price": round(new_price, 2),
+                "old_price": round(old_price, 2) if old_price else None,
+                "discount_percent": discount_percent,
+                "images": build_image_urls(r.get("images"))
+            })
+
+        return results
+
+    except Exception as e:
+        print("❌ find_products error:", e)
+        return []
