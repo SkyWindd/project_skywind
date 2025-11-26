@@ -9,24 +9,24 @@ import { Button } from "@/components/ui/button";
 import { Copy, CheckCircle2, Banknote } from "lucide-react";
 import { toast } from "sonner";
 
-export default function PaymentTransferModal({ open, onClose }) {
+export default function PaymentTransferModal({ open, onClose, onConfirm }) {
   const [orderId, setOrderId] = useState("");
   const [customer, setCustomer] = useState({});
   const [total, setTotal] = useState(0);
 
   // 🧾 Lấy dữ liệu từ localStorage
-  useEffect(() => {
+  useEffect(() => { 
     const savedForm = localStorage.getItem("checkout_delivery_form");
     const savedTotal = localStorage.getItem("checkout_total_price");
 
     if (savedForm) setCustomer(JSON.parse(savedForm));
     if (savedTotal) setTotal(Number(savedTotal));
 
-    // Tạo mã đơn hàng ngẫu nhiên
     const randomId = Math.floor(1000 + Math.random() * 9000);
     setOrderId(`#DH${randomId}`);
   }, []);
 
+  // 📋 Sao chép nội dung
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text);
     toast.success(`Đã sao chép ${label}!`);
@@ -37,7 +37,7 @@ export default function PaymentTransferModal({ open, onClose }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md rounded-2xl bg-white p-0 overflow-hidden shadow-xl border border-gray-100">
-        {/* 🔹 Header */}
+        {/* Header */}
         <DialogHeader className="bg-blue-600 px-6 py-4 text-white">
           <DialogTitle className="text-lg font-semibold flex items-center gap-2">
             <Banknote size={20} />
@@ -45,9 +45,9 @@ export default function PaymentTransferModal({ open, onClose }) {
           </DialogTitle>
         </DialogHeader>
 
-        {/* 🔸 Nội dung */}
+        {/* Nội dung */}
         <div className="p-6 space-y-5 text-sm text-gray-700">
-          {/* 🧾 QR Image */}
+          {/* QR */}
           <div className="text-center">
             <img
               src="/qr.jpg"
@@ -59,7 +59,7 @@ export default function PaymentTransferModal({ open, onClose }) {
             </p>
           </div>
 
-          {/* 💳 Thông tin ngân hàng */}
+          {/* Thông tin ngân hàng */}
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 shadow-sm">
             <div className="flex justify-between">
               <span className="font-medium text-gray-600">Ngân hàng:</span>
@@ -75,9 +75,7 @@ export default function PaymentTransferModal({ open, onClose }) {
                 <Copy
                   size={16}
                   className="cursor-pointer text-blue-600 hover:text-blue-800 transition"
-                  onClick={() =>
-                    copyToClipboard("210766668888", "Số tài khoản")
-                  }
+                  onClick={() => copyToClipboard("210766668888", "Số tài khoản")}
                 />
               </div>
             </div>
@@ -115,12 +113,14 @@ export default function PaymentTransferModal({ open, onClose }) {
             </div>
           </div>
 
-          {/* ⚙️ Lưu ý */}
+          {/* Gợi ý nhỏ */}
           <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-3 rounded-lg leading-snug">
-            ⚠️ Vui lòng chuyển khoản chính xác số tiền và nội dung để hệ thống tự động xác nhận đơn hàng nhanh chóng.
+            ⚠️ Vui lòng chuyển khoản chính xác số tiền và nội dung để hệ thống
+            ghi nhận thanh toán. Sau khi hoàn tất, hãy bấm{" "}
+            <span className="font-semibold">“Tôi đã chuyển tiền”</span> để tạo đơn hàng.
           </div>
 
-          {/* 🔘 Nút hành động */}
+          {/* Hành động */}
           <div className="flex justify-end gap-3 pt-2">
             <Button
               variant="outline"
@@ -131,10 +131,7 @@ export default function PaymentTransferModal({ open, onClose }) {
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
-              onClick={() => {
-                toast.success("✅ Thanh toán thử thành công!");
-                onClose(false);
-              }}
+              onClick={onConfirm} // ✅ chỉ gọi onConfirm() — thêm đơn hàng vào DB
             >
               <CheckCircle2 size={16} />
               Tôi đã chuyển tiền

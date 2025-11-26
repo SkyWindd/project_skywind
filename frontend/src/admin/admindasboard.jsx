@@ -7,7 +7,7 @@ import AdminUser from "@/admin/adminuser";
 import AdminProduct from "@/admin/adminproduct";
 import UploadImage from "@/components/UploadImage";
 import AdminOverview from "@/admin/adminoverview"; 
-import AdminOrders from "@/admin/adminorder"; // ✅ Thêm import cho trang Đơn hàng
+import AdminOrders from "@/admin/adminorder";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -16,40 +16,45 @@ export default function AdminDashboard() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
+    // ⭐ FIX: dùng sessionStorage thay vì localStorage
+    const savedUser = sessionStorage.getItem("user");
+
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
+
+        // Nếu có username → hiển thị
         if (parsedUser?.username) {
           setUsername(parsedUser.username);
         } else {
-          navigate("/login");
+          navigate("/login", { replace: true });
         }
       } catch {
-        navigate("/login");
+        navigate("/login", { replace: true });
       }
     } else {
-      navigate("/login");
+      navigate("/login", { replace: true });
     }
   }, [navigate]);
 
+  // ⭐ FIX logout đúng
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/login");
+    sessionStorage.removeItem("user");
+    navigate("/login", { replace: true });
   };
 
-  // ✅ Thêm menu Đơn hàng vào đây
+  // ⭐ Menu Admin
   const menuItems = [
     { path: "/admin", label: "Tổng quan", icon: <LayoutDashboard size={20} /> },
     { path: "/admin/products", label: "Sản phẩm", icon: <Box size={20} /> },
-    { path: "/admin/orders", label: "Đơn hàng", icon: <ShoppingCart size={20} /> }, // ✅ mới
+    { path: "/admin/orders", label: "Đơn hàng", icon: <ShoppingCart size={20} /> },
     { path: "/admin/users", label: "Người dùng", icon: <Users size={20} /> },
     { path: "/admin/upload", label: "Upload", icon: <Upload size={20} /> },
   ];
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-800">
-      {/* 🌙 SIDEBAR */}
+      {/* 🌙 Sidebar */}
       <motion.aside
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
@@ -68,7 +73,6 @@ export default function AdminDashboard() {
             </h2>
           </div>
 
-          {/* Menu items */}
           <nav className="space-y-2">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -106,7 +110,7 @@ export default function AdminDashboard() {
         </div>
       </motion.aside>
 
-      {/* 🌞 MAIN CONTENT */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col">
         <motion.div
           className="flex-1 p-6 overflow-auto"
@@ -118,11 +122,11 @@ export default function AdminDashboard() {
             Bảng điều khiển Admin
           </h2>
 
-          {/* ✅ Thêm route trang Đơn hàng */}
+          {/* Admin router */}
           <Routes>
             <Route index element={<AdminOverview />} />
             <Route path="products" element={<AdminProduct />} />
-            <Route path="orders" element={<AdminOrders />} /> {/* ✅ Trang Đơn hàng */}
+            <Route path="orders" element={<AdminOrders />} />
             <Route path="users" element={<AdminUser />} />
             <Route path="upload" element={<UploadImage />} />
           </Routes>
@@ -131,3 +135,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

@@ -8,18 +8,18 @@ import { Toaster } from "sonner";
 
 function MainLayout() {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* 🧭 Header cố định trên đầu khi cuộn */}
+    <div className="flex flex-col min-h-screen relative">
+      {/* 🧭 Header cố định */}
       <header className="sticky top-0 z-50 bg-white shadow-md">
-        <Header /> {/* Header chứa menu và logo */}
+        <Header />
       </header>
 
-      {/* 🧱 Breadcrumb (chỉ hiển thị khi không ở trang Home) */}
+      {/* 🧱 Breadcrumb */}
       <BreadcrumbNav />
 
       {/* 🧩 Nội dung chính */}
       <main className="flex-grow bg-secondary min-h-[70vh] p-4">
-        <Outlet /> {/* Render các trang như Home, Login, Upload... */}
+        <Outlet />
       </main>
 
       {/* ⚓ Footer */}
@@ -29,6 +29,11 @@ function MainLayout() {
 
       {/* 🔔 Toast thông báo */}
       <Toaster position="top-right" richColors />
+
+      {/* 💬 Chatbox nổi góc phải */}
+      <div className="fixed bottom-6 right-6 z-[999]">
+        <ChatBox />
+      </div>
     </div>
   );
 }

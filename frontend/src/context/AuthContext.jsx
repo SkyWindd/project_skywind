@@ -1,4 +1,3 @@
-// src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
@@ -6,29 +5,34 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // ✅ Lấy user từ localStorage (khi reload vẫn giữ trạng thái đăng nhập)
+  // ⭐ Load user từ sessionStorage
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = sessionStorage.getItem("user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
   }, []);
 
-  // ✅ Khi đăng nhập thành công
+  // ⭐ Hàm login — FIX CHÍNH
   const login = (userData) => {
     const fixedUser = {
       ...userData,
-      id: userData.id || userData._id, // 👈 thêm dòng này để đảm bảo có id
+
+      // ⚡ FIX: đảm bảo luôn lấy đúng user_id từ backend
+      id: userData.user_id || userData.id || userData._id || null,
+
+      // ⚡ FIX: đảm bảo role luôn tồn tại
+      role: userData.role || "user",
     };
 
     setUser(fixedUser);
-    localStorage.setItem("user", JSON.stringify(fixedUser));
+    sessionStorage.setItem("user", JSON.stringify(fixedUser));
   };
 
-  // ✅ Khi đăng xuất
+  // ⭐ Logout
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
   };
 
   return (
@@ -38,5 +42,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook tiện dụng
 export const useAuth = () => useContext(AuthContext);

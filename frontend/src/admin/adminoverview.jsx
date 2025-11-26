@@ -19,26 +19,29 @@ export default function AdminOverview() {
   const [recentOrders, setRecentOrders] = useState([]);
   const navigate = useNavigate();
 
-  const fetchData = async () => {
-  try {
-    const [statsRes, chartRes, ordersRes] = await Promise.all([
-      fetch("http://localhost:5000/dashboard/stats"),
-      fetch("http://localhost:5000/dashboard/revenue-chart"),
-      fetch("http://localhost:5000/dashboard/recent-orders"),
-    ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, chartRes, ordersRes] = await Promise.all([
+          fetch("http://localhost:5000/dashboard/stats"),
+          fetch("http://localhost:5000/dashboard/revenue-chart"),
+          fetch("http://localhost:5000/api/orders"),
+        ]);
 
-    const statsData = await statsRes.json();
-    const chartData = await chartRes.json();
-    const ordersData = await ordersRes.json();
+        const statsData = await statsRes.json();
+        const chartData = await chartRes.json();
+        const ordersData = await ordersRes.json();
 
-    setStats(statsData);
-    setChartData(chartData || []);
-    setRecentOrders(ordersData || []);
-  } catch (err) {
-    console.error("❌ Lỗi tải dữ liệu:", err);
-  }
-};
+        setStats(statsData);
+        setChartData(chartData || []);
+        setRecentOrders(ordersData.slice(0, 5));
+      } catch (err) {
+        console.error("❌ Lỗi tải dữ liệu:", err);
+      }
+    };
 
+    fetchData();
+  }, []);
 
   if (!stats)
     return (

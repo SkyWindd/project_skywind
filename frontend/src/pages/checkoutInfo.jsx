@@ -7,15 +7,15 @@ import CheckoutProductList from "@/components/CheckOutInfo/checkoutProductList";
 import CheckoutCustomerInfo from "@/components/CheckOutInfo/checkoutCustomerInfo";
 import CheckoutDeliveryInfo from "@/components/CheckOutInfo/checkoutDeliveryInfo";
 import { Toaster, toast } from "sonner";
+import axios from "axios";
 
 export default function CheckoutInfo() {
   const { total } = useCart();
   const navigate = useNavigate();
+  const userId = 1; // TODO: lấy từ JWT sau
 
-  // 🚚 Loại giao hàng (giao tận nơi, nhận tại cửa hàng)
   const [deliveryType, setDeliveryType] = useState("delivery");
 
-  // 🧾 Thông tin form khách hàng
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -26,25 +26,46 @@ export default function CheckoutInfo() {
     address: "",
   });
 
-  // 🧠 Khôi phục dữ liệu khi quay lại trang
+  // 🚀 Load địa chỉ mặc định từ DB
   useEffect(() => {
-    const saved = localStorage.getItem("checkout_delivery_form");
-    if (saved) {
+    const loadDefaultAddress = async () => {
       try {
-        const parsed = JSON.parse(saved);
-        setForm(parsed);
-      } catch (err) {
-        console.warn("⚠️ Lỗi đọc dữ liệu localStorage:", err);
+        const res = await axios.get(
+          `http://localhost:5000/api/address/user/${userId}`
+        );
+
+        if (res.data.length === 0) {
+          // Không có địa chỉ → dùng localStorage
+          const saved = localStorage.getItem("checkout_delivery_form");
+          if (saved) setForm(JSON.parse(saved));
+          return;
+        }
+
+        const addr = res.data.find((a) => a.is_default) || res.data[0];
+
+        setForm({
+          name: addr.name,
+          phone: addr.phone,
+          email: "",
+          province: addr.province,
+          district: addr.district,
+          ward: addr.ward,
+          address: addr.street,
+        });
+      } catch (error) {
+        console.error("❌ Load address error:", error);
       }
-    }
+    };
+
+    loadDefaultAddress();
   }, []);
 
-  // 💾 Lưu dữ liệu mỗi khi thay đổi
+  // 💾 Lưu form vào localStorage mỗi khi thay đổi
   useEffect(() => {
     localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
   }, [form]);
 
-  // ✏️ Cập nhật dữ liệu form
+  // Cập nhật form
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -52,74 +73,47 @@ export default function CheckoutInfo() {
     }));
   };
 
-  // ✅ Xác thực trước khi chuyển bước
+  // Next step
   const handleNext = () => {
-    const missingFields = [];
-    if (!form.name.trim()) missingFields.push("Họ tên");
-    if (!form.phone.trim()) missingFields.push("Số điện thoại");
-    if (!form.province) missingFields.push("Tỉnh / Thành phố");
-    if (!form.ward) missingFields.push("Phường / Xã");
-    if (!form.address.trim()) missingFields.push("Địa chỉ");
+    const required = ["name", "phone", "province", "ward", "address"];
+    const missing = required.filter((f) => !form[f] || !form[f].trim());
 
-    if (missingFields.length > 0) {
-      toast.error(
-        `Vui lòng điền ${missingFields.join(", ")} trước khi tiếp tục.`,
-        { position: "top-center" }
-      );
+    if (missing.length > 0) {
+      toast.error(`Vui lòng điền đủ thông tin trước khi tiếp tục.`, {
+        position: "top-center",
+      });
       return;
     }
 
-    // ✅ Lưu cả form & tổng tiền
-  localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
-  localStorage.setItem("checkout_total_price", total.toString());
+    localStorage.setItem("checkout_total_price", total.toString());
 
-    toast.success("✅ Thông tin hợp lệ! Đang chuyển đến trang thanh toán...", {
-      position: "top-center",
-      duration: 1800,
-    });
-
-    // ⏳ Chuyển sang trang thanh toán sau 1.5 giây
     setTimeout(() => navigate("/checkoutPayment"), 1500);
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8">
-      {/* 🔔 Sonner Toaster */}
       <Toaster richColors position="top-center" expand />
 
-      {/* 🧭 Thanh tiến trình */}
       <div className="mb-8">
         <CheckoutProgress step={1} />
       </div>
 
-      {/* 🛒 Danh sách sản phẩm */}
       <CheckoutProductList />
 
-      {/* 👤 Thông tin khách hàng */}
       <CheckoutCustomerInfo form={form} onChange={handleChange} />
 
-      {/* 🚚 Thông tin giao hàng */}
-      <CheckoutDeliveryInfo
-        deliveryType={deliveryType}
-        setDeliveryType={setDeliveryType}
-        form={form}
-        onChange={handleChange}
-      />
+      <CheckoutDeliveryInfo form={form} onChange={handleChange} />
 
-      {/* 💰 Tổng tiền */}
       <div className="bg-white shadow-md border border-gray-100 rounded-2xl p-6 mt-6">
-        <div className="flex justify-between items-center text-base font-semibold text-gray-800">
+        <div className="flex justify-between items-center text-base font-semibold">
           <span>Tổng tiền tạm tính</span>
-          <span className="text-blue-600 text-lg">
-            {total.toLocaleString()}₫
-          </span>
+          <span className="text-blue-600 text-lg">{total.toLocaleString()}₫</span>
         </div>
       </div>
 
-      {/* 🔘 Nút Tiếp tục */}
       <Button
         onClick={handleNext}
-        className="w-full mt-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+        className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg rounded-xl shadow-lg"
       >
         Tiếp tục thanh toán
       </Button>
