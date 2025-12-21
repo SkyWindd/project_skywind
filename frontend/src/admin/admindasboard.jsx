@@ -49,7 +49,7 @@ export default function AdminDashboard() {
     { path: "/admin/products", label: "Sản phẩm", icon: <Box size={20} /> },
     { path: "/admin/orders", label: "Đơn hàng", icon: <ShoppingCart size={20} /> },
     { path: "/admin/users", label: "Người dùng", icon: <Users size={20} /> },
-    { path: "/admin/upload", label: "Upload", icon: <Upload size={20} /> },
+    
   ];
 
   return (

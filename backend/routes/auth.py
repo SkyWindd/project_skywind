@@ -203,3 +203,16 @@ def google_login():
     finally:
         if "cur" in locals(): cur.close()
         if "conn" in locals(): conn.close()
+
+
+# =======================
+# PHÂN QUYỀN (UNIT TEST)
+# =======================
+def require_admin(user):
+    """
+    Kiểm tra user có quyền admin hay không
+    Dùng cho unit test
+    """
+    if not user or user.get("role") != "admin":
+        raise PermissionError("Forbidden")
+    return True

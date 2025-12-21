@@ -65,7 +65,7 @@ export default function AdminOverview() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Tổng doanh thu"
-          value={`$${stats.total_revenue?.toLocaleString() || 0}`}
+          value={`${stats.total_revenue?.toLocaleString() || 0}Đ`}
           icon={<DollarSign size={24} />}
           gradient="from-blue-700 to-blue-800"
         />
