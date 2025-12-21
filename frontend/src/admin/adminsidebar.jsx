@@ -17,7 +17,7 @@ export default function AdminSidebar() {
   { path: "/admin/products", label: "Sản phẩm", icon: <Box size={20} /> },
   { path: "/admin/orders", label: "Đơn hàng", icon: <ShoppingBag size={20} /> }, // ✅ mới thêm
   { path: "/admin/users", label: "Người dùng", icon: <Users size={20} /> },
-  { path: "/admin/upload", label: "Upload", icon: <Upload size={20} /> },
+  
 ];
 
 
