@@ -15,6 +15,7 @@ from routes.order import orders_bp
 from routes.dashboard import dashboard_bp
 from routes.cart import cart_bp
 from routes.address import address_bp
+from routes.admin import admin_bp
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "supersecretkey123"
@@ -45,6 +46,7 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(orders_bp)
 app.register_blueprint(cart_bp)
 app.register_blueprint(address_bp)
+app.register_blueprint(admin_bp)
 
 # Cập nhật slug sản phẩm khi server khởi động
 update_missing_slugs()
