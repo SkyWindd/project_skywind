@@ -105,13 +105,19 @@ Ngoài ra, một số công việc khởi tạo cần thiết khi triển khai h
 <img width="288" height="163" alt="uc1(customer)" src="https://github.com/user-attachments/assets/cbcd025a-ef0d-4d4d-ba2d-9d97e192d4d6" />
 
 **UC2 Quản lý giỏ hàng**
+
+
 <img width="294" height="218" alt="uc2" src="https://github.com/user-attachments/assets/bbaab967-78fd-4d81-b07c-930233b84d0e" />
 
 
 **UC3 Quản lý đơn hàng**
+
+
 <img width="422" height="253" alt="uc3" src="https://github.com/user-attachments/assets/86ca52c5-8a11-4397-b5d9-c968e2870690" />
 
+
 **UC4 Quản lý thanh toán**
+
 
 <img width="389" height="101" alt="uc4" src="https://github.com/user-attachments/assets/dbaacf94-cbe2-4c7a-8e67-de1663dd594a" />
 
@@ -155,28 +161,36 @@ Kiểm soát truy cập có thực thể chính là Người dùng và Chức v�
 
 **Mô hình thực thể kết hợp mức logic**
 
+
 ![](docs/images/erd2.png)
+
 
 **Mô hình thực thể kết hợp mức vật lý**
 
+
 ![](docs/images/erd3.png)
+
 
 ### 1.4. Thiết kế kiến trúc
 
 ### 1.4.1. Sơ đồ khối
 
+
 ![](docs/images/block.png)
+
 
 ### 1.4.2. Kiến trúc C4
 
 **C1 - System context**
 
+
 <img width="624" height="456" alt="C1" src="https://github.com/user-attachments/assets/f58ece17-4bc5-4992-b757-c4c0ae57eaf2" />
 
 
 **C2 – Container**
-<img width="605" height="582" alt="C2" src="https://github.com/user-attachments/assets/3c09106c-c4aa-4dac-83e9-febe14f5a456" />
 
+
+<img width="605" height="582" alt="C2" src="https://github.com/user-attachments/assets/3c09106c-c4aa-4dac-83e9-febe14f5a456" />
 
 
 **C3 – Component (high-level)**
@@ -193,6 +207,7 @@ Kiểm soát truy cập có thực thể chính là Người dùng và Chức v�
 
 
 ### 1.4.3. Sơ đồ triển khai
+
 
 <img width="451" height="731" alt="deployment" src="https://github.com/user-attachments/assets/c5e37ac3-fd8d-416b-94b1-40864aba06fc" />
 
