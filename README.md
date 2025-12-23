@@ -82,45 +82,43 @@ Ngoài ra, một số công việc khởi tạo cần thiết khi triển khai h
 ### 1.3.2. Quy trình nghiệp vụ
 
 **Quy trình xử lý giỏ hàng**
-
-![](docs/images/qtnv1.png)
+<img width="199" height="410" alt="qtnv1" src="https://github.com/user-attachments/assets/303a77ff-b9b6-49e7-acec-b2a631a3a8af" />
 
 **Quy trình đặt hàng và thanh toán**
 
-![](docs/images/qtnv2.png)
+<img width="624" height="674" alt="qtnv2" src="https://github.com/user-attachments/assets/16a54dca-bb70-4d46-a7b1-5583a865c01b" />
 
 **Quy trình quản trị hệ thống**
+<img width="384" height="570" alt="qtnv3" src="https://github.com/user-attachments/assets/8c17de54-6970-41dc-98e3-1bc522eae392" />
 
-![](docs/images/qtnv3.png)
 
 ### 1.3.3. Use case
-<img width="199" height="410" alt="qtnv1" src="https://github.com/user-attachments/assets/5598422f-3500-4562-9d28-8a429fe3f686" />
 
 **Use case summary**
+<img width="624" height="464" alt="ucs" src="https://github.com/user-attachments/assets/12aed523-e0e9-4fac-901a-a611134ac6e2" />
 
 ![](docs/images/ucs.png)
 
-**UC1 Quản lý sản phẩm**![Uploading qtnv1.png…]()
+**UC1 Quản lý sản phẩm**
 
-
-![](docs/images/uc1(admin).png)
-![](docs/images/uc1(customer).png)
+<img width="294" height="235" alt="uc1(admin)" src="https://github.com/user-attachments/assets/53081f45-4ee3-4bff-9532-9fffc20aecd3" />
+<img width="288" height="163" alt="uc1(customer)" src="https://github.com/user-attachments/assets/cbcd025a-ef0d-4d4d-ba2d-9d97e192d4d6" />
 
 **UC2 Quản lý giỏ hàng**
+<img width="294" height="218" alt="uc2" src="https://github.com/user-attachments/assets/bbaab967-78fd-4d81-b07c-930233b84d0e" />
 
-![](docs/images/uc2.png)
 
 **UC3 Quản lý đơn hàng**
-
-![](docs/images/uc3.png)
+<img width="422" height="253" alt="uc3" src="https://github.com/user-attachments/assets/86ca52c5-8a11-4397-b5d9-c968e2870690" />
 
 **UC4 Quản lý thanh toán**
 
-![](docs/images/uc4.png)
+<img width="389" height="101" alt="uc4" src="https://github.com/user-attachments/assets/dbaacf94-cbe2-4c7a-8e67-de1663dd594a" />
+
 
 **UC6 Kiểm soát truy cập**
 
-![](docs/images/uc5.png)
+
 
 ### 1.3.4. Domain driven design
 
@@ -146,13 +144,14 @@ Kiểm soát truy cập có thực thể chính là Người dùng và Chức v�
 
 **Mô hình khái niệm**
 
-![](docs/images/conceptualmodel.png)
+<img width="1386" height="1279" alt="conceptualmodel" src="https://github.com/user-attachments/assets/89ad4ad3-b827-4f75-95d0-637c92b5c176" />
+
 
 ### 1.3.5. Data model
 
 **Mô hình thực thể kết hợp mức khái niệm**
 
-![](docs/images/erd1.png)
+
 
 **Mô hình thực thể kết hợp mức logic**
 
@@ -172,26 +171,31 @@ Kiểm soát truy cập có thực thể chính là Người dùng và Chức v�
 
 **C1 - System context**
 
-![](docs/images/c1.png)
+<img width="624" height="456" alt="C1" src="https://github.com/user-attachments/assets/f58ece17-4bc5-4992-b757-c4c0ae57eaf2" />
+
 
 **C2 – Container**
+<img width="605" height="582" alt="C2" src="https://github.com/user-attachments/assets/3c09106c-c4aa-4dac-83e9-febe14f5a456" />
 
-![](docs/images/c2.png)
+
 
 **C3 – Component (high-level)**
 
-![](docs/images/c3.png)
+<img width="605" height="488" alt="C3" src="https://github.com/user-attachments/assets/b41efde1-9be7-4e89-b555-d21f7eccc615" />
+
 
 **C4 – Code**
 
 **Sơ đồ lớp**
 
-![](docs/images/class.png)
+
+<img width="605" height="488" alt="C3" src="https://github.com/user-attachments/assets/5701426d-5984-4337-9c76-53ee1f27bccd" />
 
 
 ### 1.4.3. Sơ đồ triển khai
 
-![](docs/images/deployment.png)
+<img width="451" height="731" alt="deployment" src="https://github.com/user-attachments/assets/c5e37ac3-fd8d-416b-94b1-40864aba06fc" />
+
 
 ## 2. Kế hoạch kiểm thử
 
@@ -535,8 +539,9 @@ Tổng cộng 78 Test Case trong đó có 75 thành công và 3 thất bại.
 •	0% các Test Case bị chặn (Blocked).
 
 •	0% các Test Case chưa chạy (Not run).
+<img width="1951" height="976" alt="testcase-ex" src="https://github.com/user-attachments/assets/f79cf1ac-5c33-40ee-b3f6-3373ffbe8921" />
 
-![](docs/images/testcase-ex.png)
+
 
 ### 4.2. Báo cáo lỗi
 
@@ -566,5 +571,6 @@ Tổng cộng 3 lỗi được phát hiện, trong đó:
 Số lượng lỗi đã được sửa đã sửa 2 lỗi mức thấp và 1 lỗi mức cao
 
 Số lượng lỗi còn tồn đọng là 0 lỗi ở bất kỳ mức độ nào.
+<img width="576" height="455" alt="defect" src="https://github.com/user-attachments/assets/aacb7b23-438b-4807-8d93-65cfae0107ac" />
 
-![](docs/images/defect.png)
+
