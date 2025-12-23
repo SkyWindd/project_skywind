@@ -1,11 +1,13 @@
+import os
+import json
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from config import UPLOAD_FOLDER
-from routes.product import product_bp, update_missing_slugs
-from vietnam_provinces import NESTED_DIVISIONS_JSON_PATH
-import json
 
-# Import các blueprint
+from config import UPLOAD_FOLDER
+from vietnam_provinces import NESTED_DIVISIONS_JSON_PATH
+
+# Blueprints
+from routes.product import product_bp, update_missing_slugs
 from routes.upload import upload_bp
 from routes.chatbot import chatbot_bp
 from routes.auth import auth_bp
@@ -17,15 +19,16 @@ from routes.cart import cart_bp
 from routes.address import address_bp
 from routes.admin import admin_bp
 
+
+# =========================
+# APP CHẠY THẬT
+# =========================
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "supersecretkey123"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# ⭐ FIX CORS HOÀN CHỈNH
-CORS(app,
-    resources={r"/*": {"origins": "*"}},
-    supports_credentials=True
-)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
 
 @app.after_request
 def add_cors_headers(response):
@@ -35,7 +38,7 @@ def add_cors_headers(response):
     return response
 
 
-# ⭐ Đăng ký tất cả Blueprint
+# Register blueprints
 app.register_blueprint(product_bp)
 app.register_blueprint(upload_bp)
 app.register_blueprint(chatbot_bp)
@@ -48,18 +51,22 @@ app.register_blueprint(cart_bp)
 app.register_blueprint(address_bp)
 app.register_blueprint(admin_bp)
 
-# Cập nhật slug sản phẩm khi server khởi động
-update_missing_slugs()
+
+# ❗ CHỈ CHẠY DB KHI KHÔNG TEST
+if not os.environ.get("TESTING"):
+    update_missing_slugs()
+
 
 @app.route("/")
 def home():
     return jsonify({"message": "Flask backend is running 🚀"})
 
-# Nạp dữ liệu hành chính VN
+
+# Load Vietnam administrative data
 with NESTED_DIVISIONS_JSON_PATH.open("r", encoding="utf-8") as f:
     VIETNAM_DATA = json.load(f)
 
-# API lấy danh sách tỉnh
+
 @app.route("/api/provinces", methods=["GET"])
 def get_provinces():
     provinces = [
@@ -73,7 +80,7 @@ def get_provinces():
     ]
     return jsonify(provinces), 200
 
-# API lấy danh sách phường
+
 @app.route("/api/wards", methods=["GET"])
 def get_wards():
     province_code = request.args.get("province_code", type=int)
@@ -84,23 +91,19 @@ def get_wards():
     if not province:
         return jsonify({"error": "Không tìm thấy tỉnh"}), 404
 
-    wards = province.get("wards", [])
-    return jsonify(wards), 200
+    return jsonify(province.get("wards", [])), 200
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
-# --- ở cuối file server.py ---
-
+# =========================
+# APP FACTORY CHO TEST
+# =========================
 def create_app():
-    """App factory để test và tạo app với config khác"""
+    """App factory dùng cho unit/integration test"""
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "supersecretkey123"
     app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-    app.config["TESTING"] = True  # cấu hình cho test
+    app.config["TESTING"] = True  # ❗ RẤT QUAN TRỌNG
 
-    # FIX CORS
     CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
     @app.after_request
@@ -110,7 +113,7 @@ def create_app():
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         return response
 
-    # Đăng ký tất cả blueprint
+    # Register blueprints
     app.register_blueprint(product_bp)
     app.register_blueprint(upload_bp)
     app.register_blueprint(chatbot_bp)
@@ -123,7 +126,9 @@ def create_app():
     app.register_blueprint(address_bp)
     app.register_blueprint(admin_bp)
 
-    # ⚡ Cập nhật slug sản phẩm khi app chạy
-    update_missing_slugs()
-
+    # ❌ TUYỆT ĐỐI KHÔNG ĐỤNG DB KHI TEST
     return app
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
