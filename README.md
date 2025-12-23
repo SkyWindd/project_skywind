@@ -499,9 +499,12 @@ Mỗi khi có thay đổi mã nguồn được đẩy lên kho lưu trữ GitHub
 
 Khi mã nguồn được merge vào nhánh chính (Main), pipeline CI/CD sẽ kích hoạt job deploy, thực hiện gọi đến nền tảng Render để tiến hành triển khai lại hệ thống.
 
-![](docs/images/pipeline-cicd.png)
+![ci_cd](https://github.com/user-attachments/assets/31a9078d-db11-45ca-9b84-9f369cbbaef9)
 
-![](docs/images/workflow.png)
+
+![workflow](https://github.com/user-attachments/assets/19b2cda2-bc99-4f84-a360-4e615d51642f)
+
+
 
 ## 4. Báo cáo kiểm thử
 
