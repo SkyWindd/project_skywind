@@ -94,12 +94,14 @@ Ngoài ra, một số công việc khởi tạo cần thiết khi triển khai h
 ![](docs/images/qtnv3.png)
 
 ### 1.3.3. Use case
+<img width="199" height="410" alt="qtnv1" src="https://github.com/user-attachments/assets/5598422f-3500-4562-9d28-8a429fe3f686" />
 
 **Use case summary**
 
 ![](docs/images/ucs.png)
 
-**UC1 Quản lý sản phẩm**
+**UC1 Quản lý sản phẩm**![Uploading qtnv1.png…]()
+
 
 ![](docs/images/uc1(admin).png)
 ![](docs/images/uc1(customer).png)
