@@ -66,64 +66,66 @@ export default function PaymentMethodCard() {
     setSelectedId(method.id);
     localStorage.setItem("payment_method_id", method.id);
 
-    // 🔔 Phát sự kiện để các trang khác (CheckoutPayment) lắng nghe
+    // 🔔 Phát sự kiện để trang khác lắng nghe
     window.dispatchEvent(
       new CustomEvent("paymentMethodChanged", { detail: method.id })
     );
 
-    // Đóng modal sau khi chọn
+    // Đóng modal
     setTimeout(() => setOpen(false), 100);
   };
 
   const selectedMethod = paymentMethods.find((m) => m.id === selectedId);
 
   return (
-    <Card className="p-5 mb-6 border border-gray-100 shadow-md rounded-2xl bg-white hover:shadow-lg transition-all duration-300">
+    <Card
+      className="p-5 mb-6 border border-gray-100 shadow-md rounded-2xl bg-white hover:shadow-lg transition-all duration-300"
+      data-testid="payment-method-card"
+    >
       <Dialog open={open} onOpenChange={setOpen}>
-        {/* Click toàn bộ card để mở modal */}
+        {/* Click card để mở modal */}
         <DialogTrigger asChild>
           <div
             className="flex items-center justify-between w-full cursor-pointer select-none"
+            data-testid="open-payment-method-dialog"
             onClick={() => setOpen(true)}
           >
-           {!selectedMethod ? (
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              <CreditCard className="text-blue-600 w-5 h-5" />
-              <div>
-                <p className="font-medium text-gray-800 text-sm sm:text-base">
-                  Chọn phương thức thanh toán
-                </p>
+            {!selectedMethod ? (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="text-blue-600 w-5 h-5" />
+                  <p className="font-medium text-gray-800 text-sm sm:text-base">
+                    Chọn phương thức thanh toán
+                  </p>
+                </div>
+                <span className="text-blue-600 text-sm font-medium">›</span>
               </div>
-            </div>
-            <span className="text-blue-600 text-sm font-medium">›</span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between w-full gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              {selectedMethod.icon}
-              <div className="min-w-0">
-                {/* Tên phương thức (truncate khi quá dài) */}
-                <p className="font-medium text-gray-800 text-sm sm:text-base truncate max-w-[150px] sm:max-w-[250px]">
-                  {selectedMethod.name}
-                </p>
-                <p className="text-gray-500 text-xs sm:text-sm mt-0.5 truncate max-w-[160px] sm:max-w-[260px]">
-                  Phương thức bạn đã chọn
-                </p>
+            ) : (
+              <div className="flex items-center justify-between w-full gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  {selectedMethod.icon}
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-800 truncate">
+                      {selectedMethod.name}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      Phương thức bạn đã chọn
+                    </p>
+                  </div>
+                </div>
+                <span className="text-blue-600 text-sm font-medium">
+                  Thay đổi
+                </span>
               </div>
-            </div>
-
-            {/* Nút Thay đổi */}
-            <span className="text-blue-600 text-sm font-medium hover:underline flex-shrink-0">
-              Thay đổi
-            </span>
-          </div>
-        )}
+            )}
           </div>
         </DialogTrigger>
 
-        {/* Danh sách phương thức thanh toán */}
-        <DialogContent className="max-w-md p-0 rounded-2xl overflow-hidden">
+        {/* Modal chọn phương thức */}
+        <DialogContent
+          className="max-w-md p-0 rounded-2xl overflow-hidden"
+          role="dialog"
+        >
           <DialogHeader className="border-b px-5 py-3">
             <DialogTitle className="text-lg font-semibold text-gray-800">
               Chọn phương thức thanh toán
@@ -137,6 +139,7 @@ export default function PaymentMethodCard() {
                 return (
                   <motion.div
                     key={method.id}
+                    data-testid={`payment-method-${method.id}`}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => handleMethodSelect(method)}
                     className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
@@ -154,7 +157,9 @@ export default function PaymentMethodCard() {
                         {method.description}
                       </p>
                     </div>
-                    {isSelected && <Check className="text-blue-600 w-5 h-5" />}
+                    {isSelected && (
+                      <Check className="text-blue-600 w-5 h-5" />
+                    )}
                   </motion.div>
                 );
               })}

@@ -90,3 +90,40 @@ def get_wards():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+# --- ở cuối file server.py ---
+
+def create_app():
+    """App factory để test và tạo app với config khác"""
+    app = Flask(__name__)
+    app.config["SECRET_KEY"] = "supersecretkey123"
+    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+    app.config["TESTING"] = True  # cấu hình cho test
+
+    # FIX CORS
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        return response
+
+    # Đăng ký tất cả blueprint
+    app.register_blueprint(product_bp)
+    app.register_blueprint(upload_bp)
+    app.register_blueprint(chatbot_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(user_bp)
+    app.register_blueprint(rating_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(orders_bp)
+    app.register_blueprint(cart_bp)
+    app.register_blueprint(address_bp)
+    app.register_blueprint(admin_bp)
+
+    # ⚡ Cập nhật slug sản phẩm khi app chạy
+    update_missing_slugs()
+
+    return app
