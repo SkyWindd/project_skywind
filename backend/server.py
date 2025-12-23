@@ -26,6 +26,7 @@ from routes.admin import admin_bp
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "supersecretkey123"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.url_map.strict_slashes = False
 
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 

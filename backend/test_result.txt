@@ -1,0 +1,40 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.0.2, pluggy-1.6.0 -- C:\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\PYTHON\New folder\project_skywind\backend
+plugins: anyio-4.12.0, locust-2.42.6
+collecting ... collected 33 items
+
+Tests/unit/test_auth_unit.py::test_login_user_success PASSED             [  3%]
+Tests/unit/test_auth_unit.py::test_login_user_wrong_password PASSED      [  6%]
+Tests/unit/test_auth_unit.py::test_register_success PASSED               [  9%]
+Tests/unit/test_auth_unit.py::test_require_admin_success PASSED          [ 12%]
+Tests/unit/test_auth_unit.py::test_require_admin_forbidden PASSED        [ 15%]
+Tests/unit/test_order_unit.py::test_create_order_success PASSED          [ 18%]
+Tests/unit/test_order_unit.py::test_create_order_not_enough_stock PASSED [ 21%]
+Tests/unit/test_order_unit.py::test_get_order_detail_success PASSED      [ 24%]
+Tests/unit/test_order_unit.py::test_update_order_status_success PASSED   [ 27%]
+Tests/unit/test_order_unit.py::test_get_orders_by_user PASSED            [ 30%]
+Tests/unit/test_order_unit.py::test_get_all_orders PASSED                [ 33%]
+Tests/unit/test_payment_unit.py::test_payment_created_success PASSED     [ 36%]
+Tests/unit/test_payment_unit.py::test_payment_fail_not_enough_stock PASSED [ 39%]
+Tests/unit/test_payment_unit.py::test_payment_fail_missing_data PASSED   [ 42%]
+Tests/unit/test_payment_unit.py::test_update_payment_status_success PASSED [ 45%]
+Tests/unit/test_payment_unit.py::test_get_order_detail_success PASSED    [ 48%]
+Tests/unit/test_permission.py::test_admin_can_access PASSED              [ 51%]
+Tests/unit/test_permission.py::test_user_cannot_access PASSED            [ 54%]
+Tests/unit/test_permission.py::test_none_user_cannot_access PASSED       [ 57%]
+Tests/unit/test_product_api.py::test_get_products PASSED                 [ 60%]
+Tests/unit/test_product_api.py::test_get_product_not_found PASSED        [ 63%]
+Tests/unit/test_product_api.py::test_get_product_by_slug PASSED          [ 66%]
+Tests/unit/test_product_unit.py::test_safe_date_string PASSED            [ 69%]
+Tests/unit/test_product_unit.py::test_safe_date_invalid PASSED           [ 72%]
+Tests/unit/test_product_unit.py::test_generate_slug_vietnamese PASSED    [ 75%]
+Tests/unit/test_product_unit.py::test_ensure_unique_slug PASSED          [ 78%]
+Tests/integration/test_payment.py::test_create_payment PASSED            [ 81%]
+Tests/integration/test_product_integration.py::test_get_all_products PASSED [ 84%]
+Tests/integration/test_product_integration.py::test_get_product_by_id PASSED [ 87%]
+Tests/integration/test_product_integration.py::test_get_product_by_slug PASSED [ 90%]
+Tests/integration/test_product_integration.py::test_add_product PASSED   [ 93%]
+Tests/integration/test_user.py::test_create_user PASSED                  [ 96%]
+Tests/integration/test_user.py::test_get_user 

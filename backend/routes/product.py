@@ -635,3 +635,57 @@ def find_products(keyword):
     except Exception as e:
         print("❌ find_products error:", e)
         return []
+# ========================
+# 🗑️ DELETE product (ADMIN)
+# ========================
+@product_bp.route("/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # 🔥 1. XÓA ẢNH (BẮT BUỘC – TRÁNH FK)
+        cur.execute(
+            "DELETE FROM image WHERE product_id = %s",
+            (product_id,)
+        )
+
+        # 🔥 2. XÓA CART ITEM (NẾU TỒN TẠI)
+        try:
+            cur.execute(
+                "DELETE FROM cart_item WHERE product_id = %s",
+                (product_id,)
+            )
+        except Exception:
+            pass
+
+        # 🔥 3. XÓA ORDER ITEM (NẾU TỒN TẠI)
+        try:
+            cur.execute(
+                "DELETE FROM order_item WHERE product_id = %s",
+                (product_id,)
+            )
+        except Exception:
+            pass
+
+        # 🔥 4. XÓA SẢN PHẨM
+        cur.execute(
+            "DELETE FROM product WHERE product_id = %s",
+            (product_id,)
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": "🗑️ Xóa sản phẩm thành công"
+        }), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
