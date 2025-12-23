@@ -26,5 +26,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          export PYTHONPATH=backend
-          pytest backend/Tests/unit -v
+            export PYTHONPATH=backend
+            export TESTING=true
+            pytest backend/Tests/unit -v
+
