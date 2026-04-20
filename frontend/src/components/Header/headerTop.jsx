@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import HeaderSearch from "./headerSearch";
-import HeaderRight from "./HeaderRight";
+import HeaderRight from "./headerRight";
 import SidebarMenu from "../mainLayout/sideBarMenu";
 
 export default function HeaderTop({ open, setOpen }) {

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { MapPin, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import AddressCard from "./AddressCard";
-import AddressFormModal from "./AddressFormModal";
+import AddressCard from "./addressCard";
+import AddressFormModal from "./addressFormModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 

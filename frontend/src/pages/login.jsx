@@ -5,15 +5,24 @@ import { Eye, EyeOff, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { authApi } from "@/api/authApi";
 import { useAuth } from "@/context/AuthContext";
 import { GoogleLogin } from "@react-oauth/google";
+import { toast } from "sonner";
 
+// ============================
+// 🔐 Schema validate
+// ============================
 const loginSchema = z.object({
   email: z.string().email("Email không hợp lệ"),
   password: z.string().min(6, "Mật khẩu phải ít nhất 6 ký tự"),
@@ -29,9 +38,13 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(loginSchema) });
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
-  // ⭐ Đăng nhập thường (đã fix)
+  // ============================
+  // ⭐ LOGIN THƯỜNG (FIX CUỐI)
+  // ============================
   const onSubmit = async (formData) => {
     setLoading(true);
     try {
@@ -40,27 +53,28 @@ export default function Login() {
       if (data?.success) {
         toast.success("Đăng nhập thành công ✅");
 
-        // ⭐ FIX QUAN TRỌNG: map user_id → id
+        // ⚠️ FIX QUAN TRỌNG: map user_id → id
         login({
-          id: data.user.user_id,               // <── FIX CHÍNH
+          id: data.user.user_id,
           ...data.user,
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
         });
 
         navigate(data.user.role === "admin" ? "/admin" : "/");
-      } else {
-        toast.error(data?.message || "Đăng nhập thất bại");
       }
     } catch (err) {
-      console.error("❌ Lỗi đăng nhập:", err);
-      toast.error("Không thể kết nối đến server");
+      // ❌ KHÔNG toast lỗi ở đây
+      // Axios interceptor đã xử lý toàn bộ lỗi
+      console.error("❌ Login error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ⭐ Đăng nhập Google
+  // ============================
+  // ⭐ GOOGLE LOGIN (GIỮ NGUYÊN)
+  // ============================
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const res = await authApi.googleLogin({
@@ -71,15 +85,13 @@ export default function Login() {
         toast.success("Đăng nhập Google thành công 🎉");
 
         login({
-          id: res.user.user_id,         // <── FIX GOOGLE LOGIN
+          id: res.user.user_id,
           ...res.user,
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
         });
 
         navigate("/");
-      } else {
-        toast.error(res.message || "Đăng nhập thất bại ❌");
       }
     } catch (error) {
       console.error("Google login error:", error);
@@ -94,18 +106,25 @@ export default function Login() {
           <div className="flex justify-center mb-3">
             <LogIn className="w-10 h-10 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl font-semibold text-blue-600">Đăng nhập</CardTitle>
-          <CardDescription className="text-gray-500">Chào mừng bạn trở lại</CardDescription>
+          <CardTitle className="text-2xl font-semibold text-blue-600">
+            Đăng nhập
+          </CardTitle>
+          <CardDescription className="text-gray-500">
+            Chào mừng bạn trở lại
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
-          {/* FORM */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
             <div>
               <Label>Email</Label>
               <Input type="email" {...register("email")} />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-red-500 text-sm">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -124,7 +143,11 @@ export default function Login() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-red-500 text-sm">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
@@ -134,13 +157,15 @@ export default function Login() {
             {/* Google Login */}
             <div className="mt-5 text-center">
               <div className="flex items-center my-3">
-                <div className="grow border-t"></div>
+                <div className="grow border-t" />
                 <span className="mx-2 text-gray-500 text-sm">hoặc</span>
-                <div className="grow border-t"></div>
+                <div className="grow border-t" />
               </div>
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => toast.error("Đăng nhập Google thất bại")}
+                onError={() =>
+                  toast.error("Đăng nhập Google thất bại ❌")
+                }
               />
             </div>
 

@@ -4,250 +4,250 @@ import { Edit, X, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminUser() {
+  const API_URL = "http://localhost:5003/api/users/";
+
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
+  const [openCreate, setOpenCreate] = useState(false);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    role: "",
+    role: "user",
     is_active: true,
   });
 
-  const API_URL = "http://localhost:5000/api/users";
+  const [newUser, setNewUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "user",
+    is_active: true,
+  });
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // ✅ Lấy danh sách người dùng
+  // ========================
+  // GET USERS
+  // ========================
   const fetchUsers = async () => {
     try {
       const res = await axios.get(API_URL);
       setUsers(res.data);
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách người dùng:", err);
-      toast.error("Không thể tải danh sách người dùng ❌");
+    } catch {
+      toast.error("Không thể tải danh sách user ❌");
     }
   };
 
-  // ✅ Mở modal chỉnh sửa
-  const handleEditClick = (user) => {
-    setEditingUser(user);
-    setFormData({
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      is_active: user.is_active,
-    });
+  // ========================
+  // CREATE USER
+  // ========================
+  const handleCreateUser = async () => {
+    try {
+      const res = await axios.post(API_URL, newUser);
+      if (res.data.success) {
+        toast.success("🎉 Tạo user thành công");
+        setOpenCreate(false);
+        fetchUsers();
+        setNewUser({
+          username: "",
+          email: "",
+          password: "",
+          role: "user",
+          is_active: true,
+        });
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch {
+      toast.error("Lỗi tạo user ❌");
+    }
   };
 
-  // ✅ Xử lý thay đổi form
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "is_active" ? value === "true" : value,
-    }));
-  };
-
-  // ✅ Lưu thay đổi trong modal
+  // ========================
+  // UPDATE USER
+  // ========================
   const handleSave = async () => {
     try {
-      const res = await axios.put(`${API_URL}/${editingUser.user_id}`, formData);
+      const res = await axios.put(
+        `${API_URL}/${editingUser.user_id}`,
+        formData
+      );
 
       if (res.data.success) {
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.user_id === editingUser.user_id ? { ...u, ...formData } : u
-          )
-        );
-        toast.success("Cập nhật người dùng thành công ✅");
+        toast.success("Cập nhật thành công ✅");
         setEditingUser(null);
-      } else {
-        toast.error(res.data.message || "Cập nhật thất bại ❌");
+        fetchUsers();
       }
-    } catch (err) {
-      console.error("Lỗi khi cập nhật:", err);
-      toast.error("Không thể kết nối đến server ❌");
+    } catch {
+      toast.error("Lỗi cập nhật ❌");
     }
   };
 
-  // ✅ Nút chuyển trạng thái (Khóa / Mở)
+  // ========================
+  // TOGGLE ACTIVE
+  // ========================
   const toggleActive = async (user) => {
     try {
-      const updated = { ...user, is_active: !user.is_active };
-      const res = await axios.put(`${API_URL}/${user.user_id}`, updated);
-
-      if (res.data.success) {
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.user_id === user.user_id ? { ...u, is_active: updated.is_active } : u
-          )
-        );
-
-        if (updated.is_active) {
-          toast.success(`✅ Đã mở khóa người dùng "${user.username}"`);
-        } else {
-          toast.error(`🔒 Đã khóa người dùng "${user.username}"`);
-        }
-      } else {
-        toast.error("Cập nhật trạng thái thất bại ❌");
-      }
-    } catch (err) {
-      console.error("Lỗi khi đổi trạng thái:", err);
-      toast.error("Không thể kết nối đến server ❌");
+      await axios.put(`${API_URL}/${user.user_id}`, {
+        ...user,
+        is_active: !user.is_active,
+      });
+      fetchUsers();
+      toast.success("Đã cập nhật trạng thái");
+    } catch {
+      toast.error("Không thể cập nhật ❌");
     }
   };
 
   return (
-    <div className="p-6 bg-gray-50 rounded-lg shadow-sm min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold mb-4 text-blue-700">
-        👥 Danh sách người dùng
+        👥 Quản lý người dùng
       </h2>
 
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <thead>
-          <tr className="bg-blue-600 text-white text-left">
-            <th className="px-4 py-2">ID</th>
-            <th className="px-4 py-2">Tên đăng nhập</th>
-            <th className="px-4 py-2">Email</th>
-            <th className="px-4 py-2">Trạng thái</th>
-            <th className="px-4 py-2">Vai trò</th>
-            <th className="px-4 py-2 text-center">Hành động</th>
+      <button
+        onClick={() => setOpenCreate(true)}
+        className="mb-4 px-4 py-2 bg-green-600 text-white rounded-lg"
+      >
+        ➕ Thêm người dùng
+      </button>
+
+      <table className="w-full bg-white border rounded-lg">
+        <thead className="bg-blue-600 text-white">
+          <tr>
+            <th className="p-2">ID</th>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>Trạng thái</th>
+            <th>Role</th>
+            <th>Hành động</th>
           </tr>
         </thead>
-
         <tbody>
-          {users.length > 0 ? (
-            users.map((u) => (
-              <tr
-                key={u.user_id}
-                className={`border-t transition-all duration-300 ${
-                  u.is_active
-                    ? "hover:bg-gray-100"
-                    : "opacity-50 bg-gray-100 cursor-not-allowed"
-                }`}
-              >
-                <td className="px-4 py-2">{u.user_id}</td>
-                <td className="px-4 py-2">{u.username}</td>
-                <td className="px-4 py-2">{u.email}</td>
+          {users.map((u) => (
+            <tr key={u.user_id} className="border-t text-center">
+              <td>{u.user_id}</td>
+              <td>{u.username}</td>
+              <td>{u.email}</td>
+              <td>
+                {u.is_active ? (
+                  <span className="text-green-600">Hoạt động</span>
+                ) : (
+                  <span className="text-red-600">Khoá</span>
+                )}
+              </td>
+              <td>{u.role}</td>
+              <td className="flex justify-center gap-3 p-2">
+                <button onClick={() => {
+                  setEditingUser(u);
+                  setFormData(u);
+                }}>
+                  <Edit size={18} />
+                </button>
 
-                <td className="px-4 py-2">
-                  {u.is_active ? (
-                    <span className="text-green-600 font-semibold">Hoạt động</span>
-                  ) : (
-                    <span className="text-red-600 font-semibold">Khoá</span>
-                  )}
-                </td>
-
-                <td className="px-4 py-2">{u.role}</td>
-
-                <td className="px-4 py-2 text-center flex justify-center gap-3">
-                  <button
-                    onClick={() => handleEditClick(u)}
-                    disabled={!u.is_active}
-                    className={`transition-all duration-300 ${
-                      u.is_active
-                        ? "text-blue-600 hover:text-blue-800"
-                        : "text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    <Edit size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => toggleActive(u)}
-                    className={`transition-all duration-300 ${
-                      u.is_active
-                        ? "text-red-600 hover:text-red-800"
-                        : "text-green-600 hover:text-green-800"
-                    }`}
-                  >
-                    {u.is_active ? <Lock size={18} /> : <Unlock size={18} />}
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" className="text-center py-4 text-gray-500">
-                Không có người dùng nào
+                <button onClick={() => toggleActive(u)}>
+                  {u.is_active ? <Lock /> : <Unlock />}
+                </button>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
 
-      {/* Modal chỉnh sửa */}
-      {editingUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-[400px] p-6 relative animate-fadeIn">
-            <button
-              onClick={() => setEditingUser(null)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+      {/* CREATE MODAL */}
+      {openCreate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-[400px]">
+            <h3 className="font-semibold mb-3">Thêm user</h3>
+
+            <input
+              placeholder="Username"
+              className="input"
+              onChange={(e) =>
+                setNewUser({ ...newUser, username: e.target.value })
+              }
+            />
+            <input
+              placeholder="Email"
+              className="input"
+              onChange={(e) =>
+                setNewUser({ ...newUser, email: e.target.value })
+              }
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="input"
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
+              }
+            />
+
+            <select
+              className="input"
+              onChange={(e) =>
+                setNewUser({ ...newUser, role: e.target.value })
+              }
             >
-              <X size={18} />
-            </button>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
 
-            <h4 className="text-lg font-semibold mb-4 text-blue-700">
-              Chỉnh sửa người dùng #{editingUser.user_id}
-            </h4>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">Tên đăng nhập</label>
-                <input
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <input
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Vai trò</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg px-3 py-2 mt-1"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Trạng thái</label>
-                <select
-                  name="is_active"
-                  value={formData.is_active}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg px-3 py-2 mt-1"
-                >
-                  <option value={true}>Hoạt động</option>
-                  <option value={false}>Khoá</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-5 flex justify-end gap-3">
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setOpenCreate(false)}>Huỷ</button>
               <button
-                onClick={() => setEditingUser(null)}
-                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                onClick={handleCreateUser}
+                className="bg-green-600 text-white px-4 py-2 rounded"
               >
-                Hủy
+                Tạo
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-[400px]">
+            <h3 className="font-semibold mb-3">
+              Sửa user #{editingUser.user_id}
+            </h3>
+
+            <input
+              value={formData.username}
+              className="input"
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+            />
+            <input
+              value={formData.email}
+              className="input"
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+            />
+
+            <select
+              value={formData.role}
+              className="input"
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setEditingUser(null)}>Huỷ</button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                className="bg-blue-600 text-white px-4 py-2 rounded"
               >
                 Lưu
               </button>

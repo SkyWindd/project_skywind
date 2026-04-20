@@ -18,7 +18,7 @@ function Home() {
       setLoading(true);
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/products/filter",
+          "http://localhost:5001/api/products/filter",
           {
             params: { is_hot: true },
           }
