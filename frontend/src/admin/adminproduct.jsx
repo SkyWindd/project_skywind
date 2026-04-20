@@ -9,9 +9,9 @@ export default function AdminProduct() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [savingId, setSavingId] = useState(null);
-  const [editedProducts, setEditedProducts] = useState({}); // ✅ Lưu sản phẩm đã chỉnh sửa
+  const [editedProducts, setEditedProducts] = useState({});
 
-  const API_URL = "http://localhost:5000/api/products";
+  const API_URL = "http://localhost:5001/api/products";
 
   useEffect(() => {
     fetchProducts();
@@ -22,17 +22,17 @@ export default function AdminProduct() {
       const res = await axios.get(`${API_URL}?include=images`);
       setProducts(res.data);
     } catch (err) {
-      console.error("Lỗi khi tải sản phẩm:", err);
+      console.error(err);
       toast.error("Không thể tải danh sách sản phẩm ❌");
     }
   };
 
+  // ⚠️ CHỈ DÙNG KHI SAVE (KHÔNG DÙNG RENDER)
   const calcDiscountPrice = (price, discount_percent) => {
     if (!price) return 0;
     return price - (price * (discount_percent || 0)) / 100;
   };
 
-  // ✅ Hàm lưu thay đổi
   const handleRowSave = async (product) => {
     try {
       setSavingId(product.product_id);
@@ -40,22 +40,27 @@ export default function AdminProduct() {
       const payload = {
         stock: Number(product.stock),
         discount_percent: Number(product.discount_percent),
-        discount_price: calcDiscountPrice(product.price, product.discount_percent),
+        discount_price: calcDiscountPrice(
+          product.price,
+          product.discount_percent
+        ),
       };
 
       await axios.put(`${API_URL}/${product.product_id}`, payload, {
         headers: { "Content-Type": "application/json" },
       });
 
-      toast.success(`💾 Đã lưu "${product.name}" thành công!`);
+      toast.success(`💾 Đã lưu "${product.name}"`);
 
       setEditedProducts((prev) => {
         const updated = { ...prev };
         delete updated[product.product_id];
         return updated;
       });
+
+      fetchProducts();
     } catch (err) {
-      console.error("❌ Lỗi khi lưu:", err);
+      console.error(err);
       toast.error("Không thể lưu sản phẩm!");
     } finally {
       setSavingId(null);
@@ -75,48 +80,24 @@ export default function AdminProduct() {
     }));
   };
 
-  const handleSaveModal = async (data) => {
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa sản phẩm này không?")) return;
     try {
-      const payload = {
-        ...data,
-        price: Number(data.price),
-        stock: Number(data.stock),
-      };
-
-      if (selectedProduct) {
-        await axios.put(`${API_URL}/${selectedProduct.product_id}`, payload);
-        toast.success("🛠️ Đã cập nhật sản phẩm!");
-      } else {
-        await axios.post(API_URL, payload);
-        toast.success("✅ Thêm sản phẩm thành công!");
-      }
-
-      setOpenModal(false);
-      setSelectedProduct(null);
+      await axios.delete(`${API_URL}/${id}`);
+      toast.success("🗑️ Đã xóa sản phẩm!");
       fetchProducts();
     } catch (err) {
-      console.error("Lỗi khi lưu:", err);
-      toast.error("❌ Không thể lưu sản phẩm!");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc muốn xóa sản phẩm này không?")) {
-      try {
-        await axios.delete(`${API_URL}/${id}`);
-        toast.success("🗑️ Đã xóa sản phẩm!");
-        fetchProducts();
-      } catch (err) {
-        console.error("Lỗi khi xoá:", err);
-        toast.error("Không thể xoá sản phẩm ❌");
-      }
+      console.error(err);
+      toast.error("Không thể xoá sản phẩm ❌");
     }
   };
 
   return (
     <div className="p-6 bg-gray-50 rounded-lg min-h-screen">
       <div className="flex justify-between items-center mb-5">
-        <h2 className="text-2xl font-bold text-blue-700">📦 Quản lý sản phẩm</h2>
+        <h2 className="text-2xl font-bold text-blue-700">
+          📦 Quản lý sản phẩm
+        </h2>
         <button
           onClick={() => {
             setSelectedProduct(null);
@@ -148,21 +129,28 @@ export default function AdminProduct() {
                 <td className="p-2">{p.product_id}</td>
                 <td className="p-2">{p.name}</td>
 
+                {/* TỒN KHO */}
                 <td className="p-2 flex items-center gap-2">
                   <input
                     type="number"
                     min="0"
                     value={p.stock}
-                    onChange={(e) => handleChange(p, "stock", e.target.value)}
-                    className="border rounded-md px-2 py-1 w-20 text-center focus:ring focus:ring-blue-200"
+                    onChange={(e) =>
+                      handleChange(p, "stock", e.target.value)
+                    }
+                    className="border rounded-md px-2 py-1 w-20 text-center"
                   />
                   {savingId === p.product_id && (
-                    <Loader2 className="animate-spin text-blue-500 w-4 h-4" />
+                    <Loader2 className="animate-spin w-4 h-4 text-blue-500" />
                   )}
                 </td>
 
-                <td className="p-2">{p.price?.toLocaleString()} ₫</td>
+                {/* GIÁ GỐC (ĐÚNG) */}
+                <td className="p-2 text-gray-500">
+                  {(p.old_price ?? p.price)?.toLocaleString()} ₫
+                </td>
 
+                {/* % GIẢM */}
                 <td className="p-2 flex items-center gap-2">
                   <input
                     type="number"
@@ -170,26 +158,28 @@ export default function AdminProduct() {
                     max="90"
                     step="1"
                     value={p.discount_percent || 0}
-                    onChange={(e) => handleChange(p, "discount_percent", e.target.value)}
-                    className="border rounded-md px-2 py-1 w-16 text-center focus:ring focus:ring-blue-200"
+                    onChange={(e) =>
+                      handleChange(p, "discount_percent", e.target.value)
+                    }
+                    className="border rounded-md px-2 py-1 w-16 text-center"
                   />
                   {savingId === p.product_id && (
-                    <Loader2 className="animate-spin text-blue-500 w-4 h-4" />
+                    <Loader2 className="animate-spin w-4 h-4 text-blue-500" />
                   )}
                 </td>
 
+                {/* GIÁ SAU GIẢM (ĐÚNG – KHÔNG TÍNH LẠI) */}
                 <td className="p-2 text-green-600 font-semibold">
-                  {calcDiscountPrice(p.price, p.discount_percent).toLocaleString()} ₫
+                  {p.price?.toLocaleString()} ₫
                 </td>
 
-                <td className="p-2 text-center flex gap-2 justify-center">
+                <td className="p-2 flex gap-2 justify-center">
                   <button
                     onClick={() => {
                       setSelectedProduct(p);
                       setOpenModal(true);
                     }}
                     className="text-blue-600 hover:text-blue-800"
-                    title="Sửa chi tiết"
                   >
                     <Pencil size={18} />
                   </button>
@@ -198,7 +188,6 @@ export default function AdminProduct() {
                     <button
                       onClick={() => handleRowSave(p)}
                       className="text-green-600 hover:text-green-800"
-                      title="Lưu thay đổi"
                     >
                       <Save size={18} />
                     </button>
@@ -207,7 +196,6 @@ export default function AdminProduct() {
                   <button
                     onClick={() => handleDelete(p.product_id)}
                     className="text-red-600 hover:text-red-800"
-                    title="Xoá"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -230,7 +218,6 @@ export default function AdminProduct() {
           setOpenModal(false);
           setSelectedProduct(null);
         }}
-        onSave={handleSaveModal}
         product={selectedProduct}
       />
     </div>

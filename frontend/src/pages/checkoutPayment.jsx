@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckoutProgress from "@/components/CheckOutInfo/checkoutProgress";
-import PaymentSummary from "@/components/Payment/PaymentSummary";
-import PaymentMethodCard from "@/components/Payment/PaymentMethodCard";
-import PaymentInfoBox from "@/components/Payment/PaymentInfoBox";
-import PaymentTransferModal from "@/components/Payment/PaymentTransferModal";
+import PaymentSummary from "@/components/Payment/paymentSummary";
+import PaymentMethodCard from "@/components/Payment/paymentMethodCard";
+import PaymentInfoBox from "@/components/Payment/paymentInfoBox";
+import PaymentTransferModal from "@/components/Payment/paymentTransferModal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard } from "lucide-react";
 import { toast } from "sonner";

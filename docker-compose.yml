@@ -1,7 +1,8 @@
+version: "3.9"
+
 services:
-  # 🗄️ PostgreSQL Database
   db:
-    image: postgres:16               # 👉 Dùng 16 thay vì 18 (ổn định, hỗ trợ tốt hơn)
+    image: postgres:16
     container_name: postgres_db
     restart: always
     environment:
@@ -11,12 +12,9 @@ services:
     ports:
       - "54321:5432"
     volumes:
-      # ⚠️ PostgreSQL 18+ thay đổi cấu trúc lưu trữ -> lỗi restart loop bạn gặp
-      # Giải pháp: mount vào /var/lib/postgresql/data để tương thích
       - pgdata:/var/lib/postgresql/data
       - ./db/Skywind.sql:/docker-entrypoint-initdb.d/Skywind.sql:ro
 
-  # 🧠 pgAdmin (Web UI)
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -29,51 +27,55 @@ services:
     depends_on:
       - db
 
-  # 🐍 Flask Backend
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: flask_api
-    restart: always
+  order-service:
+    build: ./backend/order-service
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
-    environment:
-      FLASK_APP: server.py
-      FLASK_ENV: development
-      FLASK_RUN_HOST: 0.0.0.0
-      FLASK_RUN_PORT: 5000
-      DB_HOST: db
-      DB_NAME: skywind
-      DB_USER: postgres
-      DB_PASS: 12345
-      DB_PORT: 5432
-    command: flask run --reload
+      - "5004:5000"
+    depends_on:
+      - db
+      - inventory-service
+
+  product-service:
+    build: ./backend/product-service
+    ports:
+      - "5001:5001"
     depends_on:
       - db
 
-  # ⚛️ React Frontend
+  inventory-service:
+    build: ./backend/inventory-service
+    ports:
+      - "5002:5002"
+    depends_on:
+      - db
+
+  user-service:
+    build: ./backend/user-service
+    ports:
+      - "5003:5003"
+    depends_on:
+      - db
+
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: react_app
-    restart: always
+    build: ./frontend
     ports:
       - "3000:5173"
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true      # 👈 Cho phép Vite theo dõi file trong volume
-      - WATCHPACK_POLLING=true
-    command: ["npm", "run", "dev"]
     depends_on:
-      - backend
+      - order-service
+      - product-service
+      - inventory-service
+      - user-service
+
+  # ✅ API GATEWAY — đúng vị trí
+  api-gateway:
+    build: ./backend/api-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - order-service
+      - product-service
+      - inventory-service
+      - user-service
 
 volumes:
   pgdata:

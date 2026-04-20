@@ -32,7 +32,7 @@ export default function ProductDetail() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`http://localhost:5000/api/products/slug/${slug}`);
+        const res = await fetch(`http://localhost:5001/api/products/slug/${slug}`);
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error || "Không thể tải sản phẩm");

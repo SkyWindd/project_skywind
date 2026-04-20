@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import OrderDetailModal from "./OrderDetailModal";
+import OrderDetailModal from "./orderDetailModal";
 
 // 👉 Import hàm format tiền
 import { formatCurrency } from "@/utils/formatCurrency";
