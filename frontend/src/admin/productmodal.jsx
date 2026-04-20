@@ -20,9 +20,9 @@ export default function ProductModal({ open, onClose, product, refresh }) {
   const [previews, setPreviews] = useState([]);
   const [files, setFiles] = useState([]);
 
-  const API_URL = "http://localhost:5000/api/products";
-  const UPLOAD_URL = "http://localhost:5000/api/products/upload";
-  const BASE_URL = "http://localhost:5000";
+  const API_URL = "http://localhost:5001/api/products";
+  const UPLOAD_URL = "http://localhost:5001/api/products/upload";
+  const BASE_URL = "http://localhost:5001";
 
   useEffect(() => {
     if (product) {

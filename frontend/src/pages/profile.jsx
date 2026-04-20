@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import ProfileLayout from "@/components/Profile/ProfileLayout";
-import ProfileInfo from "@/components/Profile/ProfileInfo";
-import ProfileOrders from "@/components/Profile/ProfileOrders";
-import ProfileAddress from "@/components/Profile/ProfileAddress";
+import ProfileLayout from "@/components/Profile/profileLayout";
+import ProfileInfo from "@/components/Profile/profileInfo";
+import ProfileOrders from "@/components/Profile/profileOrders";
+import ProfileAddress from "@/components/Profile/profileAddress";
 
 export default function Profile() {
   const { user, logout } = useAuth();

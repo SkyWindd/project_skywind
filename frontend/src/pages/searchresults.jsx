@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import productApi from "@/api/productApi";
-import ProductCard from "@/components/Product/ProductCard"; // ✅ Dùng component hiển thị sản phẩm của bạn
+import ProductCard from "@/components/Product/productcard"; // ✅ Dùng component hiển thị sản phẩm của bạn
 
 export default function SearchResults() {
   const location = useLocation();

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import OrderCard from "./OrderCard";
+import OrderCard from "./orderCard";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ProfileOrders() {

@@ -1,5 +1,5 @@
 import React from "react";
-import ProfileSidebar from "./ProfileSidebar";
+import ProfileSidebar from "./profileSidebar";
 import { cn } from "@/lib/utils";
 
 export default function ProfileLayout({

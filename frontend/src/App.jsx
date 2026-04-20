@@ -4,7 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import MainLayout from "./layout/MainLayout";
+import MainLayout from "./layout/mainlayout";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 
 import Home from "@/pages/home";
@@ -16,9 +16,9 @@ import ProductDetails from "@/pages/productdetail";
 import CheckoutInfo from "@/pages/checkoutInfo";
 import CheckoutPayment from "@/pages/checkoutPayment";
 import UploadImage from "@/components/UploadImage";
-import SearchResults from "@/pages/SearchResults";
+import SearchResults from "@/pages/searchresults";
 import Profile from "@/pages/profile";
-import AdminDashboard from "@/admin/admindasboard";
+import AdminDashboard from "@/admin/admindashboard";
 
 export default function App() {
   return (
