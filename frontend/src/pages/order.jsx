@@ -26,7 +26,7 @@ export default function Order() {
     const fetchOrders = async () => {
       try {
         console.log("📡 Gọi API với userId:", userId);
-        const res = await axios.get(`http://127.0.0.1:5000/api/orders/user/${userId}`);
+        const res = await axios.get (`/orders/api/orders/user/${userId}`)
         console.log("📦 Dữ liệu đơn hàng trả về:", res.data);
         setOrders(res.data);
       } catch (error) {

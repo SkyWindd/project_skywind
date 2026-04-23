@@ -2,8 +2,12 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-const BASE_URL = "http://127.0.0.1:5000/api";
+// 🔥 BASE URL phải là API GATEWAY
+const BASE_URL = "http://localhost:8000";
 
+// ============================
+// 🔹 Tạo axios instance
+// ============================
 const axiosClient = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -13,7 +17,7 @@ const axiosClient = axios.create({
 });
 
 // ============================
-// 🔹 Helper: Lấy authData từ localStorage
+// 🔹 Helper: lấy authData
 // ============================
 function getAuthData() {
   try {
@@ -25,7 +29,7 @@ function getAuthData() {
 }
 
 // ============================
-// 🔹 Gắn Access Token vào Header
+// 🔹 Gắn Access Token
 // ============================
 axiosClient.interceptors.request.use(
   (config) => {
@@ -52,7 +56,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Axios riêng cho refresh (tránh loop interceptor)
+// Axios riêng cho refresh (tránh loop)
 const refreshClient = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -61,16 +65,14 @@ const refreshClient = axios.create({
 });
 
 // ============================
-// 🔹 Response Interceptor (FIX CHÍNH)
+// 🔹 Response Interceptor
 // ============================
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // ============================
-    // ❌ LỖI MẠNG / SERVER DOWN
-    // ============================
+    // ❌ Lỗi mạng
     if (!error.response) {
       toast.error("Không thể kết nối đến server. Vui lòng kiểm tra mạng.");
       return Promise.reject(error);
@@ -79,7 +81,7 @@ axiosClient.interceptors.response.use(
     const { status, data } = error.response;
 
     // ============================
-    // 🔁 401 → REFRESH TOKEN
+    // 🔁 REFRESH TOKEN
     // ============================
     if (status === 401 && !originalRequest._retry) {
       const auth = getAuthData();
@@ -106,9 +108,13 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res = await refreshClient.post("/auth/refresh-token", {
-          refreshToken,
-        });
+        // 🔥 gọi qua gateway → auth service
+        const res = await refreshClient.post(
+          "/auth/api/auth/refresh-token",
+          {
+            refreshToken,
+          }
+        );
 
         const newAccessToken = res.data?.accessToken;
 
@@ -140,13 +146,11 @@ axiosClient.interceptors.response.use(
     }
 
     // ============================
-    // 🧱 CÁC LỖI NGHIỆP VỤ (400, 403, 404…)
+    // 🧱 Lỗi nghiệp vụ
     // ============================
     const message =
-      data?.message ||
-      "Có lỗi xảy ra. Vui lòng thử lại.";
+      data?.message || "Có lỗi xảy ra. Vui lòng thử lại.";
 
-    // 🔥 ĐÂY LÀ DÒNG QUAN TRỌNG BỊ THIẾU TRƯỚC ĐÓ
     toast.error(message);
 
     return Promise.reject(error);

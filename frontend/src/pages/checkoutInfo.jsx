@@ -7,12 +7,13 @@ import CheckoutProductList from "@/components/CheckOutInfo/checkoutProductList";
 import CheckoutCustomerInfo from "@/components/CheckOutInfo/checkoutCustomerInfo";
 import CheckoutDeliveryInfo from "@/components/CheckOutInfo/checkoutDeliveryInfo";
 import { Toaster, toast } from "sonner";
-import axios from "axios";
+import axiosClient from "@/api/axiosClient";
 
 export default function CheckoutInfo() {
   const { total } = useCart();
   const navigate = useNavigate();
-  const userId = 1; // TODO: lấy từ JWT sau
+  const { user } = useAuth();
+  const userId = user?.user_id || user?.id;
 
   const [deliveryType, setDeliveryType] = useState("delivery");
 
@@ -28,38 +29,44 @@ export default function CheckoutInfo() {
 
   // 🚀 Load địa chỉ mặc định từ DB
   useEffect(() => {
-    const loadDefaultAddress = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/address/user/${userId}`
-        );
+  if (!userId) return;
 
-        if (res.data.length === 0) {
-          // Không có địa chỉ → dùng localStorage
-          const saved = localStorage.getItem("checkout_delivery_form");
-          if (saved) setForm(JSON.parse(saved));
-          return;
-        }
+  const loadDefaultAddress = async () => {
+    try {
+      const res = await axiosClient.get(
+        `/users/api/address/user/${userId}`
+      );
 
-        const addr = res.data.find((a) => a.is_default) || res.data[0];
+      console.log("📦 RAW:", res.data);
 
-        setForm({
-          name: addr.name,
-          phone: addr.phone,
-          email: "",
-          province: addr.province,
-          district: addr.district,
-          ward: addr.ward,
-          address: addr.street,
-        });
-      } catch (error) {
-        console.error("❌ Load address error:", error);
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
+
+      if (data.length === 0) {
+        const saved = localStorage.getItem("checkout_delivery_form");
+        if (saved) setForm(JSON.parse(saved));
+        return;
       }
-    };
 
-    loadDefaultAddress();
-  }, []);
+      const addr = data[0];
 
+      setForm({
+        name: "",
+        phone: "",
+        email: "",
+        province: addr.city || "",
+        district: addr.state || "",
+        ward: addr.zip_code || "",
+        address: addr.street || "",
+      });
+    } catch (error) {
+      console.error("❌ Load address error:", error);
+    }
+  };
+
+  loadDefaultAddress();
+}, [userId]);
   // 💾 Lưu form vào localStorage mỗi khi thay đổi
   useEffect(() => {
     localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
