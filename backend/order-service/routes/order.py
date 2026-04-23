@@ -2,11 +2,42 @@ from flask import Blueprint, request, jsonify
 from db import get_connection
 from datetime import datetime
 import requests
+from psycopg2.extras import RealDictCursor
+
+# 🔥 NEW: Kafka
+from kafka import KafkaProducer
+import json
 
 orders_bp = Blueprint("orders", __name__, url_prefix="/api/orders")
 
 INVENTORY_URL = "http://inventory-service:5002/api/inventory"
 
+# ============================
+# 🔥 KAFKA PRODUCER (NEW)
+# ============================
+producer = KafkaProducer(
+    bootstrap_servers="kafka:9092",
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+    retries=5
+)
+
+def send_notification(order_id):
+    message = {
+        "orderNumber": str(order_id),
+        "message": "Order Placed Successfully"
+    }
+
+    try:
+        producer.send("notificationTopic", message)
+        producer.flush()
+        print(f"✅ Kafka sent: {message}")
+    except Exception as e:
+        print(f"❌ Kafka error: {e}")
+
+
+# ============================
+# CREATE ORDER
+# ============================
 @orders_bp.route("/create", methods=["POST"])
 def create_order():
     conn = None
@@ -43,7 +74,9 @@ def create_order():
                     "error": f"Sản phẩm {sku} hết hàng"
                 }), 400
 
-        # ✅ tạo order
+        # ============================
+        # 🔥 INSERT ORDER
+        # ============================
         conn = get_connection()
         cur = conn.cursor()
 
@@ -65,6 +98,14 @@ def create_order():
         conn.commit()
         cur.close()
 
+        # ============================
+        # 🔥 NEW: GỬI KAFKA EVENT
+        # ============================
+        try:
+            send_notification(order_id)
+        except Exception as e:
+            print("⚠️ Kafka error:", e)
+
         return jsonify({
             "message": "Order placed successfully",
             "order_id": order_id
@@ -78,6 +119,11 @@ def create_order():
     finally:
         if conn:
             conn.close()
+
+
+# ============================
+# GET ALL ORDERS
+# ============================
 @orders_bp.route("", methods=["GET"])
 def get_orders():
     try:
@@ -108,4 +154,51 @@ def get_orders():
         return jsonify(result)
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================
+# GET ORDERS BY USER
+# ============================
+@orders_bp.route("/user/<int:user_id>", methods=["GET"])
+def get_orders_by_user(user_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # 🔥 lấy danh sách đơn hàng
+        cur.execute("""
+            SELECT 
+                order_id,
+                order_date,
+                total_amount,
+                status
+            FROM orders
+            WHERE user_id = %s
+            ORDER BY order_date DESC
+        """, (user_id,))
+
+        orders = cur.fetchall()
+
+        # 🔥 lấy chi tiết từng đơn
+        for order in orders:
+            cur.execute("""
+                SELECT 
+                    p.name AS product_name,
+                    od.quantity,
+                    od.price
+                FROM orderdetail od
+                JOIN product p ON od.product_id = p.product_id
+                WHERE od.order_id = %s
+            """, (order["order_id"],))
+
+            order["items"] = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        return jsonify(orders)
+
+    except Exception as e:
+        print("❌ Lỗi get_orders_by_user:", e)
         return jsonify({"error": str(e)}), 500
