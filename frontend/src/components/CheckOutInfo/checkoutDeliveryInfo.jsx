@@ -23,10 +23,10 @@ export default function CheckoutDeliveryInfo({ form, onChange, setForm }) {
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/address/provinces");
+        const res = await fetch("http://localhost:8000/users/api/address/provinces");
         setProvinces(await res.json());
       } finally {
-        setLoadingProvinces(false);
+        setLoadingProvinces(false);   
       }
     };
     fetchProvinces();

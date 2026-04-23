@@ -49,7 +49,7 @@ export default function CheckoutPayment() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/orders/create", {
+      const response = await axios.post("/orders/api/orders/create", {
         user_id: user.user_id,
         cart_items: cartItems.map((item) => ({
           product_id: item.id,

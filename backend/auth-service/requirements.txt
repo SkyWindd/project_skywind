@@ -1,7 +1,6 @@
 flask
 flask-cors
 psycopg2-binary
-requests
 PyJWT
 google-auth
-kafka-python
+requests

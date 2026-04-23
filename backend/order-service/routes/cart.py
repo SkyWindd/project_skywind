@@ -19,7 +19,7 @@ def build_image_urls(images_raw):
     try:
         base_url = request.host_url.rstrip("/")
     except RuntimeError:
-        base_url = current_app.config.get("BASE_URL", "http://localhost:5000")
+        base_url = current_app.config.get("BASE_URL", "http://localhost:3000")
 
     urls = []
     for img in images_raw or []:

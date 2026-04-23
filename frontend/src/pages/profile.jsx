@@ -35,7 +35,7 @@ export default function Profile() {
     const fetchOrders = async () => {
       if (!user?.id) return;
       try {
-        const res = await axios.get(`http://127.0.0.1:5000/api/orders/user/${user.id}`);
+        const res = await axios.get(`/orders/api/orders/user/${user.id}`);
         setOrders(res.data || []);
       } catch (err) {
         console.error("❌ Lỗi khi tải đơn hàng:", err);
