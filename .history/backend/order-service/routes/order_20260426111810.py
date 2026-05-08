@@ -32,9 +32,10 @@ def send_notification(order_id):
         "orderNumber": str(order_id),
         "message": "Order Placed Successfully"
     }
+
     try:
-        get_producer().send("notificationTopic", message)
-        get_producer().flush()
+        producer.send("notificationTopic", message)
+        producer.flush()
         print(f"✅ Kafka sent: {message}")
     except Exception as e:
         print(f"❌ Kafka error: {e}")

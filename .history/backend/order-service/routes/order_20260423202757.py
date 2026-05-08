@@ -15,26 +15,21 @@ INVENTORY_URL = "http://inventory-service:5002/api/inventory"
 # ============================
 # 🔥 KAFKA PRODUCER (NEW)
 # ============================
-producer = None
-
-def get_producer():
-    global producer
-    if producer is None:
-        producer = KafkaProducer(
-            bootstrap_servers="kafka:9092",
-            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-            retries=5
-        )
-    return producer
+producer = KafkaProducer(
+    bootstrap_servers="kafka:9092",
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+    retries=5
+)
 
 def send_notification(order_id):
     message = {
         "orderNumber": str(order_id),
         "message": "Order Placed Successfully"
     }
+
     try:
-        get_producer().send("notificationTopic", message)
-        get_producer().flush()
+        producer.send("notificationTopic", message)
+        producer.flush()
         print(f"✅ Kafka sent: {message}")
     except Exception as e:
         print(f"❌ Kafka error: {e}")

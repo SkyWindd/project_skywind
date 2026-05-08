@@ -34,18 +34,20 @@ export default function ChatBox() {
       });
 
       const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { reply: text };
-      }
+let reply;
+try {
+  const data = JSON.parse(text);
+  reply = data.output || data.message || data.text || text;
+} catch {
+  reply = text;
+}
 
       const botMsg = {
         sender: "bot",
-        text: data.reply || data.output || data.message || text,
+        text: data.reply,
         products: data.products || [],
       };
+
       setMessages((prev) => [...prev, botMsg]);
     } catch (error) {
       console.error("Fetch error:", error);
