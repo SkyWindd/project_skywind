@@ -5,7 +5,7 @@ import "./ChatBox.css";
 export default function ChatBox() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "👋 Chào bạn! Tôi là Bi, bạn cần hỗ trợ gì?" },
+    { sender: "bot", text: "👋 Chào bạn! Tôi là Sidon, bạn cần hỗ trợ gì?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,25 +27,20 @@ export default function ChatBox() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: sendText }),
       });
 
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { reply: text };
-      }
+      const data = await res.json();
 
       const botMsg = {
         sender: "bot",
-        text: data.reply || data.output || data.message || text,
+        text: data.reply,
         products: data.products || [],
       };
+
       setMessages((prev) => [...prev, botMsg]);
     } catch (error) {
       console.error("Fetch error:", error);

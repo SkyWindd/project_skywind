@@ -1,0 +1,6 @@
+flask
+flask-cors
+psycopg2-binary
+pgvector          # ← MỚI: Python adapter cho pgvector
+google-generativeai
+openai

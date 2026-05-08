@@ -33,19 +33,14 @@ export default function ChatBox() {
         body: JSON.stringify({ message: sendText }),
       });
 
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { reply: text };
-      }
+      const data = await res.json();
 
       const botMsg = {
         sender: "bot",
-        text: data.reply || data.output || data.message || text,
+        text: data.reply,
         products: data.products || [],
       };
+
       setMessages((prev) => [...prev, botMsg]);
     } catch (error) {
       console.error("Fetch error:", error);
