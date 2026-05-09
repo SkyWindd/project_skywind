@@ -52,7 +52,7 @@ export default function ProfileOrders() {
     async function fetchOrders() {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/orders/user/${userId}`
+          `http://localhost:8000/api/orders/user/${userId}`
         );
 
         const formatted = res.data.map((order) => {
