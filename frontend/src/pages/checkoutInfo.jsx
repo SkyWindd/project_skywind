@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
+
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+
 import CheckoutProgress from "@/components/CheckOutInfo/checkoutProgress";
 import CheckoutProductList from "@/components/CheckOutInfo/checkoutProductList";
 import CheckoutCustomerInfo from "@/components/CheckOutInfo/checkoutCustomerInfo";
 import CheckoutDeliveryInfo from "@/components/CheckOutInfo/checkoutDeliveryInfo";
+
 import { Toaster, toast } from "sonner";
+
 import axiosClient from "@/api/axiosClient";
 
 export default function CheckoutInfo() {
+  // ============================
+  // 🔹 CONTEXT
+  // ============================
   const { total } = useCart();
-  const navigate = useNavigate();
   const { user } = useAuth();
+
+  const navigate = useNavigate();
+
   const userId = user?.user_id || user?.id;
 
+  // ============================
+  // 🔹 STATE
+  // ============================
   const [deliveryType, setDeliveryType] = useState("delivery");
 
   const [form, setForm] = useState({
@@ -27,52 +41,83 @@ export default function CheckoutInfo() {
     address: "",
   });
 
-  // 🚀 Load địa chỉ mặc định từ DB
+  // ============================
+  // 🚀 LOAD DEFAULT ADDRESS
+  // ============================
   useEffect(() => {
-  if (!userId) return;
+    if (!userId) return;
 
-  const loadDefaultAddress = async () => {
-    try {
-      const res = await axiosClient.get(
-        `/users/api/address/user/${userId}`
-      );
+    const loadDefaultAddress = async () => {
+      try {
+        const res = await axiosClient.get(
+          `/users/api/address/user/${userId}`
+        );
 
-      console.log("📦 RAW:", res.data);
+        console.log("📦 Address Response:", res.data);
 
-      const data = Array.isArray(res.data)
-        ? res.data
-        : res.data?.data || [];
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
 
-      if (data.length === 0) {
-        const saved = localStorage.getItem("checkout_delivery_form");
-        if (saved) setForm(JSON.parse(saved));
-        return;
+        // ============================
+        // ❌ Không có địa chỉ
+        // ============================
+        if (data.length === 0) {
+          const saved = localStorage.getItem(
+            "checkout_delivery_form"
+          );
+
+          if (saved) {
+            setForm(JSON.parse(saved));
+          }
+
+          return;
+        }
+
+        // ============================
+        // 🔹 Lấy địa chỉ đầu tiên
+        // ============================
+        const addr = data[0];
+
+        setForm({
+          name: user?.name || "",
+          phone: user?.phone || "",
+          email: user?.email || "",
+
+          province: addr.city || "",
+          district: addr.state || "",
+          ward: addr.zip_code || "",
+          address: addr.street || "",
+        });
+      } catch (error) {
+        console.error("❌ Load address error:", error);
+
+        const saved = localStorage.getItem(
+          "checkout_delivery_form"
+        );
+
+        if (saved) {
+          setForm(JSON.parse(saved));
+        }
       }
+    };
 
-      const addr = data[0];
+    loadDefaultAddress();
+  }, [userId, user]);
 
-      setForm({
-        name: "",
-        phone: "",
-        email: "",
-        province: addr.city || "",
-        district: addr.state || "",
-        ward: addr.zip_code || "",
-        address: addr.street || "",
-      });
-    } catch (error) {
-      console.error("❌ Load address error:", error);
-    }
-  };
-
-  loadDefaultAddress();
-}, [userId]);
-  // 💾 Lưu form vào localStorage mỗi khi thay đổi
+  // ============================
+  // 💾 SAVE FORM LOCALSTORAGE
+  // ============================
   useEffect(() => {
-    localStorage.setItem("checkout_delivery_form", JSON.stringify(form));
+    localStorage.setItem(
+      "checkout_delivery_form",
+      JSON.stringify(form)
+    );
   }, [form]);
 
-  // Cập nhật form
+  // ============================
+  // 🔹 HANDLE INPUT CHANGE
+  // ============================
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -80,44 +125,111 @@ export default function CheckoutInfo() {
     }));
   };
 
-  // Next step
+  // ============================
+  // 🔹 NEXT STEP
+  // ============================
   const handleNext = () => {
-    const required = ["name", "phone", "province", "ward", "address"];
-    const missing = required.filter((f) => !form[f] || !form[f].trim());
+    const requiredFields = [
+      "name",
+      "phone",
+      "province",
+      "ward",
+      "address",
+    ];
 
-    if (missing.length > 0) {
-      toast.error(`Vui lòng điền đủ thông tin trước khi tiếp tục.`, {
-        position: "top-center",
-      });
+    const missingFields = requiredFields.filter(
+      (field) => !form[field]?.trim()
+    );
+
+    // ============================
+    // ❌ VALIDATE
+    // ============================
+    if (missingFields.length > 0) {
+      toast.error(
+        "Vui lòng điền đầy đủ thông tin giao hàng",
+        {
+          position: "top-center",
+        }
+      );
+
       return;
     }
 
-    localStorage.setItem("checkout_total_price", total.toString());
+    // ============================
+    // 💾 SAVE CHECKOUT DATA
+    // ============================
+    localStorage.setItem(
+      "checkout_delivery_form",
+      JSON.stringify(form)
+    );
 
-    setTimeout(() => navigate("/checkoutPayment"), 1500);
+    localStorage.setItem(
+      "checkout_total_price",
+      total.toString()
+    );
+
+    toast.success("Thông tin hợp lệ", {
+      position: "top-center",
+    });
+
+    // ============================
+    // 🚀 NAVIGATE
+    // ============================
+    setTimeout(() => {
+      navigate("/checkoutPayment");
+    }, 1000);
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8">
       <Toaster richColors position="top-center" expand />
 
+      {/* ============================
+          🔹 PROGRESS
+      ============================ */}
       <div className="mb-8">
         <CheckoutProgress step={1} />
       </div>
 
+      {/* ============================
+          🔹 PRODUCT LIST
+      ============================ */}
       <CheckoutProductList />
 
-      <CheckoutCustomerInfo form={form} onChange={handleChange} />
+      {/* ============================
+          🔹 CUSTOMER INFO
+      ============================ */}
+      <CheckoutCustomerInfo
+        form={form}
+        onChange={handleChange}
+      />
 
-      <CheckoutDeliveryInfo form={form} onChange={handleChange} />
+      {/* ============================
+          🔹 DELIVERY INFO
+      ============================ */}
+      <CheckoutDeliveryInfo
+        form={form}
+        onChange={handleChange}
+        deliveryType={deliveryType}
+        setDeliveryType={setDeliveryType}
+      />
 
+      {/* ============================
+          🔹 TOTAL
+      ============================ */}
       <div className="bg-white shadow-md border border-gray-100 rounded-2xl p-6 mt-6">
         <div className="flex justify-between items-center text-base font-semibold">
           <span>Tổng tiền tạm tính</span>
-          <span className="text-blue-600 text-lg">{total.toLocaleString()}₫</span>
+
+          <span className="text-blue-600 text-lg">
+            {total.toLocaleString()}₫
+          </span>
         </div>
       </div>
 
+      {/* ============================
+          🔹 BUTTON
+      ============================ */}
       <Button
         onClick={handleNext}
         className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg rounded-xl shadow-lg"

@@ -1,23 +1,38 @@
 // src/api/axiosClient.js
+
 import axios from "axios";
 import { toast } from "sonner";
 
-// 🔥 BASE URL phải là API GATEWAY
-const BASE_URL = "http://localhost:8000";
+// ============================
+// 🔹 BASE URL
+// ============================
+const BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // ============================
-// 🔹 Tạo axios instance
+// 🔹 Axios chính
 // ============================
 const axiosClient = axios.create({
   baseURL: BASE_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000,
 });
 
 // ============================
-// 🔹 Helper: lấy authData
+// 🔹 Axios refresh riêng
+// ============================
+const refreshClient = axios.create({
+  baseURL: BASE_URL,
+  timeout: 15000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ============================
+// 🔹 Helper lấy authData
 // ============================
 function getAuthData() {
   try {
@@ -34,71 +49,92 @@ function getAuthData() {
 axiosClient.interceptors.request.use(
   (config) => {
     const auth = getAuthData();
+
     if (auth?.accessToken) {
       config.headers.Authorization = `Bearer ${auth.accessToken}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
 // ============================
-// 🔹 Refresh Token Logic
+// 🔹 Refresh Queue
 // ============================
 let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
-    if (error) prom.reject(error);
-    else prom.resolve(token);
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
   });
+
   failedQueue = [];
 };
 
-// Axios riêng cho refresh (tránh loop)
-const refreshClient = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
 // ============================
-// 🔹 Response Interceptor
+// 🔹 RESPONSE INTERCEPTOR
 // ============================
 axiosClient.interceptors.response.use(
   (response) => response,
+
   async (error) => {
     const originalRequest = error.config;
 
-    // ❌ Lỗi mạng
+    // ============================
+    // ❌ Không có response
+    // ============================
     if (!error.response) {
-      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra mạng.");
+      toast.error("Không thể kết nối đến server");
       return Promise.reject(error);
     }
 
     const { status, data } = error.response;
 
     // ============================
+    // 🔥 KHÔNG REFRESH CHO LOGIN
+    // ============================
+    const isLoginRequest =
+      originalRequest.url?.includes("/api/auth/login");
+
+    // ============================
     // 🔁 REFRESH TOKEN
     // ============================
-    if (status === 401 && !originalRequest._retry) {
+    if (
+      status === 401 &&
+      !originalRequest._retry &&
+      !isLoginRequest
+    ) {
       const auth = getAuthData();
       const refreshToken = auth?.refreshToken;
 
+      // ❌ Không có refresh token
       if (!refreshToken) {
-        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         localStorage.removeItem("authData");
+
+        toast.error(
+          "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+        );
+
         return Promise.reject(error);
       }
 
+      // ============================
+      // 🔁 Nếu đang refresh
+      // ============================
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers.Authorization = "Bearer " + token;
+            originalRequest.headers.Authorization =
+              "Bearer " + token;
+
             return axiosClient(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -108,9 +144,11 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // 🔥 gọi qua gateway → auth service
+        // ============================
+        // 🔥 GỌI REFRESH TOKEN ĐÚNG URL
+        // ============================
         const res = await refreshClient.post(
-          "/auth/api/auth/refresh-token",
+          "/api/auth/refresh-token",
           {
             refreshToken,
           }
@@ -122,23 +160,37 @@ axiosClient.interceptors.response.use(
           throw new Error("Refresh token thất bại");
         }
 
-        // Update localStorage
+        // ============================
+        // 🔹 Update localStorage
+        // ============================
         const updatedAuth = {
           ...auth,
           accessToken: newAccessToken,
         };
-        localStorage.setItem("authData", JSON.stringify(updatedAuth));
+
+        localStorage.setItem(
+          "authData",
+          JSON.stringify(updatedAuth)
+        );
 
         processQueue(null, newAccessToken);
 
+        // ============================
+        // 🔹 Gắn token mới
+        // ============================
         originalRequest.headers.Authorization =
           "Bearer " + newAccessToken;
 
         return axiosClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
+
         localStorage.removeItem("authData");
-        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+
+        toast.error(
+          "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+        );
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -146,12 +198,19 @@ axiosClient.interceptors.response.use(
     }
 
     // ============================
-    // 🧱 Lỗi nghiệp vụ
+    // 🔥 MESSAGE BACKEND
     // ============================
     const message =
-      data?.message || "Có lỗi xảy ra. Vui lòng thử lại.";
+      data?.message ||
+      data?.error ||
+      "Có lỗi xảy ra. Vui lòng thử lại.";
 
-    toast.error(message);
+    // ============================
+    // 🔥 Không spam toast login
+    // ============================
+    if (!isLoginRequest) {
+      toast.error(message);
+    }
 
     return Promise.reject(error);
   }
