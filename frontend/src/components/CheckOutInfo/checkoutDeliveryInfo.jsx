@@ -8,169 +8,441 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Home, MapPin, Loader2 } from "lucide-react";
 
-export default function CheckoutDeliveryInfo({ form, onChange, setForm }) {
-  const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
+import {
+  Home,
+  MapPin,
+  Loader2,
+} from "lucide-react";
 
-  const [loadingProvinces, setLoadingProvinces] = useState(true);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
-  const [loadingWards, setLoadingWards] = useState(false);
+import axiosClient from "@/api/axiosClient";
 
-  // ⭐ Load Provinces
+export default function CheckoutDeliveryInfo({
+  form,
+  onChange,
+}) {
+
+  // =========================
+  // 🔹 STATES
+  // =========================
+  const [provinces, setProvinces] =
+    useState([]);
+
+  const [districts, setDistricts] =
+    useState([]);
+
+  const [wards, setWards] =
+    useState([]);
+
+  const [loadingProvinces, setLoadingProvinces] =
+    useState(false);
+
+  const [loadingDistricts, setLoadingDistricts] =
+    useState(false);
+
+  const [loadingWards, setLoadingWards] =
+    useState(false);
+
+  // =========================
+  // 🔹 LOAD PROVINCES
+  // =========================
   useEffect(() => {
+
     const fetchProvinces = async () => {
+
       try {
-        const res = await fetch("http://localhost:8000/users/api/address/provinces");
-        setProvinces(await res.json());
+
+        setLoadingProvinces(true);
+
+        const res = await axiosClient.get(
+          "/users/api/address/provinces"
+        );
+
+        console.log(
+          "✅ Provinces:",
+          res.data
+        );
+
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
+
+        setProvinces(data);
+
+      } catch (error) {
+
+        console.error(
+          "❌ Load provinces error:",
+          error
+        );
+
+        setProvinces([]);
+
       } finally {
-        setLoadingProvinces(false);   
+
+        setLoadingProvinces(false);
       }
     };
+
     fetchProvinces();
+
   }, []);
 
-  // ⭐ Khi province có sẵn → load districts
+  // =========================
+  // 🔹 LOAD DISTRICTS
+  // =========================
   useEffect(() => {
-    const loadDistricts = async () => {
-      if (!form.province) return;
-      const selected = provinces.find((p) => p.name === form.province);
-      if (!selected) return;
 
-      setLoadingDistricts(true);
-      const res = await fetch(
-        `http://localhost:5000/api/address/districts?province_code=${selected.code}`
-      );
-      const data = await res.json();
-      setDistricts(data);
-      setLoadingDistricts(false);
+    const loadDistricts = async () => {
+
+      try {
+
+        // reset
+        setDistricts([]);
+        setWards([]);
+
+        if (!form.province) return;
+
+        const selectedProvince =
+          provinces.find(
+            (p) => p.name === form.province
+          );
+
+        if (!selectedProvince) return;
+
+        setLoadingDistricts(true);
+
+        const res = await axiosClient.get(
+          `/users/api/address/districts?province_code=${selectedProvince.code}`
+        );
+
+        console.log(
+          "✅ Districts:",
+          res.data
+        );
+
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
+
+        setDistricts(data);
+
+      } catch (error) {
+
+        console.error(
+          "❌ Load districts error:",
+          error
+        );
+
+        setDistricts([]);
+
+      } finally {
+
+        setLoadingDistricts(false);
+      }
     };
 
     loadDistricts();
+
   }, [form.province, provinces]);
 
-  // ⭐ Khi district có sẵn → load wards
+  // =========================
+  // 🔹 LOAD WARDS
+  // =========================
   useEffect(() => {
-    const loadWards = async () => {
-      if (!form.district) return;
-      const selected = districts.find((d) => d.name === form.district);
-      if (!selected) return;
 
-      setLoadingWards(true);
-      const res = await fetch(
-        `http://localhost:5000/api/address/wards?district_code=${selected.code}`
-      );
-      const data = await res.json();
-      setWards(data);
-      setLoadingWards(false);
+    const loadWards = async () => {
+
+      try {
+
+        setWards([]);
+
+        if (!form.district) return;
+
+        const selectedDistrict =
+          districts.find(
+            (d) => d.name === form.district
+          );
+
+        if (!selectedDistrict) return;
+
+        setLoadingWards(true);
+
+        const res = await axiosClient.get(
+          `/users/api/address/wards?district_code=${selectedDistrict.code}`
+        );
+
+        console.log(
+          "✅ Wards:",
+          res.data
+        );
+
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
+
+        setWards(data);
+
+      } catch (error) {
+
+        console.error(
+          "❌ Load wards error:",
+          error
+        );
+
+        setWards([]);
+
+      } finally {
+
+        setLoadingWards(false);
+      }
     };
 
     loadWards();
+
   }, [form.district, districts]);
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
 
-      <div className="flex items-center gap-2 mb-4">
+      {/* TITLE */}
+      <div className="flex items-center gap-2 mb-5">
+
         <MapPin className="text-blue-600" />
-        <h2 className="font-semibold text-lg">Thông tin giao hàng</h2>
+
+        <h2 className="font-semibold text-lg">
+          Thông tin giao hàng
+        </h2>
       </div>
 
+      {/* FORM */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-        {/* Province */}
+        {/* ========================= */}
+        {/* PROVINCE */}
+        {/* ========================= */}
         <div>
-          <Label>Tỉnh / Thành phố</Label>
+
+          <Label className="mb-2 block">
+            Tỉnh / Thành phố
+          </Label>
+
           <Select
-            value={form.province}
-            onValueChange={(v) => {
-              onChange({ target: { name: "province", value: v } });
-              onChange({ target: { name: "district", value: "" } });
-              onChange({ target: { name: "ward", value: "" } });
+            value={form.province || ""}
+            onValueChange={(value) => {
+
+              onChange({
+                target: {
+                  name: "province",
+                  value,
+                },
+              });
+
+              // reset district
+              onChange({
+                target: {
+                  name: "district",
+                  value: "",
+                },
+              });
+
+              // reset ward
+              onChange({
+                target: {
+                  name: "ward",
+                  value: "",
+                },
+              });
             }}
             disabled={loadingProvinces}
           >
+
             <SelectTrigger className="h-11 rounded-lg border-gray-300">
-              <SelectValue placeholder="Chọn tỉnh" />
+
+              <SelectValue
+                placeholder={
+                  loadingProvinces
+                    ? "Đang tải..."
+                    : "Chọn tỉnh / thành"
+                }
+              />
+
             </SelectTrigger>
+
             <SelectContent>
-              {provinces.map((p) => (
-                <SelectItem key={p.code} value={p.name}>
-                  {p.name}
-                </SelectItem>
-              ))}
+
+              {Array.isArray(provinces) &&
+                provinces.map((province) => (
+
+                  <SelectItem
+                    key={province.code}
+                    value={province.name}
+                  >
+                    {province.name}
+                  </SelectItem>
+                ))}
+
             </SelectContent>
+
           </Select>
         </div>
 
-        {/* District */}
+        {/* ========================= */}
+        {/* DISTRICT */}
+        {/* ========================= */}
         <div>
-          <Label>Quận / Huyện</Label>
+
+          <Label className="mb-2 block">
+            Quận / Huyện
+          </Label>
+
           <Select
-            value={form.district}
-            onValueChange={(v) => {
-              onChange({ target: { name: "district", value: v } });
-              onChange({ target: { name: "ward", value: "" } });
+            value={form.district || ""}
+            onValueChange={(value) => {
+
+              onChange({
+                target: {
+                  name: "district",
+                  value,
+                },
+              });
+
+              // reset ward
+              onChange({
+                target: {
+                  name: "ward",
+                  value: "",
+                },
+              });
             }}
-            disabled={!form.province || loadingDistricts}
+            disabled={
+              !form.province ||
+              loadingDistricts
+            }
           >
+
             <SelectTrigger className="h-11 rounded-lg border-gray-300">
-              <SelectValue placeholder="Chọn quận / huyện" />
+
+              <SelectValue
+                placeholder={
+                  loadingDistricts
+                    ? "Đang tải..."
+                    : "Chọn quận / huyện"
+                }
+              />
+
             </SelectTrigger>
+
             <SelectContent>
-              {districts.map((d) => (
-                <SelectItem key={d.code} value={d.name}>
-                  {d.name}
-                </SelectItem>
-              ))}
+
+              {Array.isArray(districts) &&
+                districts.map((district) => (
+
+                  <SelectItem
+                    key={district.code}
+                    value={district.name}
+                  >
+                    {district.name}
+                  </SelectItem>
+                ))}
+
             </SelectContent>
+
           </Select>
         </div>
 
-        {/* Ward */}
+        {/* ========================= */}
+        {/* WARD */}
+        {/* ========================= */}
         <div>
-          <Label>Phường / Xã</Label>
+
+          <Label className="mb-2 block">
+            Phường / Xã
+          </Label>
+
           <Select
-            value={form.ward}
-            onValueChange={(v) => onChange({ target: { name: "ward", value: v } })}
-            disabled={!form.district || loadingWards}
+            value={form.ward || ""}
+            onValueChange={(value) => {
+
+              onChange({
+                target: {
+                  name: "ward",
+                  value,
+                },
+              });
+            }}
+            disabled={
+              !form.district ||
+              loadingWards
+            }
           >
+
             <SelectTrigger className="h-11 rounded-lg border-gray-300">
-              <SelectValue placeholder="Chọn phường / xã" />
+
+              <SelectValue
+                placeholder={
+                  loadingWards
+                    ? "Đang tải..."
+                    : "Chọn phường / xã"
+                }
+              />
+
             </SelectTrigger>
+
             <SelectContent>
-              {wards.map((w) => (
-                <SelectItem key={w.code} value={w.name}>
-                  {w.name}
-                </SelectItem>
-              ))}
+
+              {Array.isArray(wards) &&
+                wards.map((ward) => (
+
+                  <SelectItem
+                    key={ward.code}
+                    value={ward.name}
+                  >
+                    {ward.name}
+                  </SelectItem>
+                ))}
+
             </SelectContent>
+
           </Select>
 
           {loadingWards && (
-            <div className="flex items-center mt-1 text-blue-600 text-sm">
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              Đang tải phường...
+            <div className="flex items-center gap-2 text-blue-600 text-sm mt-2">
+
+              <Loader2 className="w-4 h-4 animate-spin" />
+
+              <span>
+                Đang tải phường / xã...
+              </span>
+
             </div>
           )}
         </div>
 
-        {/* Address */}
+        {/* ========================= */}
+        {/* ADDRESS */}
+        {/* ========================= */}
         <div className="sm:col-span-2">
-          <Label>Địa chỉ chi tiết</Label>
+
+          <Label className="mb-2 block">
+            Địa chỉ chi tiết
+          </Label>
+
           <div className="relative">
-            <Home className="absolute left-3 top-3 text-gray-400" />
+
+            <Home className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+
             <Input
               name="address"
-              value={form.address}
+              value={form.address || ""}
               onChange={onChange}
               placeholder="VD: 10 Nguyễn Trãi"
               className="h-11 pl-10 rounded-lg border-gray-300"
             />
+
           </div>
         </div>
+
       </div>
     </div>
   );

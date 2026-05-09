@@ -1,0 +1,207 @@
+version: "3.9"
+
+services:
+  # =========================
+  # 🐘 POSTGRES
+  # =========================
+  db:
+    image: pgvector/pgvector:pg16   # ← THAY ĐỔI: dùng image có sẵn pgvector
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: skywind
+    ports:
+      - "54321:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/Skywind.sql:/docker-entrypoint-initdb.d/Skywind.sql:ro
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@skywind.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    depends_on:
+      - db
+
+
+# =========================
+  # 🤖 N8N AI AGENT  ← MỚI THÊM
+  # =========================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
+      # Cho phép n8n gọi vào các service nội bộ
+      - N8N_RUNNERS_ENABLED=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - db
+      - ai-service
+ 
+  # =========================
+  # 🧠 AI CHATBOT SERVICE (Flask)
+  # =========================
+  ai-service:
+    build:
+      context: ./ai-service      # thư mục chứa Flask code
+      dockerfile: Dockerfile
+    container_name: ai_service
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=skywind
+      - DB_USER=postgres
+      - DB_PASSWORD=12345
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - db
+    restart: always
+ 
+  # =========================
+  # 🔥 ZOOKEEPER (FIX)
+  # =========================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+
+  # =========================
+  # 🔥 KAFKA (FIX CHUẨN)
+  # =========================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # =========================
+  # 🔔 NOTIFICATION SERVICE
+  # =========================
+  notification-service:
+    build: ./backend/notification-service
+    ports:
+      - "5007:5007"
+    depends_on:
+      - kafka
+      - db
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+  # =========================
+  # 🧾 ORDER SERVICE
+  # =========================
+  order-service:
+    build: ./backend/order-service
+    ports:
+      - "5004:5004"
+    depends_on:
+      - db
+      - inventory-service
+      - kafka
+
+  # =========================
+  # 📦 PRODUCT SERVICE
+  # =========================
+  product-service:
+    build: ./backend/product-service
+    ports:
+      - "5001:5001"
+    depends_on:
+      - db
+
+  # =========================
+  # 📊 INVENTORY SERVICE
+  # =========================
+  inventory-service:
+    build: ./backend/inventory-service
+    ports:
+      - "5002:5002"
+    depends_on:
+      - db
+
+  # =========================
+  # 👤 USER SERVICE
+  # =========================
+  user-service:
+    build: ./backend/user-service
+    ports:
+      - "5003:5003"
+    depends_on:
+      - db
+
+  # =========================
+  # 🔐 AUTH SERVICE
+  # =========================
+  auth-service:
+    build: ./backend/auth-service
+    ports:
+      - "5005:5005"
+    depends_on:
+      - db
+
+  # =========================
+  # 🛠 ADMIN SERVICE
+  # =========================
+  admin-service:
+    build: ./backend/admin-service
+    ports:
+      - "5006:5006"
+    depends_on:
+      - db
+
+  # =========================
+  # 🌐 API GATEWAY
+  # =========================
+  api-gateway:
+    build: ./backend/api-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - order-service
+      - product-service
+      - inventory-service
+      - user-service
+
+  # =========================
+  # 🎨 FRONTEND
+  # =========================
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-gateway
+    env_file:
+      - .env
+
+volumes:
+  pgdata:
+  n8n_data:

@@ -5,7 +5,7 @@ services:
   # 🐘 POSTGRES
   # =========================
   db:
-    image: postgres:16
+    image: pgvector/pgvector:pg16   # ← THAY ĐỔI: dùng image có sẵn pgvector
     container_name: postgres_db
     restart: always
     environment:
@@ -29,6 +29,49 @@ services:
     depends_on:
       - db
 
+
+# =========================
+  # 🤖 N8N AI AGENT
+  # =========================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
+      - N8N_CORS_ORIGIN=http://localhost:5173
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - db
+      - ai-service
+  # =========================
+  # 🧠 AI CHATBOT SERVICE (Flask)
+  # =========================
+  ai-service:
+    build:
+      context: ./ai-service      # thư mục chứa Flask code
+      dockerfile: Dockerfile
+    container_name: ai_service
+    ports:
+      - "5010:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=skywind
+      - DB_USER=postgres
+      - DB_PASSWORD=12345
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - db
+    restart: always
+ 
   # =========================
   # 🔥 ZOOKEEPER (FIX)
   # =========================
@@ -131,7 +174,17 @@ services:
       - "5006:5006"
     depends_on:
       - db
-
+      
+  # =========================
+  # 💳 PAYMENT SERVICE
+  # =========================
+  payment-service:
+    build: ./backend/payment-service
+    ports:
+      - "5008:5008"
+    depends_on:
+      - db
+    
   # =========================
   # 🌐 API GATEWAY
   # =========================
@@ -149,11 +202,14 @@ services:
   # 🎨 FRONTEND
   # =========================
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+    environment:
+      - VITE_API_URL=http://localhost:8000
     ports:
       - "5173:5173"
     depends_on:
       - api-gateway
-
 volumes:
   pgdata:
+  n8n_data:
