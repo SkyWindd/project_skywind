@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import CheckoutProgress from "@/components/CheckOutInfo/checkoutProgress";
 import PaymentSummary from "@/components/Payment/paymentSummary";
 import PaymentMethodCard from "@/components/Payment/paymentMethodCard";
