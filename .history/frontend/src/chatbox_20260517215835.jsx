@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bot, X } from "lucide-react";
 import "./ChatBox.css";
-import { useAuth } from "./context/AuthContext";
 
 // ── Status badge config ───────────────────────────────────
 const STATUS_STYLE = {
@@ -42,6 +41,7 @@ function OrderCard({ order }) {
       marginBottom: 8,
       fontSize: 13,
     }}>
+      {/* Header */}
       <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 18 }}>{st.icon}</span>
@@ -52,6 +52,7 @@ function OrderCard({ order }) {
             )}
           </div>
         </div>
+
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{
             background: st.bg, color: st.color,
@@ -71,13 +72,15 @@ function OrderCard({ order }) {
         </div>
       </div>
 
+      {/* Total */}
       {order.total_amount != null && (
         <div style={{ padding: "0 14px 10px", display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9ca3af" }}>Tổng cộng</span>
+          <span style={{ color: "#9ca3af" }}>Tổng cộng</span>a
           <span style={{ fontWeight: 700, color: "#185FA5" }}>{formatPrice(order.total_amount)}</span>
         </div>
       )}
 
+      {/* Items (expandable) */}
       {expanded && order.items?.length > 0 && (
         <div style={{ borderTop: "1px solid #f3f4f6", padding: "8px 14px", background: "#fafafa" }}>
           {order.items.map((item, i) => (
@@ -105,6 +108,7 @@ const parseAIResponse = (raw) => {
 
   let parsed = tryParse(raw);
 
+  // JSON lồng trong output field
   if (parsed?.output && typeof parsed.output === "string") {
     const inner = tryParse(parsed.output);
     if (inner) parsed = inner;
@@ -112,24 +116,40 @@ const parseAIResponse = (raw) => {
   }
 
   if (parsed) {
-    if (parsed.type === "order") return { text: parsed.message || "", products: [], orders: parsed.orders || [] };
-    if (parsed.type === "product") return { text: parsed.message || "", products: parsed.products || [], orders: [] };
-    if (parsed.type === "text") return { text: parsed.message || raw, products: [], orders: [] };
-    return { text: parsed.output || parsed.reply || parsed.message || raw, products: parsed.products || [], orders: parsed.orders || [] };
+    if (parsed.type === "order") {
+      return { text: parsed.message || "", products: [], orders: parsed.orders || [] };
+    }
+    if (parsed.type === "product") {
+      return { text: parsed.message || "", products: parsed.products || [], orders: [] };
+    }
+    if (parsed.type === "text") {
+      return { text: parsed.message || raw, products: [], orders: [] };
+    }
+    return {
+      text: parsed.output || parsed.reply || parsed.message || raw,
+      products: parsed.products || [],
+      orders: parsed.orders || [],
+    };
   }
 
+  // JSON lẫn trong text
   const matchOrder = raw.match(/\{[\s\S]*?"type"\s*:\s*"order"[\s\S]*?\}/);
-  if (matchOrder) { const p = tryParse(matchOrder[0]); if (p) return { text: p.message || "", products: [], orders: p.orders || [] }; }
+  if (matchOrder) {
+    const p = tryParse(matchOrder[0]);
+    if (p) return { text: p.message || "", products: [], orders: p.orders || [] };
+  }
 
   const matchProduct = raw.match(/\{[\s\S]*?"type"\s*:\s*"product"[\s\S]*?\}/);
-  if (matchProduct) { const p = tryParse(matchProduct[0]); if (p) return { text: p.message || "", products: p.products || [], orders: [] }; }
+  if (matchProduct) {
+    const p = tryParse(matchProduct[0]);
+    if (p) return { text: p.message || "", products: p.products || [], orders: [] };
+  }
 
   return { text: raw, products: [], orders: [] };
 };
 
 // ── Main ChatBox ──────────────────────────────────────────
 export default function ChatBox() {
-  const { user } = useAuth(); // ✅ lấy user đang login
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { sender: "bot", text: "👋 Chào bạn! Tôi là Bi, bạn cần hỗ trợ gì?" },
@@ -154,10 +174,7 @@ export default function ChatBox() {
       const res = await fetch(`${import.meta.env.VITE_CHAT_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: sendText,
-          user_id: user?.id || user?.user_id || null, // ✅ dynamic user_id
-        }),
+        body: JSON.stringify({ message: sendText, user_id: 2 }),
       });
 
       const raw = (await res.text()).replace(/^=/, "").trim();
@@ -192,7 +209,11 @@ export default function ChatBox() {
           {/* BODY */}
           <div className="chatbox-body">
             {messages.map((msg, index) => (
-              <div key={index} className={`${msg.sender === "user" ? "text-right" : "text-left"} mb-2`}>
+              <div
+                key={index}
+                className={`${msg.sender === "user" ? "text-right" : "text-left"} mb-2`}
+              >
+                {/* BUBBLE TEXT */}
                 {msg.text ? (
                   <div className={`inline-block px-3 py-2 rounded-lg ${
                     msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-900"
@@ -201,6 +222,7 @@ export default function ChatBox() {
                   </div>
                 ) : null}
 
+                {/* ✅ ORDER CARDS */}
                 {msg.orders && msg.orders.length > 0 && (
                   <div className="mt-2">
                     {msg.orders.map((order, i) => (
@@ -209,6 +231,7 @@ export default function ChatBox() {
                   </div>
                 )}
 
+                {/* PRODUCT CARDS */}
                 {msg.products && msg.products.length > 0 && (
                   <div className="mt-3 space-y-3">
                     {msg.products.map((p, i) => (

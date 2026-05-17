@@ -24,7 +24,7 @@ export default function ProfileOrders() {
   // 🔹 Map key tab -> các trạng thái thực trong DB
   const statusMapping = {
     all: null,
-    pending: ["Chờ xác nhận"],
+    pending: [ "Chờ xác nhận"],
     confirmed: ["Đã xác nhận"],
     shipping: ["Đang vận chuyển"],
     delivered: ["Đã giao hàng"],
@@ -52,7 +52,8 @@ export default function ProfileOrders() {
     async function fetchOrders() {
       try {
         const res = await axios.get(
-          `http://localhost:8000/orders/api/orders/user/${userId}`,
+          `http://localhost:8000/orders/api/orders/user/${userId}`
+          
         );
 
         const formatted = res.data.map((order) => {
@@ -71,7 +72,7 @@ export default function ProfileOrders() {
             price: firstItem?.price || 0,
             quantity: firstItem?.quantity || 0,
             image_url: firstItem?.image_url
-              ? `http://localhost:8000/products/${firstItem.image_url}`
+              ? `http://localhost:5000/${firstItem.image_url}`
               : "/no-image.png",
           };
         });
@@ -88,25 +89,14 @@ export default function ProfileOrders() {
   }, [userId]);
 
   // 🔍 Filter theo trạng thái
-// 🔍 Filter theo trạng thái + thời gian
-  const filteredOrders = orders.filter((o) => {
-    // Lọc trạng thái
-    if (statusFilter !== "all") {
-      const validStatuses = statusMapping[statusFilter];
-      if (validStatuses && !validStatuses.includes(o.status)) return false;
-    }
-
-    // Lọc thời gian
-    if (dateRange.from && dateRange.to) {
-      const orderDate = new Date(o.order_date);
-      const from = new Date(dateRange.from);
-      const to = new Date(dateRange.to);
-      to.setHours(23, 59, 59);
-      if (orderDate < from || orderDate > to) return false;
-    }
-
-    return true;
-  });
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((o) => {
+          const validStatuses = statusMapping[statusFilter];
+          if (!validStatuses) return true;
+          return validStatuses.includes(o.status);
+        });
 
   if (loading) {
     return (
@@ -137,7 +127,7 @@ export default function ProfileOrders() {
         <div
           className={cn(
             "flex items-center gap-2 border-b border-gray-200 pb-2",
-            "max-lg:overflow-x-auto whitespace-nowrap scrollbar-hide",
+            "max-lg:overflow-x-auto whitespace-nowrap scrollbar-hide"
           )}
         >
           {statusTabs.map((tab) => (
@@ -148,7 +138,7 @@ export default function ProfileOrders() {
                 "px-4 py-2 text-sm font-medium rounded-xl transition-all flex-shrink-0 shadow-sm",
                 statusFilter === tab.key
                   ? "bg-red-500 text-white shadow-md"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100",
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
               )}
             >
               {tab.label}

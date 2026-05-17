@@ -17,9 +17,14 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     const fixedUser = {
       ...userData,
+
+      // ⚡ FIX: đảm bảo luôn lấy đúng user_id từ backend
       id: userData.user_id || userData.id || userData._id || null,
+
+      // ⚡ FIX: đảm bảo role luôn tồn tại
       role: userData.role || "user",
     };
+
     setUser(fixedUser);
     sessionStorage.setItem("user", JSON.stringify(fixedUser));
   };
@@ -30,15 +35,8 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem("user");
   };
 
-  // ⭐ Cập nhật thông tin user   ← THÊM MỚI
-  const updateUser = (newData) => {
-    const updated = { ...user, ...newData };
-    setUser(updated);
-    sessionStorage.setItem("user", JSON.stringify(updated));
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>  {/* ← thêm updateUser */}
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

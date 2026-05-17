@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfileInfo({ user }) {
-  const { updateUser } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState({ username: "", email: "" });
 
@@ -41,10 +40,9 @@ const handleSave = async () => {
 
       if (!res.ok) throw new Error("Cập nhật thất bại");
 
-      const updated = await res.json();
-      updateUser({ username: updated.username, email: updated.email });
       alert("Cập nhật thành công!");
       setEditOpen(false);
+      window.location.reload();
     } catch (err) {
       alert("Lỗi: " + err.message);
     }

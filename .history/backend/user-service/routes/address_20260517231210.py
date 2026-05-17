@@ -104,13 +104,11 @@ def get_address_by_user(user_id):
         cur.execute("""
             SELECT
                 address_id AS id,
-                name,
-                phone,
                 street,
-                ward,
-                district,
-                province,
-                is_default
+                city,
+                state,
+                zip_code,
+                country
             FROM address
             WHERE user_id = %s
             ORDER BY address_id DESC
@@ -135,31 +133,31 @@ def save_address():
     try:
         data = request.get_json()
         user_id = data.get("user_id")
-        address_id = data.get("address_id")
-        name = data.get("name")
-        phone = data.get("phone")
-        province = data.get("province")
-        district = data.get("district")
-        ward = data.get("ward")
+        address_id = data.get("address_id")  # có thì update, không thì insert
         street = data.get("street")
-        is_default = data.get("is_default", False)
+        city = data.get("city")
+        state = data.get("state")
+        zip_code = data.get("zip_code")
+        country = data.get("country")
 
         conn = get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         if address_id:
+            # UPDATE
             cur.execute("""
                 UPDATE address
-                SET name=%s, phone=%s, province=%s, district=%s, ward=%s, street=%s, is_default=%s
-                WHERE address_id=%s AND user_id=%s
+                SET street = %s, city = %s, state = %s, zip_code = %s, country = %s
+                WHERE address_id = %s AND user_id = %s
                 RETURNING address_id
-            """, (name, phone, province, district, ward, street, is_default, address_id, user_id))
+            """, (street, city, state, zip_code, country, address_id, user_id))
         else:
+            # INSERT
             cur.execute("""
-                INSERT INTO address (user_id, name, phone, province, district, ward, street, is_default)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO address (user_id, street, city, state, zip_code, country)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING address_id
-            """, (user_id, name, phone, province, district, ward, street, is_default))  
+            """, (user_id, street, city, state, zip_code, country))
 
         result = cur.fetchone()
         conn.commit()

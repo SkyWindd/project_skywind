@@ -26,7 +26,11 @@ export default function Order() {
     const fetchOrders = async () => {
       try {
         console.log("📡 Gọi API với userId:", userId);
-        const res = await axios.get(`/api/orders/user/${userId}`);
+        const res = await axios.get(`/orders/api/orders/user/${userId}`, {
+  headers: {
+    Authorization: `Bearer ${sessionStorage.getItem("token") || ""}`,
+  },
+});
         console.log("📦 Dữ liệu đơn hàng trả về:", res.data);
         setOrders(res.data);
       } catch (error) {

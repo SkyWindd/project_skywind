@@ -104,13 +104,11 @@ def get_address_by_user(user_id):
         cur.execute("""
             SELECT
                 address_id AS id,
-                name,
-                phone,
                 street,
-                ward,
-                district,
-                province,
-                is_default
+                city,
+                state,
+                zip_code,
+                country
             FROM address
             WHERE user_id = %s
             ORDER BY address_id DESC
@@ -127,68 +125,3 @@ def get_address_by_user(user_id):
         return jsonify({
             "error": str(e)
         }), 500
-# ==========================================
-# ➕ SAVE ADDRESS (CREATE / UPDATE)
-# ==========================================
-@address_bp.route("/save", methods=["POST"])
-def save_address():
-    try:
-        data = request.get_json()
-        user_id = data.get("user_id")
-        address_id = data.get("address_id")
-        name = data.get("name")
-        phone = data.get("phone")
-        province = data.get("province")
-        district = data.get("district")
-        ward = data.get("ward")
-        street = data.get("street")
-        is_default = data.get("is_default", False)
-
-        conn = get_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        if address_id:
-            cur.execute("""
-                UPDATE address
-                SET name=%s, phone=%s, province=%s, district=%s, ward=%s, street=%s, is_default=%s
-                WHERE address_id=%s AND user_id=%s
-                RETURNING address_id
-            """, (name, phone, province, district, ward, street, is_default, address_id, user_id))
-        else:
-            cur.execute("""
-                INSERT INTO address (user_id, name, phone, province, district, ward, street, is_default)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING address_id
-            """, (user_id, name, phone, province, district, ward, street, is_default))  
-
-        result = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return jsonify({"message": "Lưu địa chỉ thành công", "address_id": result["address_id"]}), 200
-
-    except Exception as e:
-        print("❌ Lỗi save_address:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-# ==========================================
-# 🗑️ DELETE ADDRESS
-# ==========================================
-@address_bp.route("/delete/<int:address_id>", methods=["DELETE"])
-def delete_address(address_id):
-    try:
-        conn = get_connection()
-        cur = conn.cursor()
-
-        cur.execute("DELETE FROM address WHERE address_id = %s", (address_id,))
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return jsonify({"message": "Xóa địa chỉ thành công"}), 200
-
-    except Exception as e:
-        print("❌ Lỗi delete_address:", e)
-        return jsonify({"error": str(e)}), 500

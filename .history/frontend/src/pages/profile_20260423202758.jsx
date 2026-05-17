@@ -35,11 +35,7 @@ export default function Profile() {
     const fetchOrders = async () => {
       if (!user?.id) return;
       try {
-        const res = await axios.get(`/orders/api/orders/user/${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        });
+        const res = await axios.get(`/orders/api/orders/user/${user.id}`);
         setOrders(res.data || []);
       } catch (err) {
         console.error("❌ Lỗi khi tải đơn hàng:", err);

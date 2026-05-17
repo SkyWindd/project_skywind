@@ -41,10 +41,9 @@ const handleSave = async () => {
 
       if (!res.ok) throw new Error("Cập nhật thất bại");
 
-      const updated = await res.json();
-      updateUser({ username: updated.username, email: updated.email });
       alert("Cập nhật thành công!");
       setEditOpen(false);
+      window.location.reload();
     } catch (err) {
       alert("Lỗi: " + err.message);
     }

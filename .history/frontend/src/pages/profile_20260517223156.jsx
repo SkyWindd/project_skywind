@@ -36,10 +36,10 @@ export default function Profile() {
       if (!user?.id) return;
       try {
         const res = await axios.get(`/orders/api/orders/user/${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        });
+  headers: {
+    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+  },
+});
         setOrders(res.data || []);
       } catch (err) {
         console.error("❌ Lỗi khi tải đơn hàng:", err);

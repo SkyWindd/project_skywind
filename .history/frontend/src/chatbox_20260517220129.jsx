@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bot, X } from "lucide-react";
 import "./ChatBox.css";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "../context/AuthContext"; // ✅ thêm import
 
 // ── Status badge config ───────────────────────────────────
 const STATUS_STYLE = {

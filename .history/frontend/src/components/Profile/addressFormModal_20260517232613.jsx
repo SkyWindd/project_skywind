@@ -123,19 +123,6 @@ export default function AddressFormModal({
     }
   }, [initialData, open, provinces]);
 
-  // Load wards khi districts đã load xong và có initialData.district
-useEffect(() => {
-  if (initialData?.district && districts.length > 0) {
-    const selected = districts.find(d => d.name === initialData.district);
-    if (selected) {
-      setLoadingWard(true);
-      axiosClient.get(`/users/api/address/wards?district_code=${selected.code}`)
-        .then(res => setWards(Array.isArray(res.data) ? res.data : []))
-        .catch(() => setWards([]))
-        .finally(() => setLoadingWard(false));
-    }
-  }
-}, [districts]);
   // =========================
   // LOAD PROVINCES
   // =========================
