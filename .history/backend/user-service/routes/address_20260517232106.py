@@ -101,7 +101,7 @@ def get_address_by_user(user_id):
             cursor_factory=RealDictCursor
         )
 
-        cur.execute("""
+cur.execute("""
             SELECT
                 address_id AS id,
                 name,

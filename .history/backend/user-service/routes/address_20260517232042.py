@@ -104,13 +104,11 @@ def get_address_by_user(user_id):
         cur.execute("""
             SELECT
                 address_id AS id,
-                name,
-                phone,
                 street,
-                ward,
-                district,
-                province,
-                is_default
+                city,
+                state,
+                zip_code,
+                country
             FROM address
             WHERE user_id = %s
             ORDER BY address_id DESC

@@ -88,25 +88,14 @@ export default function ProfileOrders() {
   }, [userId]);
 
   // 🔍 Filter theo trạng thái
-// 🔍 Filter theo trạng thái + thời gian
-  const filteredOrders = orders.filter((o) => {
-    // Lọc trạng thái
-    if (statusFilter !== "all") {
-      const validStatuses = statusMapping[statusFilter];
-      if (validStatuses && !validStatuses.includes(o.status)) return false;
-    }
-
-    // Lọc thời gian
-    if (dateRange.from && dateRange.to) {
-      const orderDate = new Date(o.order_date);
-      const from = new Date(dateRange.from);
-      const to = new Date(dateRange.to);
-      to.setHours(23, 59, 59);
-      if (orderDate < from || orderDate > to) return false;
-    }
-
-    return true;
-  });
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((o) => {
+          const validStatuses = statusMapping[statusFilter];
+          if (!validStatuses) return true;
+          return validStatuses.includes(o.status);
+        });
 
   if (loading) {
     return (

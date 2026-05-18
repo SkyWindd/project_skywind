@@ -23,7 +23,7 @@ def check_inventory():
         )
         row = cur.fetchone()
 
-        in_stock = bool(row and row["stock"] is not None and row["stock"] > 0)
+        in_stock = row and row["stock"] > 0
 
         result.append({
             "skuCode": sku,

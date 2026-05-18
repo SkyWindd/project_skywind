@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { User, Pencil } from "lucide-react";
 import {
   Dialog,
@@ -14,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfileInfo({ user }) {
-  const { updateUser } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState({ username: "", email: "" });
 
@@ -24,30 +22,10 @@ export default function ProfileInfo({ user }) {
     }
   }, [user]);
 
-const handleSave = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://localhost:8000/users/api/users/${user.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(editData),
-        }
-      );
-
-      if (!res.ok) throw new Error("Cập nhật thất bại");
-
-      const updated = await res.json();
-      updateUser({ username: updated.username, email: updated.email });
-      alert("Cập nhật thành công!");
-      setEditOpen(false);
-    } catch (err) {
-      alert("Lỗi: " + err.message);
-    }
+  const handleSave = () => {
+    console.log("🔹 Dữ liệu cập nhật:", editData);
+    // TODO: Gửi PUT đến Flask API
+    setEditOpen(false);
   };
 
   return (

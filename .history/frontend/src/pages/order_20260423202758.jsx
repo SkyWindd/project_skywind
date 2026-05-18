@@ -26,7 +26,7 @@ export default function Order() {
     const fetchOrders = async () => {
       try {
         console.log("📡 Gọi API với userId:", userId);
-        const res = await axios.get(`/api/orders/user/${userId}`);
+        const res = await axios.get (`/orders/api/orders/user/${userId}`)
         console.log("📦 Dữ liệu đơn hàng trả về:", res.data);
         setOrders(res.data);
       } catch (error) {
@@ -78,12 +78,12 @@ export default function Order() {
                 </p>
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    order.status === "Hoàn tất"
+                    order.order_status === "Hoàn tất"
                       ? "bg-green-100 text-green-600"
                       : "bg-yellow-100 text-yellow-600"
                   }`}
                 >
-                  {order.status}
+                  {order.order_status}
                 </span>
               </div>
 

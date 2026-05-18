@@ -69,7 +69,7 @@ export default function AddressFormModal({
   const [loadingWard, setLoadingWard] =
     useState(false);
 
-// =========================
+  // =========================
   // INIT FORM
   // =========================
   useEffect(() => {
@@ -81,33 +81,9 @@ export default function AddressFormModal({
         district: initialData.district || "",
         ward: initialData.ward || "",
         street: initialData.street || "",
-        is_default: initialData.is_default || false,
+        is_default:
+          initialData.is_default || false,
       });
-
-      // Load districts nếu có province sẵn
-      if (initialData.province && provinces.length > 0) {
-        const selected = provinces.find(p => p.name === initialData.province);
-        if (selected) {
-          setLoadingDistrict(true);
-          axiosClient.get(`/users/api/address/districts?province_code=${selected.code}`)
-            .then(res => setDistricts(Array.isArray(res.data) ? res.data : []))
-            .catch(() => setDistricts([]))
-            .finally(() => setLoadingDistrict(false));
-        }
-      }
-
-      // Load wards nếu có district sẵn
-      if (initialData.district && districts.length > 0) {
-        const selected = districts.find(d => d.name === initialData.district);
-        if (selected) {
-          setLoadingWard(true);
-          axiosClient.get(`/users/api/address/wards?district_code=${selected.code}`)
-            .then(res => setWards(Array.isArray(res.data) ? res.data : []))
-            .catch(() => setWards([]))
-            .finally(() => setLoadingWard(false));
-        }
-      }
-
     } else {
       setForm({
         name: "",
@@ -118,24 +94,12 @@ export default function AddressFormModal({
         street: "",
         is_default: false,
       });
+
       setDistricts([]);
       setWards([]);
     }
-  }, [initialData, open, provinces]);
+  }, [initialData, open]);
 
-  // Load wards khi districts đã load xong và có initialData.district
-useEffect(() => {
-  if (initialData?.district && districts.length > 0) {
-    const selected = districts.find(d => d.name === initialData.district);
-    if (selected) {
-      setLoadingWard(true);
-      axiosClient.get(`/users/api/address/wards?district_code=${selected.code}`)
-        .then(res => setWards(Array.isArray(res.data) ? res.data : []))
-        .catch(() => setWards([]))
-        .finally(() => setLoadingWard(false));
-    }
-  }
-}, [districts]);
   // =========================
   // LOAD PROVINCES
   // =========================

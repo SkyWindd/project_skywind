@@ -56,7 +56,6 @@ export default function ProfileAddress() {
         "/users/api/address/save",
         {
           user_id: userId,
-          address_id: editAddress?.id || null,  // ← thêm dòng này
           ...formData,
         }
       );
