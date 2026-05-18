@@ -592,3 +592,22 @@ Số lượng lỗi còn tồn đọng là 0 lỗi ở bất kỳ mức độ n�
 <img width="576" height="455" alt="defect" src="https://github.com/user-attachments/assets/aacb7b23-438b-4807-8d93-65cfae0107ac" />
 
 
+## CI/CD Pipeline
+
+```mermaid
+flowchart TD
+    A[👨‍💻 Developer\ngit push origin main] --> B[GitHub Repo\nbranch: main]
+    B --> C[GitHub Actions\non: push to main]
+    C --> D[CI Pipeline - ci.yml]
+    D --> D1[Checkout code]
+    D1 --> D2[Setup Python 3.11]
+    D2 --> D3[Install dependencies]
+    D3 --> D4[Run pytest unit tests]
+    D4 --> E{Tests pass?}
+    E -->|✅ Yes| F[CD Pipeline - cd.yml]
+    E -->|❌ No| G[Pipeline failed\nfix and push again]
+    F --> F1[Login Docker Hub]
+    F1 --> F2[Build 10 Docker images]
+    F2 --> F3[Push images :latest]
+    F3 --> H[(Docker Hub\nmisterdat2601/skywind-*)]
+```

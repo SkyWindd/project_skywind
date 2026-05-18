@@ -62,6 +62,39 @@ def get_users():
 @user_bp.route("/", methods=["POST"])
 def create_user():
 
+<<<<<<< HEAD
+=======
+    return jsonify(users)
+
+# GET USER BY ID
+@user_bp.route("/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT user_id, username, email, is_active, role
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        r = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not r:
+            return jsonify({"error": "User not found"}), 404
+        return jsonify({
+            "user_id": r[0],
+            "username": r[1],
+            "email": r[2],
+            "is_active": r[3],
+            "role": r[4]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+        
+# UPDATE USER
+@user_bp.route("/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+>>>>>>> 4c7370ef66eb9bf7e8b416aac650600880a2ec8c
     try:
         data = request.get_json()
 

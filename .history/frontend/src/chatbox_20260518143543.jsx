@@ -1,0 +1,1 @@
+VITE_CHAT_URL=http://localhost:5678/webhook/chat

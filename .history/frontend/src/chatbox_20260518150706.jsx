@@ -269,43 +269,6 @@ export default function ChatBox() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // ✅ Parse response từ AI Agent — hỗ trợ cả JSON lẫn text thường
-  const parseAIResponse = (raw) => {
-  try {
-    const parsed = JSON.parse(raw);
-
-    // ✅ THÊM: output là JSON string lồng bên trong
-    if (parsed.output && typeof parsed.output === "string") {
-      try {
-        const inner = JSON.parse(parsed.output);
-        if (inner.type === "product") return { text: inner.message || "", products: inner.products || [] };
-        if (inner.type === "text") return { text: inner.message || "", products: [] };
-      } catch {}
-      return { text: parsed.output, products: [] };
-    }
-
-    if (parsed.type === "product") {
-      return { text: parsed.message || "", products: parsed.products || [] };
-    }
-    if (parsed.type === "text") {
-      return { text: parsed.message || raw, products: [] };
-    }
-    return {
-      text: parsed.output || parsed.reply || parsed.message || raw,
-      products: parsed.products || [],
-    };
-  } catch {
-    const match = raw.match(/\{[\s\S]*"type"\s*:\s*"product"[\s\S]*\}/);
-    if (match) {
-      try {
-        const parsed = JSON.parse(match[0]);
-        return { text: parsed.message || "", products: parsed.products || [] };
-      } catch {}
-    }
-    return { text: raw, products: [] };
-  }
-};
-
   const handleSend = async () => {
     if (!input.trim()) return;
     setMessages((prev) => [...prev, { sender: "user", text: input }]);
