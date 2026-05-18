@@ -1,445 +1,340 @@
-
 import { useEffect, useState } from "react";
-
 import axios from "axios";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  Loader2,
+  Save,
+} from "lucide-react";
 
 import { toast } from "sonner";
 
-import {
-  Save,
-  Package,
-} from "lucide-react";
-
-// ======================================
-// API
-// ======================================
-const API_URL =
-  "http://localhost:8000/products/api/products";
-
-// ======================================
-// CALC DISCOUNT PRICE
-// ======================================
-const calcDiscountPrice = (
-  price,
-  discount
-) => {
-
-  const p = Number(price) || 0;
-
-  const d = Number(discount) || 0;
-
-  return Math.round(
-    p - (p * d) / 100
-  );
-};
+import ProductModal from "@/admin/productmodal";
 
 export default function AdminProduct() {
+  const [products, setProducts] = useState([]);
 
-  const [products, setProducts] =
-    useState([]);
+  const [openModal, setOpenModal] =
+    useState(false);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [selectedProduct, setSelectedProduct] =
+    useState(null);
+
+  const [savingId, setSavingId] =
+    useState(null);
 
   const [editedProducts, setEditedProducts] =
     useState({});
 
-  // ======================================
+  const API_URL =
+    "http://localhost:5001/api/products";
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // =========================
   // LOAD PRODUCTS
-  // ======================================
+  // =========================
   const fetchProducts = async () => {
-
     try {
-
-      setLoading(true);
-
       const res = await axios.get(
-        API_URL
+        `${API_URL}?include=images`
       );
 
-      console.log(
-        "RAW PRODUCT API:",
-        res.data
+      const fixedProducts = (res.data || []).map(
+        (p) => ({
+          ...p,
+
+          // luôn giữ giá gốc
+          old_price:
+            p.old_price || p.price,
+
+          // % giảm mặc định
+          discount_percent:
+            p.discount_percent || 0,
+        })
       );
 
-      let productList = [];
-
-      // ======================================
-      // PARSE RESPONSE
-      // ======================================
-      if (
-        Array.isArray(res.data)
-      ) {
-
-        productList = res.data;
-
-      } else if (
-        Array.isArray(
-          res.data.products
-        )
-      ) {
-
-        productList =
-          res.data.products;
-
-      } else if (
-        Array.isArray(
-          res.data.data
-        )
-      ) {
-
-        productList =
-          res.data.data;
-
-      } else {
-
-        productList = [];
-      }
-
-      console.log(
-        "PARSED PRODUCTS:",
-        productList
-      );
-
-      setProducts(productList);
-
-    } catch (error) {
-
+      setProducts(fixedProducts);
+    } catch (err) {
       console.error(
         "GET PRODUCTS ERROR:",
-        error.response?.data || error
+        err
       );
 
       toast.error(
         "Không thể tải sản phẩm ❌"
       );
-
-    } finally {
-
-      setLoading(false);
-
     }
   };
 
-  // ======================================
-  // LOAD
-  // ======================================
-  useEffect(() => {
+  // =========================
+  // TÍNH GIÁ SAU GIẢM
+  // =========================
+  const calcDiscountPrice = (
+    oldPrice,
+    discountPercent
+  ) => {
+    const basePrice = Number(
+      oldPrice || 0
+    );
 
-    fetchProducts();
+    const discount = Number(
+      discountPercent || 0
+    );
 
-  }, []);
+    if (!basePrice) return 0;
 
-  // ======================================
+    return Math.round(
+      basePrice -
+        (basePrice * discount) / 100
+    );
+  };
+
+  // =========================
   // HANDLE CHANGE
-  // ======================================
+  // =========================
   const handleChange = (
-    p,
+    product,
     field,
     value
   ) => {
-
-    const updated = {
-
-      ...p,
-
-      [field]:
-        value === ""
-          ? ""
-          : Number(value),
+    let updatedProduct = {
+      ...product,
     };
 
-    // ======================================
-    // REALTIME DISCOUNT
-    // ======================================
+    // STOCK
+    if (field === "stock") {
+      updatedProduct.stock =
+        Number(value);
+    }
+
+    // DISCOUNT
     if (
       field === "discount_percent"
     ) {
+      const discount =
+        Number(value);
 
-      const originalPrice =
-        Number(
-          p.old_price || p.price
-        );
+      updatedProduct.discount_percent =
+        discount;
 
-      updated.discount_percent =
-        Number(value) || 0;
-
-      updated.price =
+      // QUAN TRỌNG:
+      // luôn tính từ GIÁ GỐC
+      updatedProduct.price =
         calcDiscountPrice(
-          originalPrice,
-          updated.discount_percent
+          updatedProduct.old_price,
+          discount
         );
-    }
-
-    // ======================================
-    // STOCK
-    // ======================================
-    if (field === "stock") {
-
-      updated.stock =
-        value === ""
-          ? ""
-          : Number(value);
     }
 
     setProducts((prev) =>
-      prev.map((prod) =>
-        prod.product_id === p.product_id
-          ? updated
-          : prod
+      prev.map((p) =>
+        p.product_id ===
+        product.product_id
+          ? updatedProduct
+          : p
       )
     );
 
     setEditedProducts((prev) => ({
       ...prev,
-      [p.product_id]: true,
+      [product.product_id]: true,
     }));
   };
 
-  // ======================================
-  // SAVE PRODUCT
-  // ======================================
-  const handleSave = async (p) => {
-
+  // =========================
+  // SAVE
+  // =========================
+  const handleRowSave = async (
+    product
+  ) => {
     try {
+      setSavingId(product.product_id);
 
       const payload = {
+        stock: Number(product.stock),
 
-        stock:
-          Number(p.stock) || 0,
+        // GIÁ GỐC KHÔNG ĐỔI
+        old_price: Number(
+          product.old_price
+        ),
 
-        discount_percent:
-          Number(
-            p.discount_percent
-          ) || 0,
+        // % GIẢM
+        discount_percent: Number(
+          product.discount_percent
+        ),
 
-        discount_price:
-          calcDiscountPrice(
-            Number(
-              p.old_price || p.price
-            ),
-            Number(
-              p.discount_percent || 0
-            )
-          ),
+        // GIÁ SAU GIẢM
+        price: Number(product.price),
       };
 
       console.log(
-        "UPDATE PRODUCT:",
+        "SAVE PAYLOAD:",
         payload
       );
 
-      const res = await axios.put(
-        `${API_URL}/${p.product_id}`,
-        payload
-      );
-
-      console.log(
-        "UPDATE RESPONSE:",
-        res.data
+      await axios.put(
+        `${API_URL}/${product.product_id}`,
+        payload,
+        {
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+        }
       );
 
       toast.success(
-        "Cập nhật thành công ✅"
+        `💾 Đã lưu "${product.name}"`
       );
 
-      setEditedProducts((prev) => ({
-        ...prev,
-        [p.product_id]: false,
-      }));
+      // remove edited state
+      setEditedProducts((prev) => {
+        const updated = {
+          ...prev,
+        };
 
+        delete updated[
+          product.product_id
+        ];
+
+        return updated;
+      });
+
+      // reload
       fetchProducts();
-
-    } catch (error) {
-
+    } catch (err) {
       console.error(
-        "UPDATE PRODUCT ERROR:",
-        error.response?.data || error
+        "SAVE ERROR:",
+        err
       );
 
       toast.error(
-        error.response?.data?.error ||
-        "Không thể cập nhật ❌"
+        "Không thể lưu sản phẩm ❌"
+      );
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  // =========================
+  // DELETE
+  // =========================
+  const handleDelete = async (
+    id
+  ) => {
+    const confirmDelete =
+      window.confirm(
+        "Bạn có chắc muốn xoá sản phẩm này không?"
+      );
+
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(
+        `${API_URL}/${id}`
+      );
+
+      toast.success(
+        "🗑️ Đã xoá sản phẩm!"
+      );
+
+      fetchProducts();
+    } catch (err) {
+      console.error(
+        "DELETE ERROR:",
+        err
+      );
+
+      toast.error(
+        "Không thể xoá sản phẩm ❌"
       );
     }
   };
 
-  // ======================================
-  // LOADING
-  // ======================================
-  if (loading) {
-
-    return (
-      <div className="flex items-center justify-center h-60">
-
-        <p className="text-lg text-gray-500 animate-pulse">
-          Đang tải sản phẩm...
-        </p>
-
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 rounded-lg min-h-screen">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-5">
+        <h2 className="text-2xl font-bold text-blue-700">
+          📦 Quản lý sản phẩm
+        </h2>
 
-      {/* ======================================
-          HEADER
-      ====================================== */}
-      <div className="flex items-center gap-3 mb-6">
-
-        <Package
-          className="text-blue-600"
-          size={32}
-        />
-
-        <div>
-
-          <h2 className="text-3xl font-bold text-blue-700">
-            Quản lý sản phẩm
-          </h2>
-
-          <p className="text-gray-500 mt-1">
-            Chỉnh sửa tồn kho và giảm giá
-          </p>
-
-        </div>
-
+        <button
+          onClick={() => {
+            setSelectedProduct(null);
+            setOpenModal(true);
+          }}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          <Plus size={18} />
+          Thêm sản phẩm
+        </button>
       </div>
 
-      {/* ======================================
-          TABLE
-      ====================================== */}
-      <div className="overflow-x-auto bg-white rounded-3xl shadow">
+      {/* TABLE */}
+      <table className="w-full bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <thead>
+          <tr className="bg-blue-600 text-white text-left">
+            <th className="p-3">
+              ID
+            </th>
 
-        <table className="w-full">
+            <th className="p-3">
+              Tên
+            </th>
 
-          {/* ======================================
-              HEAD
-          ====================================== */}
-          <thead className="bg-blue-600 text-white">
+            <th className="p-3">
+              Tồn kho
+            </th>
 
-            <tr className="h-14 text-center">
+            <th className="p-3">
+              Giá gốc
+            </th>
 
-              <th>ID</th>
+            <th className="p-3">
+              % Giảm
+            </th>
 
-              <th>Ảnh</th>
+            <th className="p-3">
+              Giá sau giảm
+            </th>
 
-              <th>Tên SP</th>
+            <th className="p-3 text-center">
+              Thao tác
+            </th>
+          </tr>
+        </thead>
 
-              <th>Giá gốc</th>
+        <tbody>
+          {products.length > 0 ? (
+            products.map((p) => (
+              <tr
+                key={p.product_id}
+                className="border-t hover:bg-gray-50"
+              >
+                {/* ID */}
+                <td className="p-3">
+                  {p.product_id}
+                </td>
 
-              <th>% Giảm</th>
+                {/* NAME */}
+                <td className="p-3 font-medium">
+                  {p.name}
+                </td>
 
-              <th>Giá sau giảm</th>
-
-              <th>Tồn kho</th>
-
-              <th>Lưu</th>
-
-            </tr>
-
-          </thead>
-
-          {/* ======================================
-              BODY
-          ====================================== */}
-          <tbody>
-
-            {products.length > 0 ? (
-
-              products.map((p) => (
-
-                <tr
-                  key={p.product_id}
-                  className="border-b text-center hover:bg-gray-50 transition h-24"
-                >
-
-                  {/* ID */}
-                  <td>
-                    #{p.product_id}
-                  </td>
-
-                  {/* IMAGE */}
-                  <td>
-
-                    <img
-                      src={
-                        p.image_url
-                          ? `http://localhost:8000/products/${p.image_url}`
-                          : "/no-image.png"
-                      }
-                      alt=""
-                      className="w-16 h-16 object-cover rounded-lg border mx-auto"
-                    />
-
-                  </td>
-
-                  {/* NAME */}
-                  <td className="font-semibold">
-                    {p.name}
-                  </td>
-
-                  {/* OLD PRICE */}
-                  <td className="text-gray-600">
-
-                    {Number(
-                      p.old_price ?? p.price
-                    ).toLocaleString("vi-VN")} ₫
-
-                  </td>
-
-                  {/* DISCOUNT */}
-                  <td>
-
+                {/* STOCK */}
+                <td className="p-3">
+                  <div className="flex items-center gap-2">
                     <input
                       type="number"
-
-                      min={0}
-
-                      max={100}
-
+                      min="0"
                       value={
-                        p.discount_percent || 0
+                        p.stock || 0
                       }
-
-                      onChange={(e) =>
-                        handleChange(
-                          p,
-                          "discount_percent",
-                          e.target.value
-                        )
-                      }
-
-                      className="w-24 border rounded-lg px-3 py-2 text-center"
-                    />
-
-                  </td>
-
-                  {/* DISCOUNT PRICE */}
-                  <td className="text-green-600 font-bold">
-
-                    {calcDiscountPrice(
-                      Number(
-                        p.old_price ?? p.price
-                      ),
-                      Number(
-                        p.discount_percent || 0
-                      )
-                    ).toLocaleString("vi-VN")} ₫
-
-                  </td>
-
-                  {/* STOCK */}
-                  <td>
-
-                    <input
-                      type="number"
-
-                      min={0}
-
-                      value={p.stock || 0}
-
                       onChange={(e) =>
                         handleChange(
                           p,
@@ -447,67 +342,134 @@ export default function AdminProduct() {
                           e.target.value
                         )
                       }
-
-                      className="w-24 border rounded-lg px-3 py-2 text-center"
+                      className="border rounded-md px-2 py-1 w-24 text-center"
                     />
 
-                  </td>
-
-                  {/* SAVE */}
-                  <td>
-
-                    <button
-                      onClick={() =>
-                        handleSave(p)
-                      }
-
-                      disabled={
-                        !editedProducts[
-                          p.product_id
-                        ]
-                      }
-
-                      className={`px-4 py-2 rounded-xl flex items-center gap-2 mx-auto transition ${
-                        editedProducts[
-                          p.product_id
-                        ]
-                          ? "bg-blue-600 hover:bg-blue-700 text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
-                    >
-
-                      <Save size={18} />
-
-                      Lưu
-
-                    </button>
-
-                  </td>
-
-                </tr>
-              ))
-
-            ) : (
-
-              <tr>
-
-                <td
-                  colSpan={8}
-                  className="py-12 text-gray-500 text-center"
-                >
-                  Không có sản phẩm
+                    {savingId ===
+                      p.product_id && (
+                      <Loader2 className="animate-spin w-4 h-4 text-blue-500" />
+                    )}
+                  </div>
                 </td>
 
+                {/* GIÁ GỐC */}
+                <td className="p-3 text-gray-600 font-medium">
+                  {Number(
+                    p.old_price
+                  ).toLocaleString()}
+                  ₫
+                </td>
+
+                {/* % GIẢM */}
+                <td className="p-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="90"
+                      step="1"
+                      value={
+                        p.discount_percent
+                      }
+                      onChange={(e) =>
+                        handleChange(
+                          p,
+                          "discount_percent",
+                          e.target.value
+                        )
+                      }
+                      className="border rounded-md px-2 py-1 w-20 text-center"
+                    />
+
+                    <span>%</span>
+                  </div>
+                </td>
+
+                {/* GIÁ SAU GIẢM */}
+                <td className="p-3 text-green-600 font-bold">
+                  {Number(
+                    p.price
+                  ).toLocaleString()}
+                  ₫
+                </td>
+
+                {/* ACTION */}
+                <td className="p-3">
+                  <div className="flex gap-3 justify-center">
+                    {/* EDIT */}
+                    <button
+                      onClick={() => {
+                        setSelectedProduct(
+                          p
+                        );
+
+                        setOpenModal(
+                          true
+                        );
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <Pencil size={18} />
+                    </button>
+
+                    {/* SAVE */}
+                    {editedProducts[
+                      p.product_id
+                    ] && (
+                      <button
+                        onClick={() =>
+                          handleRowSave(
+                            p
+                          )
+                        }
+                        className="text-green-600 hover:text-green-800"
+                      >
+                        <Save size={18} />
+                      </button>
+                    )}
+
+                    {/* DELETE */}
+                    <button
+                      onClick={() =>
+                        handleDelete(
+                          p.product_id
+                        )
+                      }
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
               </tr>
-            )}
+            ))
+          ) : (
+            <tr>
+              <td
+                colSpan="7"
+                className="text-center py-6 text-gray-500"
+              >
+                Không có sản phẩm nào
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
 
-          </tbody>
+      {/* MODAL */}
+      <ProductModal
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
 
-        </table>
+          setSelectedProduct(
+            null
+          );
 
-      </div>
-
+          fetchProducts();
+        }}
+        product={selectedProduct}
+      />
     </div>
   );
 }
-

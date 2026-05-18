@@ -5,17 +5,32 @@ import os
 
 app = Flask(__name__)
 
-CORS(app)
+# 🔥 FIX CORS
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    supports_credentials=True
+)
 
+# 🔥 REGISTER ROUTES
 app.register_blueprint(product_bp)
 
-# 🔥 FIX IMAGE 404
+# 🔥 FIX IMAGE STATIC
+UPLOAD_FOLDER = os.path.join(app.root_path, "uploads")
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     return send_from_directory(
-        os.path.join(app.root_path, 'uploads'),
+        UPLOAD_FOLDER,
         filename
     )
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=5001,
+        debug=True
+    )

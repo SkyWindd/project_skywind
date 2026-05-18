@@ -404,17 +404,21 @@ def add_product():
         existing_slugs = {row["slug"] for row in cur.fetchall()}
         slug = ensure_unique_slug(slug, existing_slugs)
 
-        price = float(data.get("price", 0))
-        stock = int(data.get("stock", 0))
-        brand_id = data.get("brand_id")
-        promo_id = data.get("promo_id")
+        price = float(data.get("price") or 0)
+        stock = int(data.get("stock") or 0)
+
+        brand_id = data.get("brand_id") or None
+        promo_id = data.get("promo_id") or None
+
         cpu = data.get("cpu")
         ram = data.get("ram")
         ssd = data.get("ssd")
         vga = data.get("vga")
         man_hinh = data.get("man_hinh")
-        is_hot = data.get("is_hot", "false").lower() in ["true", "1"]
 
+        is_hot = str(
+            data.get("is_hot", "false")
+        ).lower() in ["true", "1"]
         cur.execute("""
             INSERT INTO product 
                 (name, slug, price, stock, brand_id, promo_id, cpu, ram, ssd, vga, man_hinh, is_hot)
@@ -635,57 +639,42 @@ def find_products(keyword):
     except Exception as e:
         print("❌ find_products error:", e)
         return []
+    
 # ========================
-# 🗑️ DELETE product (ADMIN)
+# 🗑️ DELETE product
 # ========================
 @product_bp.route("/<int:product_id>", methods=["DELETE"])
 def delete_product(product_id):
     try:
+
         conn = get_connection()
         cur = conn.cursor()
 
-        # 🔥 1. XÓA ẢNH (BẮT BUỘC – TRÁNH FK)
+        # 🔥 XÓA IMAGE
         cur.execute(
             "DELETE FROM image WHERE product_id = %s",
             (product_id,)
         )
 
-        # 🔥 2. XÓA CART ITEM (NẾU TỒN TẠI)
-        try:
-            cur.execute(
-                "DELETE FROM cart_item WHERE product_id = %s",
-                (product_id,)
-            )
-        except Exception:
-            pass
-
-        # 🔥 3. XÓA ORDER ITEM (NẾU TỒN TẠI)
-        try:
-            cur.execute(
-                "DELETE FROM order_item WHERE product_id = %s",
-                (product_id,)
-            )
-        except Exception:
-            pass
-
-        # 🔥 4. XÓA SẢN PHẨM
+        # 🔥 XÓA PRODUCT
         cur.execute(
             "DELETE FROM product WHERE product_id = %s",
             (product_id,)
         )
 
         conn.commit()
+
         cur.close()
         conn.close()
 
         return jsonify({
-            "success": True,
-            "message": "🗑️ Xóa sản phẩm thành công"
+            "success": True
         }), 200
 
     except Exception as e:
+
         traceback.print_exc()
+
         return jsonify({
-            "success": False,
             "error": str(e)
         }), 500

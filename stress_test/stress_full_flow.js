@@ -12,7 +12,7 @@ const MAX_VUS = __ENV.MAX_VUS ? parseInt(__ENV.MAX_VUS) : 50;
 const STEP_TIME = "20s";
 
 // Backend
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "http://localhost:8000";
 
 // Tài khoản test
 const TEST_EMAIL = "3122411074@gmail.com";
