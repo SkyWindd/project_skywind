@@ -7,7 +7,7 @@ from db import get_connection
 payment_bp = Blueprint(
     "payment",
     __name__,
-    url_prefix="/api/payments"
+    url_prefix="/api/payment"
 )
 
 # ==========================================

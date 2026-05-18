@@ -7,7 +7,7 @@ from db import get_connection
 payment_bp = Blueprint(
     "payment",
     __name__,
-    url_prefix="/api/payments"
+    url_prefix="/api/payment"
 )
 
 # ==========================================
@@ -82,7 +82,6 @@ def create_payment():
         return jsonify({
             "error": str(e)
         }), 500
-    
 # GET PAYMENT BY ORDER ID
 @payment_bp.route("/order/<int:order_id>", methods=["GET"])
 def get_payment(order_id):

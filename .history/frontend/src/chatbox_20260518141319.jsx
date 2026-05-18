@@ -185,65 +185,29 @@ const parseAIResponse = (raw) => {
     }
   };
 
-  const extractJSON = (str) => {
-    const match = str.match(/\{[\s\S]*\}/);
-    return match ? tryParse(match[0]) : null;
-  };
+  let parsed = tryParse(raw);
 
-  const unwrap = (obj) => {
-    if (!obj) return obj;
-    if (obj.output && typeof obj.output === "string") {
-      const inner = tryParse(obj.output) || extractJSON(obj.output);
-      if (inner) return unwrap(inner);
-    }
-    if (obj.type === "text" && obj.message && typeof obj.message === "string") {
-      const inner = tryParse(obj.message) || extractJSON(obj.message);
-      if (inner?.type) return unwrap(inner);
-    }
-    return obj;
-  };
-
-  const rawClean = raw.replace(/^=/, "").trim();
-  const parsed = unwrap(tryParse(rawClean) || extractJSON(rawClean));
+  if (parsed?.output && typeof parsed.output === "string") {
+    const inner = tryParse(parsed.output);
+    if (inner) parsed = inner;
+    else return { text: parsed.output, products: [], orders: [] };
+  }
 
   if (parsed) {
     if (parsed.type === "order")
       return {
-        type: "order",
         text: parsed.message || "",
         products: [],
         orders: parsed.orders || [],
       };
     if (parsed.type === "product")
       return {
-        type: "product",
         text: parsed.message || "",
         products: parsed.products || [],
         orders: [],
       };
     if (parsed.type === "text")
-      return {
-        type: "text",
-        text: parsed.message || raw,
-        products: [],
-        orders: [],
-      };
-    if (parsed.type === "cart")
-      return {
-        type: "cart",
-        text: parsed.message || "",
-        product: parsed.product,
-        products: [],
-        orders: [],
-      };
-    if (parsed.type === "payment")
-      return {
-        type: "payment",
-        text: parsed.message || "",
-        url: parsed.url,
-        products: [],
-        orders: [],
-      };
+      return { text: parsed.message || raw, products: [], orders: [] };
     return {
       text: parsed.output || parsed.reply || parsed.message || raw,
       products: parsed.products || [],
@@ -251,7 +215,37 @@ const parseAIResponse = (raw) => {
     };
   }
 
+  const matchOrder = raw.match(/\{[\s\S]*?"type"\s*:\s*"order"[\s\S]*?\}/);
+  if (matchOrder) {
+    const p = tryParse(matchOrder[0]);
+    if (p)
+      return { text: p.message || "", products: [], orders: p.orders || [] };
+  }
+
+  const matchProduct = raw.match(/\{[\s\S]*?"type"\s*:\s*"product"[\s\S]*?\}/);
+  if (matchProduct) {
+    const p = tryParse(matchProduct[0]);
+    if (p)
+      return { text: p.message || "", products: p.products || [], orders: [] };
+  }
+
   return { text: raw, products: [], orders: [] };
+  if (parsed.type === "cart")
+    return {
+      type: "cart",
+      text: parsed.message || "",
+      product: parsed.product,
+      products: [],
+      orders: [],
+    };
+  if (parsed.type === "payment")
+    return {
+      type: "payment",
+      text: parsed.message || "",
+      url: parsed.url,
+      products: [],
+      orders: [],
+    };  
 };
 
 // ── Main ChatBox ──────────────────────────────────────────
@@ -271,7 +265,8 @@ export default function ChatBox() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    setMessages((prev) => [...prev, { sender: "user", text: input }]);
+    const userMsg = { sender: "user", text: input };
+    setMessages((prev) => [...prev, userMsg]);
     const sendText = input;
     setInput("");
     setLoading(true);
@@ -282,35 +277,12 @@ export default function ChatBox() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: sendText,
-          user_id: user?.id || user?.user_id || null,
+          user_id: user?.id || user?.user_id || null, // ✅ dynamic user_id
         }),
       });
 
       const raw = (await res.text()).replace(/^=/, "").trim();
-      const { type, text, products, orders, product, url } =
-        parseAIResponse(raw);
-
-      if (type === "cart" && product?.id) {
-        try {
-          await fetch(`${import.meta.env.VITE_API_URL}/cart`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              product_id: product.id,
-              quantity: 1,
-              user_id: user?.id || user?.user_id || null,
-            }),
-          });
-        } catch (e) {
-          console.error("Cart error:", e);
-        }
-      }
-
-      if (type === "payment" && url) {
-        window.location.href = url;
-        return;
-      }
-
+      const { text, products, orders } = parseAIResponse(raw);
       setMessages((prev) => [
         ...prev,
         { sender: "bot", text, products, orders },
@@ -330,6 +302,7 @@ export default function ChatBox() {
       setLoading(false);
     }
   };
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen ? (
@@ -360,19 +333,7 @@ export default function ChatBox() {
                         : "bg-gray-200 text-gray-900"
                     }`}
                   >
-                    {msg.text.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-                      /^https?:\/\//.test(part) ? (
-                        <a
-                          key={i}
-                          href={part}
-                          className="underline text-blue-500 break-all"
-                        >
-                          {part}
-                        </a>
-                      ) : (
-                        part
-                      ),
-                    )}
+                    {msg.text}
                   </div>
                 ) : null}
 
