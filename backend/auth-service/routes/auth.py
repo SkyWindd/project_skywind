@@ -96,71 +96,104 @@ def register():
 # =======================
 @auth_bp.route("/api/auth/login", methods=["POST"])
 def login_user():
+
     try:
         data = request.get_json(silent=True) or {}
 
         email = data.get("email")
         password = data.get("password")
 
+        # VALIDATE
         if not email or not password:
             return jsonify({
                 "success": False,
-                "message": "Thiếu email hoặc password"
+                "message": "Thiếu email hoặc mật khẩu"
             }), 400
 
         conn = get_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+        cur = conn.cursor(
+            cursor_factory=RealDictCursor
+        )
+
+        # GET USER
+        cur.execute("""
+            SELECT *
+            FROM users
+            WHERE email = %s
+        """, (email,))
+
         user = cur.fetchone()
 
-        # ❌ FIX 1: trả đúng status 401
+        # EMAIL NOT FOUND
         if not user:
             return jsonify({
                 "success": False,
                 "message": "Email không tồn tại"
             }), 401
 
+        # ACCOUNT LOCKED
         if not user.get("is_active", True):
             return jsonify({
                 "success": False,
-                "message": "Tài khoản bị khóa"
+                "message": "Tài khoản đã bị khóa"
             }), 403
 
-        # ❌ FIX 2: xử lý cả trường hợp password cũ bị lệch hash
+        # PASSWORD CHECK
+        password_valid = False
+
         try:
-            password_valid = check_password_hash(user["password"], password)
-        except:
+            password_valid = check_password_hash(
+                user["password"],
+                password
+            )
+        except Exception:
             password_valid = False
 
+        # WRONG PASSWORD
         if not password_valid:
             return jsonify({
                 "success": False,
                 "message": "Sai mật khẩu"
             }), 401
 
+        # TOKENS
         access_token, refresh_token = create_tokens(user)
 
         return jsonify({
             "success": True,
+
             "message": "Đăng nhập thành công",
+
             "accessToken": access_token,
+
             "refreshToken": refresh_token,
+
             "user": {
                 "user_id": user["user_id"],
                 "username": user["username"],
                 "email": user["email"],
-                "role": user["role"]
+                "role": user["role"],
+                "is_active": user["is_active"]
             }
         }), 200
 
     except Exception as e:
+
         print("❌ LOGIN ERROR:", e)
-        return jsonify({"success": False, "message": "Lỗi server"}), 500
+
+        return jsonify({
+            "success": False,
+            "message": "Lỗi server"
+        }), 500
 
     finally:
-        if "cur" in locals(): cur.close()
-        if "conn" in locals(): conn.close()
+
+        if "cur" in locals():
+            cur.close()
+
+        if "conn" in locals():
+            conn.close()
 
 
 # =======================

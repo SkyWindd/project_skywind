@@ -16,112 +16,199 @@ import { Toaster, toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 
 export default function CheckoutInfo() {
+
   // ============================
   // 🔹 CONTEXT
   // ============================
   const { total } = useCart();
+
   const { user } = useAuth();
 
   const navigate = useNavigate();
 
-  const userId = user?.user_id || user?.id;
+  const userId =
+    user?.user_id || user?.id;
 
   // ============================
   // 🔹 STATE
   // ============================
-  const [deliveryType, setDeliveryType] = useState("delivery");
+  const [deliveryType, setDeliveryType] =
+    useState("delivery");
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    province: "",
-    district: "",
-    ward: "",
-    address: "",
-  });
+  const [form, setForm] =
+    useState({
+
+      name: "",
+      phone: "",
+      email: "",
+
+      province: "",
+      district: "",
+      ward: "",
+
+      address: "",
+    });
 
   // ============================
   // 🚀 LOAD DEFAULT ADDRESS
   // ============================
   useEffect(() => {
+
     if (!userId) return;
 
-    const loadDefaultAddress = async () => {
-      try {
-        const res = await axiosClient.get(
-          `/users/api/address/user/${userId}`
-        );
+    const loadDefaultAddress =
+      async () => {
 
-        console.log("📦 Address Response:", res.data);
+        try {
 
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.data || [];
+          const res =
+            await axiosClient.get(
+              `/users/api/address/user/${userId}`
+            );
 
-        // ============================
-        // ❌ Không có địa chỉ
-        // ============================
-        if (data.length === 0) {
-          const saved = localStorage.getItem(
-            "checkout_delivery_form"
+          console.log(
+            "📦 Address Response:",
+            res.data
           );
 
-          if (saved) {
-            setForm(JSON.parse(saved));
+          // ============================
+          // 🔹 Normalize data
+          // ============================
+          let data = [];
+
+          if (
+            Array.isArray(res.data)
+          ) {
+
+            data = res.data;
+
+          } else if (
+            Array.isArray(
+              res.data?.data
+            )
+          ) {
+
+            data = res.data.data;
           }
 
-          return;
+          // ============================
+          // ❌ Không có địa chỉ
+          // ============================
+          if (data.length === 0) {
+
+            const saved =
+              localStorage.getItem(
+                "checkout_delivery_form"
+              );
+
+            if (saved) {
+
+              setForm(
+                JSON.parse(saved)
+              );
+            }
+
+            return;
+          }
+
+          // ============================
+          // 🔹 Lấy địa chỉ đầu tiên
+          // ============================
+          const addr = data[0];
+
+          console.log(
+            "✅ Default Address:",
+            addr
+          );
+
+          // ============================
+          // 🔹 SET FORM
+          // ============================
+          setForm((prev) => ({
+
+            ...prev,
+
+            // CUSTOMER INFO
+            name:
+              addr.name ||
+              user?.name ||
+              "",
+
+            phone:
+              addr.phone ||
+              user?.phone ||
+              "",
+
+            email:
+              user?.email ||
+              "",
+
+            // DELIVERY INFO
+            province:
+              addr.province ||
+              "",
+
+            district:
+              addr.district ||
+              "",
+
+            ward:
+              addr.ward ||
+              "",
+
+            address:
+              addr.street ||
+              "",
+          }));
+
+        } catch (error) {
+
+          console.error(
+            "❌ Load address error:",
+            error
+          );
+
+          const saved =
+            localStorage.getItem(
+              "checkout_delivery_form"
+            );
+
+          if (saved) {
+
+            setForm(
+              JSON.parse(saved)
+            );
+          }
         }
-
-        // ============================
-        // 🔹 Lấy địa chỉ đầu tiên
-        // ============================
-        const addr = data[0];
-
-        setForm({
-          name: user?.name || "",
-          phone: user?.phone || "",
-          email: user?.email || "",
-
-          province: addr.city || "",
-          district: addr.state || "",
-          ward: addr.zip_code || "",
-          address: addr.street || "",
-        });
-      } catch (error) {
-        console.error("❌ Load address error:", error);
-
-        const saved = localStorage.getItem(
-          "checkout_delivery_form"
-        );
-
-        if (saved) {
-          setForm(JSON.parse(saved));
-        }
-      }
-    };
+      };
 
     loadDefaultAddress();
+
   }, [userId, user]);
 
   // ============================
   // 💾 SAVE FORM LOCALSTORAGE
   // ============================
   useEffect(() => {
+
     localStorage.setItem(
       "checkout_delivery_form",
       JSON.stringify(form)
     );
+
   }, [form]);
 
   // ============================
   // 🔹 HANDLE INPUT CHANGE
   // ============================
   const handleChange = (e) => {
+
     setForm((prev) => ({
+
       ...prev,
-      [e.target.name]: e.target.value,
+
+      [e.target.name]:
+        e.target.value,
     }));
   };
 
@@ -129,26 +216,37 @@ export default function CheckoutInfo() {
   // 🔹 NEXT STEP
   // ============================
   const handleNext = () => {
+
     const requiredFields = [
+
       "name",
       "phone",
+
       "province",
+      "district",
       "ward",
+
       "address",
     ];
 
-    const missingFields = requiredFields.filter(
-      (field) => !form[field]?.trim()
-    );
+    const missingFields =
+      requiredFields.filter(
+        (field) =>
+          !form[field]?.trim()
+      );
 
     // ============================
     // ❌ VALIDATE
     // ============================
-    if (missingFields.length > 0) {
+    if (
+      missingFields.length > 0
+    ) {
+
       toast.error(
         "Vui lòng điền đầy đủ thông tin giao hàng",
         {
-          position: "top-center",
+          position:
+            "top-center",
         }
       );
 
@@ -168,27 +266,44 @@ export default function CheckoutInfo() {
       total.toString()
     );
 
-    toast.success("Thông tin hợp lệ", {
-      position: "top-center",
-    });
+    toast.success(
+      "Thông tin hợp lệ",
+      {
+        position:
+          "top-center",
+      }
+    );
 
     // ============================
     // 🚀 NAVIGATE
     // ============================
     setTimeout(() => {
-      navigate("/checkoutPayment");
+
+      navigate(
+        "/checkoutPayment"
+      );
+
     }, 1000);
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8">
-      <Toaster richColors position="top-center" expand />
+
+      <Toaster
+        richColors
+        position="top-center"
+        expand
+      />
 
       {/* ============================
           🔹 PROGRESS
       ============================ */}
       <div className="mb-8">
-        <CheckoutProgress step={1} />
+
+        <CheckoutProgress
+          step={1}
+        />
+
       </div>
 
       {/* ============================
@@ -210,19 +325,29 @@ export default function CheckoutInfo() {
       <CheckoutDeliveryInfo
         form={form}
         onChange={handleChange}
-        deliveryType={deliveryType}
-        setDeliveryType={setDeliveryType}
+        deliveryType={
+          deliveryType
+        }
+        setDeliveryType={
+          setDeliveryType
+        }
       />
 
       {/* ============================
           🔹 TOTAL
       ============================ */}
       <div className="bg-white shadow-md border border-gray-100 rounded-2xl p-6 mt-6">
+
         <div className="flex justify-between items-center text-base font-semibold">
-          <span>Tổng tiền tạm tính</span>
+
+          <span>
+            Tổng tiền tạm tính
+          </span>
 
           <span className="text-blue-600 text-lg">
+
             {total.toLocaleString()}₫
+
           </span>
         </div>
       </div>

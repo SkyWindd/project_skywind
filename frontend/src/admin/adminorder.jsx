@@ -1,6 +1,15 @@
+
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+
 import { motion } from "framer-motion";
+
 import {
   Select,
   SelectTrigger,
@@ -8,9 +17,12 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+
 import AdminOrderDetailModal from "./AdminOrderDetailModal";
 
-// Màu trạng thái
+/* =========================================
+   STATUS COLORS
+========================================= */
 const STATUS_COLORS = {
   "Chờ xác nhận": "bg-yellow-100 text-yellow-700",
   "Đã xác nhận": "bg-blue-100 text-blue-700",
@@ -29,43 +41,104 @@ const STATUS_LIST = [
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
+
   const [filter, setFilter] = useState("Tất cả");
+
   const [loading, setLoading] = useState(true);
 
-  // 🔥 STATE CHO MODAL
+  // MODAL
   const [openDetail, setOpenDetail] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
-  const loadOrders = () => {
-    setLoading(true);
-    fetch("http://localhost:5000/api/orders")
-      .then((res) => res.json())
-      .then((data) => {
-        setOrders(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        alert("Không thể tải đơn hàng.");
-        setLoading(false);
-      });
+  const [selectedOrderId, setSelectedOrderId] =
+    useState(null);
+
+  /* =========================================
+     LOAD ORDERS
+  ========================================= */
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+
+      // ⭐ FIX GATEWAY
+      const response = await fetch(
+        "http://localhost:8000/orders/api/orders"
+      );
+
+      if (!response.ok) {
+        throw new Error("Không thể tải đơn hàng");
+      }
+
+      const data = await response.json();
+
+      // ⭐ chống crash
+      const orderList = Array.isArray(data)
+        ? data
+        : data.orders || [];
+
+      setOrders(orderList);
+
+    } catch (error) {
+      console.error("❌ Load Orders Error:", error);
+
+      alert("Không thể tải danh sách đơn hàng.");
+
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadOrders();
   }, []);
 
-  const updateStatus = (id, status) => {
-    fetch(`http://localhost:5001/api/orders/update-status/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_status: status }),
-    })
-      .then(() => loadOrders())
-      .catch(() => alert("Không thể cập nhật trạng thái!"));
+  /* =========================================
+     UPDATE STATUS
+  ========================================= */
+  const updateStatus = async (
+    orderId,
+    status
+  ) => {
+    try {
+
+      // ⭐ FIX GATEWAY
+      const response = await fetch(
+        `http://localhost:8000/orders/api/orders/update-status/${orderId}`,
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            order_status: status,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Update failed");
+      }
+
+      // reload
+      loadOrders();
+
+    } catch (error) {
+      console.error("❌ Update Status Error:", error);
+
+      alert("Không thể cập nhật trạng thái!");
+    }
   };
 
-  const filtered =
-    filter === "Tất cả" ? orders : orders.filter((o) => o.status === filter);
+  /* =========================================
+     FILTER
+  ========================================= */
+  const filteredOrders =
+    filter === "Tất cả"
+      ? orders
+      : orders.filter(
+          (order) => order.status === filter
+        );
 
   return (
     <>
@@ -74,129 +147,182 @@ export default function AdminOrders() {
         animate={{ opacity: 1 }}
         className="space-y-6"
       >
-        <h2 className="text-2xl font-bold text-blue-700">
-          Quản lý đơn hàng
-        </h2>
+        {/* TITLE */}
+        <div>
+          <h2 className="text-3xl font-bold text-blue-700">
+            Quản lý đơn hàng
+          </h2>
 
-        {/* Tabs lọc */}
-        <div className="flex gap-3 mb-3 overflow-auto">
-          {["Tất cả", ...STATUS_LIST].map((stt) => (
-            <button
-              key={stt}
-              onClick={() => setFilter(stt)}
-              className={`px-5 py-2 rounded-full font-medium transition whitespace-nowrap
-                ${
-                  filter === stt
-                    ? "bg-red-500 text-white shadow"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                }`}
-            >
-              {stt}
-            </button>
-          ))}
+          <p className="text-gray-500 mt-1">
+            Theo dõi và cập nhật trạng thái đơn hàng
+          </p>
         </div>
 
-        {/* Bảng đơn hàng */}
-        <Card className="shadow-lg border rounded-xl bg-white">
+        {/* FILTER */}
+        <div className="flex gap-3 overflow-x-auto pb-2">
+
+          {["Tất cả", ...STATUS_LIST].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-5 py-2 rounded-full font-medium whitespace-nowrap transition ${
+                filter === status
+                  ? "bg-blue-600 text-white shadow"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+
+        </div>
+
+        {/* TABLE */}
+        <Card className="shadow-lg border-0 rounded-2xl bg-white">
+
           <CardHeader>
-            <CardTitle className="text-blue-700 text-lg">
+            <CardTitle className="text-blue-700 text-xl">
               Danh sách đơn hàng
             </CardTitle>
           </CardHeader>
 
           <CardContent>
+
             {loading ? (
-              <p className="text-center text-blue-600 font-medium">
-                Đang tải...
-              </p>
+              <div className="flex justify-center py-10">
+                <p className="text-blue-600 animate-pulse">
+                  Đang tải đơn hàng...
+                </p>
+              </div>
             ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-blue-50 text-blue-700 h-12 text-center">
-                    <th className="w-[80px]">Mã đơn</th>
-                    <th className="w-[110px]">Người dùng</th>
-                    <th className="w-[150px]">Tổng tiền</th>
-                    <th className="w-[210px]">Ngày đặt</th>
-                    <th className="w-[150px]">Trạng thái</th>
-                    <th className="w-[180px]">Cập nhật</th>
-                    <th className="w-[120px]">Chi tiết</th>
-                  </tr>
-                </thead>
+              <div className="overflow-x-auto">
 
-                <tbody>
-                  {filtered.map((order) => (
-                    <tr
-                      key={order.order_id}
-                      className="border-b h-14 text-center hover:bg-gray-50 transition"
-                    >
-                      <td className="font-semibold">
-                        #{order.order_id}
-                      </td>
+                <table className="w-full text-sm">
 
-                      <td>{order.user_id}</td>
-
-                      <td className="text-green-600 font-bold">
-                        {order.total_amount.toLocaleString()}₫
-                      </td>
-
-                      <td className="text-gray-600">
-                        {new Date(order.order_date).toLocaleString("vi-VN")}
-                      </td>
-
-                      <td>
-                        <span
-                          className={`px-3 py-1 text-xs rounded-full font-semibold inline-block ${
-                            STATUS_COLORS[order.status]
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-
-                      {/* Dropdown cập nhật */}
-                      <td>
-                        <Select
-                          value={order.status}
-                          onValueChange={(v) =>
-                            updateStatus(order.order_id, v)
-                          }
-                        >
-                          <SelectTrigger className="w-[150px] bg-gray-50 text-gray-700">
-                            <SelectValue placeholder="Chọn" />
-                          </SelectTrigger>
-
-                          <SelectContent>
-                            {STATUS_LIST.map((st) => (
-                              <SelectItem key={st} value={st}>
-                                {st}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-
-                      {/* 🔥 NÚT MỞ MODAL */}
-                      <td>
-                        <button
-                          onClick={() => {
-                            setSelectedOrderId(order.order_id);
-                            setOpenDetail(true);
-                          }}
-                          className="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                          Xem
-                        </button>
-                      </td>
+                  <thead>
+                    <tr className="bg-blue-50 text-blue-700 h-12 text-center">
+                      <th className="px-3">Mã đơn</th>
+                      <th className="px-3">Người dùng</th>
+                      <th className="px-3">Tổng tiền</th>
+                      <th className="px-3">Ngày đặt</th>
+                      <th className="px-3">Trạng thái</th>
+                      <th className="px-3">Cập nhật</th>
+                      <th className="px-3">Chi tiết</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody>
+
+                    {filteredOrders.length > 0 ? (
+                      filteredOrders.map((order) => (
+                        <tr
+                          key={order.order_id}
+                          className="border-b h-14 text-center hover:bg-gray-50 transition"
+                        >
+                          <td className="font-semibold">
+                            #{order.order_id}
+                          </td>
+
+                          <td>
+                            {order.user_id}
+                          </td>
+
+                          <td className="text-green-600 font-bold">
+                            {Number(
+                              order.total_amount || 0
+                            ).toLocaleString("vi-VN")}₫
+                          </td>
+
+                          <td className="text-gray-600">
+                            {order.order_date
+                              ? new Date(
+                                  order.order_date
+                                ).toLocaleString("vi-VN")
+                              : "N/A"}
+                          </td>
+
+                          {/* STATUS */}
+                          <td>
+                            <span
+                              className={`px-3 py-1 text-xs rounded-full font-semibold inline-block ${
+                                STATUS_COLORS[
+                                  order.status
+                                ] ||
+                                "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
+                          </td>
+
+                          {/* UPDATE */}
+                          <td>
+                            <Select
+                              value={order.status}
+                              onValueChange={(value) =>
+                                updateStatus(
+                                  order.order_id,
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger className="w-[160px] bg-gray-50">
+                                <SelectValue placeholder="Chọn trạng thái" />
+                              </SelectTrigger>
+
+                              <SelectContent>
+                                {STATUS_LIST.map((status) => (
+                                  <SelectItem
+                                    key={status}
+                                    value={status}
+                                  >
+                                    {status}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </td>
+
+                          {/* DETAIL */}
+                          <td>
+                            <button
+                              onClick={() => {
+                                setSelectedOrderId(
+                                  order.order_id
+                                );
+
+                                setOpenDetail(true);
+                              }}
+                              className="px-4 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+                            >
+                              Xem
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="py-10 text-center text-gray-500"
+                        >
+                          Không có đơn hàng nào
+                        </td>
+                      </tr>
+                    )}
+
+                  </tbody>
+
+                </table>
+
+              </div>
             )}
+
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* 🔥 MODAL CHI TIẾT ĐƠN HÀNG */}
+      {/* MODAL */}
       <AdminOrderDetailModal
         open={openDetail}
         orderId={selectedOrderId}
@@ -205,3 +331,4 @@ export default function AdminOrders() {
     </>
   );
 }
+

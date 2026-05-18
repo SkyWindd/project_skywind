@@ -1,30 +1,55 @@
+
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Edit, X, Lock, Unlock } from "lucide-react";
+
+import {
+  Edit,
+  Lock,
+  Unlock,
+  Trash2,
+} from "lucide-react";
+
 import { toast } from "sonner";
 
 export default function AdminUser() {
-  const API_URL = "http://localhost:5003/api/users/";
+
+  const API_URL =
+    "http://localhost:8000/users/api/users";
 
   const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
-  const [openCreate, setOpenCreate] = useState(false);
 
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    role: "user",
-    is_active: true,
-  });
+  const [editingUser, setEditingUser] =
+    useState(null);
 
-  const [newUser, setNewUser] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: "user",
-    is_active: true,
-  });
+  const [openCreate, setOpenCreate] =
+    useState(false);
 
+  // ========================
+  // FORM EDIT
+  // ========================
+  const [formData, setFormData] =
+    useState({
+      username: "",
+      email: "",
+      role: "user",
+      is_active: true,
+    });
+
+  // ========================
+  // FORM CREATE
+  // ========================
+  const [newUser, setNewUser] =
+    useState({
+      username: "",
+      email: "",
+      password: "",
+      role: "user",
+      is_active: true,
+    });
+
+  // ========================
+  // LOAD USERS
+  // ========================
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -33,11 +58,27 @@ export default function AdminUser() {
   // GET USERS
   // ========================
   const fetchUsers = async () => {
+
     try {
+
       const res = await axios.get(API_URL);
-      setUsers(res.data);
-    } catch {
-      toast.error("Không thể tải danh sách user ❌");
+
+      const userList = Array.isArray(res.data)
+        ? res.data
+        : res.data.users || [];
+
+      setUsers(userList);
+
+    } catch (error) {
+
+      console.error(
+        "GET USERS ERROR:",
+        error.response?.data || error
+      );
+
+      toast.error(
+        "Không thể tải danh sách user ❌"
+      );
     }
   };
 
@@ -45,12 +86,67 @@ export default function AdminUser() {
   // CREATE USER
   // ========================
   const handleCreateUser = async () => {
+
     try {
-      const res = await axios.post(API_URL, newUser);
-      if (res.data.success) {
-        toast.success("🎉 Tạo user thành công");
+
+      // EMPTY
+      if (
+        !newUser.username ||
+        !newUser.email ||
+        !newUser.password
+      ) {
+        toast.error(
+          "Vui lòng nhập đầy đủ thông tin"
+        );
+        return;
+      }
+
+      // EMAIL
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (
+        !emailRegex.test(
+          newUser.email
+        )
+      ) {
+        toast.error(
+          "Email không hợp lệ ❌"
+        );
+        return;
+      }
+
+      // ⭐ PASSWORD 6 SỐ
+      const passwordRegex =
+        /^\d{6}$/;
+
+      if (
+        !passwordRegex.test(
+          newUser.password
+        )
+      ) {
+        toast.error(
+          "Mật khẩu phải gồm đúng 6 chữ số"
+        );
+        return;
+      }
+
+      const res = await axios.post(
+        API_URL,
+        newUser
+      );
+
+      if (res.status === 201) {
+
+        toast.success(
+          "🎉 Tạo user thành công"
+        );
+
         setOpenCreate(false);
+
         fetchUsers();
+
+        // RESET
         setNewUser({
           username: "",
           email: "",
@@ -58,11 +154,20 @@ export default function AdminUser() {
           role: "user",
           is_active: true,
         });
-      } else {
-        toast.error(res.data.message);
       }
-    } catch {
-      toast.error("Lỗi tạo user ❌");
+
+    } catch (error) {
+
+      console.error(
+        "CREATE USER ERROR:",
+        error.response?.data || error
+      );
+
+      toast.error(
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Lỗi tạo user ❌"
+      );
     }
   };
 
@@ -70,19 +175,36 @@ export default function AdminUser() {
   // UPDATE USER
   // ========================
   const handleSave = async () => {
+
     try {
+
       const res = await axios.put(
         `${API_URL}/${editingUser.user_id}`,
         formData
       );
 
-      if (res.data.success) {
-        toast.success("Cập nhật thành công ✅");
+      if (res.status === 200) {
+
+        toast.success(
+          "Cập nhật thành công ✅"
+        );
+
         setEditingUser(null);
+
         fetchUsers();
       }
-    } catch {
-      toast.error("Lỗi cập nhật ❌");
+
+    } catch (error) {
+
+      console.error(
+        "UPDATE USER ERROR:",
+        error.response?.data || error
+      );
+
+      toast.error(
+        error.response?.data?.error ||
+        "Lỗi cập nhật ❌"
+      );
     }
   };
 
@@ -90,171 +212,452 @@ export default function AdminUser() {
   // TOGGLE ACTIVE
   // ========================
   const toggleActive = async (user) => {
+
     try {
-      await axios.put(`${API_URL}/${user.user_id}`, {
-        ...user,
+
+      const updatedUser = {
+        username: user.username,
+        email: user.email,
+        role: user.role,
         is_active: !user.is_active,
-      });
+      };
+
+      await axios.put(
+        `${API_URL}/${user.user_id}`,
+        updatedUser
+      );
+
+      toast.success(
+        user.is_active
+          ? "Đã khóa tài khoản"
+          : "Đã mở khóa tài khoản"
+      );
+
       fetchUsers();
-      toast.success("Đã cập nhật trạng thái");
-    } catch {
-      toast.error("Không thể cập nhật ❌");
+
+    } catch (error) {
+
+      console.error(
+        "TOGGLE ACTIVE ERROR:",
+        error.response?.data || error
+      );
+
+      toast.error(
+        "Không thể cập nhật ❌"
+      );
+    }
+  };
+
+  // ========================
+  // DELETE USER
+  // ========================
+  const handleDelete = async (userId) => {
+
+    const confirmDelete =
+      window.confirm(
+        "Bạn có chắc muốn xoá user này?"
+      );
+
+    if (!confirmDelete) return;
+
+    try {
+
+      await axios.delete(
+        `${API_URL}/${userId}`
+      );
+
+      toast.success(
+        "Xóa user thành công"
+      );
+
+      fetchUsers();
+
+    } catch (error) {
+
+      console.error(
+        "DELETE USER ERROR:",
+        error.response?.data || error
+      );
+
+      toast.error(
+        "Không thể xoá user ❌"
+      );
     }
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h2 className="text-2xl font-bold mb-4 text-blue-700">
-        👥 Quản lý người dùng
-      </h2>
 
-      <button
-        onClick={() => setOpenCreate(true)}
-        className="mb-4 px-4 py-2 bg-green-600 text-white rounded-lg"
-      >
-        ➕ Thêm người dùng
-      </button>
+      {/* TITLE */}
+      <div className="flex items-center justify-between mb-5">
 
-      <table className="w-full bg-white border rounded-lg">
-        <thead className="bg-blue-600 text-white">
-          <tr>
-            <th className="p-2">ID</th>
-            <th>Tên</th>
-            <th>Email</th>
-            <th>Trạng thái</th>
-            <th>Role</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.user_id} className="border-t text-center">
-              <td>{u.user_id}</td>
-              <td>{u.username}</td>
-              <td>{u.email}</td>
-              <td>
-                {u.is_active ? (
-                  <span className="text-green-600">Hoạt động</span>
-                ) : (
-                  <span className="text-red-600">Khoá</span>
-                )}
-              </td>
-              <td>{u.role}</td>
-              <td className="flex justify-center gap-3 p-2">
-                <button onClick={() => {
-                  setEditingUser(u);
-                  setFormData(u);
-                }}>
-                  <Edit size={18} />
-                </button>
+        <div>
+          <h2 className="text-3xl font-bold text-blue-700">
+            👥 Quản lý người dùng
+          </h2>
 
-                <button onClick={() => toggleActive(u)}>
-                  {u.is_active ? <Lock /> : <Unlock />}
-                </button>
-              </td>
+          <p className="text-gray-500 mt-1">
+            Quản lý tài khoản hệ thống
+          </p>
+        </div>
+
+        <button
+          onClick={() => setOpenCreate(true)}
+          className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition"
+        >
+          ➕ Thêm người dùng
+        </button>
+
+      </div>
+
+      {/* TABLE */}
+      <div className="overflow-x-auto bg-white rounded-2xl shadow">
+
+        <table className="w-full">
+
+          <thead className="bg-blue-600 text-white">
+
+            <tr className="h-14">
+              <th>ID</th>
+              <th>Tên</th>
+              <th>Email</th>
+              <th>Trạng thái</th>
+              <th>Role</th>
+              <th>Hành động</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
 
-      {/* CREATE MODAL */}
+          </thead>
+
+          <tbody>
+
+            {users.length > 0 ? (
+              users.map((user) => {
+
+                // ⭐ USER KHÓA
+                const isLocked =
+                  !user.is_active;
+
+                return (
+                  <tr
+                    key={user.user_id}
+                    className={`border-b text-center transition h-14 ${
+                      isLocked
+                        ? "bg-gray-300 opacity-60"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+
+                    <td>
+                      #{user.user_id}
+                    </td>
+
+                    <td className="font-medium">
+                      {user.username}
+                    </td>
+
+                    <td>
+                      {user.email}
+                    </td>
+
+                    <td>
+
+                      {user.is_active ? (
+                        <span className="text-green-600 font-semibold">
+                          Hoạt động
+                        </span>
+                      ) : (
+                        <span className="text-red-600 font-semibold">
+                          Đã khóa
+                        </span>
+                      )}
+
+                    </td>
+
+                    <td>
+                      {user.role}
+                    </td>
+
+                    <td>
+
+                      <div className="flex justify-center gap-4">
+
+                        {/* EDIT */}
+                        <button
+                          disabled={isLocked}
+                          onClick={() => {
+
+                            setEditingUser(user);
+
+                            setFormData({
+                              username:
+                                user.username,
+
+                              email:
+                                user.email,
+
+                              role:
+                                user.role,
+
+                              is_active:
+                                user.is_active,
+                            });
+                          }}
+                          className={`${
+                            isLocked
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-blue-600 hover:text-blue-800"
+                          }`}
+                        >
+                          <Edit size={18} />
+                        </button>
+
+                        {/* LOCK / UNLOCK */}
+                        <button
+                          onClick={() =>
+                            toggleActive(user)
+                          }
+                          className={`${
+                            isLocked
+                              ? "text-green-600 hover:text-green-700"
+                              : "text-orange-500 hover:text-orange-700"
+                          }`}
+                        >
+                          {isLocked ? (
+                            <Unlock size={18} />
+                          ) : (
+                            <Lock size={18} />
+                          )}
+                        </button>
+
+                        {/* DELETE */}
+                        <button
+                          disabled={isLocked}
+                          onClick={() =>
+                            handleDelete(
+                              user.user_id
+                            )
+                          }
+                          className={`${
+                            isLocked
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-red-500 hover:text-red-700"
+                          }`}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+
+                      </div>
+
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="py-10 text-center text-gray-500"
+                >
+                  Không có user nào
+                </td>
+              </tr>
+            )}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      {/* ======================================
+          CREATE MODAL
+      ====================================== */}
       {openCreate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-[400px]">
-            <h3 className="font-semibold mb-3">Thêm user</h3>
 
-            <input
-              placeholder="Username"
-              className="input"
-              onChange={(e) =>
-                setNewUser({ ...newUser, username: e.target.value })
-              }
-            />
-            <input
-              placeholder="Email"
-              className="input"
-              onChange={(e) =>
-                setNewUser({ ...newUser, email: e.target.value })
-              }
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="input"
-              onChange={(e) =>
-                setNewUser({ ...newUser, password: e.target.value })
-              }
-            />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-            <select
-              className="input"
-              onChange={(e) =>
-                setNewUser({ ...newUser, role: e.target.value })
-              }
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
+          <div className="bg-white p-6 rounded-2xl w-[400px] shadow-xl">
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setOpenCreate(false)}>Huỷ</button>
+            <h3 className="text-xl font-semibold mb-4">
+              ➕ Thêm user
+            </h3>
+
+            <div className="space-y-3">
+
+              <input
+                placeholder="Username"
+                value={newUser.username}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setNewUser({
+                    ...newUser,
+                    username:
+                      e.target.value,
+                  })
+                }
+              />
+
+              <input
+                placeholder="Email"
+                value={newUser.email}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setNewUser({
+                    ...newUser,
+                    email:
+                      e.target.value,
+                  })
+                }
+              />
+
+              <input
+                type="password"
+                placeholder="Password (6 số)"
+                value={newUser.password}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setNewUser({
+                    ...newUser,
+                    password:
+                      e.target.value,
+                  })
+                }
+              />
+
+              <select
+                value={newUser.role}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setNewUser({
+                    ...newUser,
+                    role:
+                      e.target.value,
+                  })
+                }
+              >
+                <option value="user">
+                  User
+                </option>
+
+                <option value="admin">
+                  Admin
+                </option>
+
+              </select>
+
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+
+              <button
+                onClick={() =>
+                  setOpenCreate(false)
+                }
+                className="px-4 py-2 rounded-lg bg-gray-200"
+              >
+                Huỷ
+              </button>
+
               <button
                 onClick={handleCreateUser}
-                className="bg-green-600 text-white px-4 py-2 rounded"
+                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
               >
                 Tạo
               </button>
+
             </div>
+
           </div>
         </div>
       )}
 
-      {/* EDIT MODAL */}
+      {/* ======================================
+          EDIT MODAL
+      ====================================== */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-[400px]">
-            <h3 className="font-semibold mb-3">
-              Sửa user #{editingUser.user_id}
+
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+          <div className="bg-white p-6 rounded-2xl w-[400px] shadow-xl">
+
+            <h3 className="text-xl font-semibold mb-4">
+              ✏️ Sửa user
             </h3>
 
-            <input
-              value={formData.username}
-              className="input"
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-            />
-            <input
-              value={formData.email}
-              className="input"
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-            />
+            <div className="space-y-3">
 
-            <select
-              value={formData.role}
-              className="input"
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
+              <input
+                value={formData.username}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    username:
+                      e.target.value,
+                  })
+                }
+              />
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setEditingUser(null)}>Huỷ</button>
+              <input
+                value={formData.email}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    email:
+                      e.target.value,
+                  })
+                }
+              />
+
+              <select
+                value={formData.role}
+                className="w-full border rounded-lg px-3 py-2"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    role:
+                      e.target.value,
+                  })
+                }
+              >
+                <option value="user">
+                  User
+                </option>
+
+                <option value="admin">
+                  Admin
+                </option>
+
+              </select>
+
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+
+              <button
+                onClick={() =>
+                  setEditingUser(null)
+                }
+                className="px-4 py-2 rounded-lg bg-gray-200"
+              >
+                Huỷ
+              </button>
+
               <button
                 onClick={handleSave}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
               >
                 Lưu
               </button>
+
             </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }
+

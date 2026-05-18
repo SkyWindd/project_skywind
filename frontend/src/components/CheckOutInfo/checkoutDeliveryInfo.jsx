@@ -44,6 +44,97 @@ export default function CheckoutDeliveryInfo({
     useState(false);
 
   // =========================
+  // 🔹 AUTO LOAD USER ADDRESS
+  // =========================
+  useEffect(() => {
+
+    const loadUserAddress = async () => {
+
+      try {
+
+        const user =
+          JSON.parse(localStorage.getItem("user"));
+
+        if (!user?.id) return;
+
+        const res = await axiosClient.get(
+          `/users/api/address/user/${user.id}`
+        );
+
+        console.log(
+          "✅ User address:",
+          res.data
+        );
+
+        const address =
+          Array.isArray(res.data)
+            ? res.data[0]
+            : res.data;
+
+        if (!address) return;
+
+        // =========================
+        // ADDRESS DETAIL
+        // =========================
+        onChange({
+          target: {
+            name: "address",
+            value: address.street || "",
+          },
+        });
+
+        // =========================
+        // PROVINCE
+        // =========================
+        onChange({
+          target: {
+            name: "province",
+            value: address.province || "",
+          },
+        });
+
+        // =========================
+        // WAIT DISTRICTS LOAD
+        // =========================
+        setTimeout(() => {
+
+          onChange({
+            target: {
+              name: "district",
+              value: address.district || "",
+            },
+          });
+
+        }, 500);
+
+        // =========================
+        // WAIT WARDS LOAD
+        // =========================
+        setTimeout(() => {
+
+          onChange({
+            target: {
+              name: "ward",
+              value: address.ward || "",
+            },
+          });
+
+        }, 1000);
+
+      } catch (error) {
+
+        console.error(
+          "❌ Load user address error:",
+          error
+        );
+      }
+    };
+
+    loadUserAddress();
+
+  }, []);
+
+  // =========================
   // 🔹 LOAD PROVINCES
   // =========================
   useEffect(() => {
@@ -97,7 +188,6 @@ export default function CheckoutDeliveryInfo({
 
       try {
 
-        // reset
         setDistricts([]);
         setWards([]);
 
@@ -218,9 +308,7 @@ export default function CheckoutDeliveryInfo({
       {/* FORM */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-        {/* ========================= */}
         {/* PROVINCE */}
-        {/* ========================= */}
         <div>
 
           <Label className="mb-2 block">
@@ -238,7 +326,6 @@ export default function CheckoutDeliveryInfo({
                 },
               });
 
-              // reset district
               onChange({
                 target: {
                   name: "district",
@@ -246,7 +333,6 @@ export default function CheckoutDeliveryInfo({
                 },
               });
 
-              // reset ward
               onChange({
                 target: {
                   name: "ward",
@@ -287,9 +373,7 @@ export default function CheckoutDeliveryInfo({
           </Select>
         </div>
 
-        {/* ========================= */}
         {/* DISTRICT */}
-        {/* ========================= */}
         <div>
 
           <Label className="mb-2 block">
@@ -307,7 +391,6 @@ export default function CheckoutDeliveryInfo({
                 },
               });
 
-              // reset ward
               onChange({
                 target: {
                   name: "ward",
@@ -351,9 +434,7 @@ export default function CheckoutDeliveryInfo({
           </Select>
         </div>
 
-        {/* ========================= */}
         {/* WARD */}
-        {/* ========================= */}
         <div>
 
           <Label className="mb-2 block">
@@ -419,9 +500,7 @@ export default function CheckoutDeliveryInfo({
           )}
         </div>
 
-        {/* ========================= */}
         {/* ADDRESS */}
-        {/* ========================= */}
         <div className="sm:col-span-2">
 
           <Label className="mb-2 block">
