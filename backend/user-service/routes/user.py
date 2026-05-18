@@ -62,8 +62,6 @@ def get_users():
 @user_bp.route("/", methods=["POST"])
 def create_user():
 
-<<<<<<< HEAD
-=======
     return jsonify(users)
 
 # GET USER BY ID
@@ -94,7 +92,6 @@ def get_user(user_id):
 # UPDATE USER
 @user_bp.route("/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
->>>>>>> 4c7370ef66eb9bf7e8b416aac650600880a2ec8c
     try:
         data = request.get_json()
 
