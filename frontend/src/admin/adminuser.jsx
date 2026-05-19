@@ -1,225 +1,117 @@
+import React, { useEffect, useState } from "react";
 
-import { useEffect, useState } from "react";
 import axios from "axios";
 
 import {
   Edit,
+  Trash2,
   Lock,
   Unlock,
-  Trash2,
+  UserPlus,
+  Users,
 } from "lucide-react";
 
 import { toast } from "sonner";
 
-export default function AdminUser() {
+const API_URL =
+  "http://localhost:8000/users/api/users";
 
-  const API_URL =
-    "http://localhost:8000/users/api/users";
-
+export default function AdminUsers() {
   const [users, setUsers] = useState([]);
 
-  const [editingUser, setEditingUser] =
-    useState(null);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [openCreate, setOpenCreate] =
-    useState(false);
-
-  // ========================
-  // FORM EDIT
-  // ========================
-  const [formData, setFormData] =
-    useState({
-      username: "",
-      email: "",
-      role: "user",
-      is_active: true,
-    });
-
-  // ========================
-  // FORM CREATE
-  // ========================
-  const [newUser, setNewUser] =
-    useState({
-      username: "",
-      email: "",
-      password: "",
-      role: "user",
-      is_active: true,
-    });
-
-  // ========================
-  // LOAD USERS
-  // ========================
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // ========================
-  // GET USERS
-  // ========================
+  // =========================================
+  // FETCH USERS
+  // =========================================
   const fetchUsers = async () => {
-
     try {
+      setLoading(true);
 
-      const res = await axios.get(API_URL);
+      const response = await axios.get(
+        API_URL
+      );
 
-      const userList = Array.isArray(res.data)
-        ? res.data
-        : res.data.users || [];
-
-      setUsers(userList);
-
+      setUsers(response.data || []);
     } catch (error) {
-
       console.error(
-        "GET USERS ERROR:",
-        error.response?.data || error
+        "FETCH USERS ERROR:",
+        error
       );
 
       toast.error(
         "Không thể tải danh sách user ❌"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ========================
-  // CREATE USER
-  // ========================
-  const handleCreateUser = async () => {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-    try {
-
-      // EMPTY
-      if (
-        !newUser.username ||
-        !newUser.email ||
-        !newUser.password
-      ) {
-        toast.error(
-          "Vui lòng nhập đầy đủ thông tin"
-        );
-        return;
-      }
-
-      // EMAIL
-      const emailRegex =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (
-        !emailRegex.test(
-          newUser.email
-        )
-      ) {
-        toast.error(
-          "Email không hợp lệ ❌"
-        );
-        return;
-      }
-
-      // ⭐ PASSWORD 6 SỐ
-      const passwordRegex =
-        /^\d{6}$/;
-
-      if (
-        !passwordRegex.test(
-          newUser.password
-        )
-      ) {
-        toast.error(
-          "Mật khẩu phải gồm đúng 6 chữ số"
-        );
-        return;
-      }
-
-      const res = await axios.post(
-        API_URL,
-        newUser
+  // =========================================
+  // DELETE USER
+  // =========================================
+  const deleteUser = async (
+    userId
+  ) => {
+    const confirmDelete =
+      window.confirm(
+        "Bạn có chắc muốn xóa tài khoản này không?"
       );
 
-      if (res.status === 201) {
+    if (!confirmDelete) return;
 
-        toast.success(
-          "🎉 Tạo user thành công"
-        );
+    try {
+      await axios.delete(
+        `${API_URL}/${userId}`
+      );
 
-        setOpenCreate(false);
+      setUsers((prev) =>
+        prev.filter(
+          (u) => u.user_id !== userId
+        )
+      );
 
-        fetchUsers();
-
-        // RESET
-        setNewUser({
-          username: "",
-          email: "",
-          password: "",
-          role: "user",
-          is_active: true,
-        });
-      }
-
+      toast.success(
+        "Xóa tài khoản thành công ✅"
+      );
     } catch (error) {
-
       console.error(
-        "CREATE USER ERROR:",
-        error.response?.data || error
+        "DELETE USER ERROR:",
+        error
       );
 
       toast.error(
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Lỗi tạo user ❌"
+        "Không thể xóa tài khoản ❌"
       );
     }
   };
 
-  // ========================
-  // UPDATE USER
-  // ========================
-  const handleSave = async () => {
-
+  // =========================================
+  // LOCK / UNLOCK USER
+  // =========================================
+  const toggleActive = async (
+    user
+  ) => {
     try {
-
-      const res = await axios.put(
-        `${API_URL}/${editingUser.user_id}`,
-        formData
-      );
-
-      if (res.status === 200) {
-
-        toast.success(
-          "Cập nhật thành công ✅"
-        );
-
-        setEditingUser(null);
-
-        fetchUsers();
-      }
-
-    } catch (error) {
-
-      console.error(
-        "UPDATE USER ERROR:",
-        error.response?.data || error
-      );
-
-      toast.error(
-        error.response?.data?.error ||
-        "Lỗi cập nhật ❌"
-      );
-    }
-  };
-
-  // ========================
-  // TOGGLE ACTIVE
-  // ========================
-  const toggleActive = async (user) => {
-
-    try {
+      const currentLocked =
+        user.is_active === false ||
+        user.is_active ===
+          "false" ||
+        user.is_active === 0;
 
       const updatedUser = {
         username: user.username,
         email: user.email,
         role: user.role,
-        is_active: !user.is_active,
+
+        // ===== ĐẢO TRẠNG THÁI =====
+        is_active:
+          currentLocked,
       };
 
       await axios.put(
@@ -227,19 +119,32 @@ export default function AdminUser() {
         updatedUser
       );
 
-      toast.success(
-        user.is_active
-          ? "Đã khóa tài khoản"
-          : "Đã mở khóa tài khoản"
+      // =========================================
+      // UPDATE UI NGAY
+      // =========================================
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.user_id ===
+          user.user_id
+            ? {
+                ...u,
+                is_active:
+                  !currentLocked,
+              }
+            : u
+        )
       );
 
-      fetchUsers();
-
+      toast.success(
+        currentLocked
+          ? "Đã mở khóa tài khoản ✅"
+          : "Đã khóa tài khoản ✅"
+      );
     } catch (error) {
-
       console.error(
         "TOGGLE ACTIVE ERROR:",
-        error.response?.data || error
+        error.response?.data ||
+          error
       );
 
       toast.error(
@@ -248,416 +153,245 @@ export default function AdminUser() {
     }
   };
 
-  // ========================
-  // DELETE USER
-  // ========================
-  const handleDelete = async (userId) => {
-
-    const confirmDelete =
-      window.confirm(
-        "Bạn có chắc muốn xoá user này?"
-      );
-
-    if (!confirmDelete) return;
-
-    try {
-
-      await axios.delete(
-        `${API_URL}/${userId}`
-      );
-
-      toast.success(
-        "Xóa user thành công"
-      );
-
-      fetchUsers();
-
-    } catch (error) {
-
-      console.error(
-        "DELETE USER ERROR:",
-        error.response?.data || error
-      );
-
-      toast.error(
-        "Không thể xoá user ❌"
-      );
-    }
-  };
+  // =========================================
+  // LOADING
+  // =========================================
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[300px]">
+        <p className="text-gray-500 text-lg">
+          Đang tải dữ liệu...
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-
-      {/* TITLE */}
-      <div className="flex items-center justify-between mb-5">
-
-        <div>
-          <h2 className="text-3xl font-bold text-blue-700">
-            👥 Quản lý người dùng
-          </h2>
-
-          <p className="text-gray-500 mt-1">
-            Quản lý tài khoản hệ thống
-          </p>
-        </div>
-
-        <button
-          onClick={() => setOpenCreate(true)}
-          className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition"
-        >
-          ➕ Thêm người dùng
-        </button>
-
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* ========================================= */}
+      {/* HEADER */}
+      {/* ========================================= */}
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold text-blue-700">
+          Bảng điều khiển Admin
+        </h1>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow">
+      {/* ========================================= */}
+      {/* CARD */}
+      {/* ========================================= */}
+      <div className="bg-white rounded-2xl shadow-md p-6">
+        {/* TITLE */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <div className="flex items-center gap-3">
+              <Users className="w-10 h-10 text-black" />
 
-        <table className="w-full">
+              <h2 className="text-5xl font-bold text-blue-700">
+                Quản lý người dùng
+              </h2>
+            </div>
 
-          <thead className="bg-blue-600 text-white">
+            <p className="text-gray-500 mt-2 text-xl">
+              Quản lý tài khoản hệ
+              thống
+            </p>
+          </div>
 
-            <tr className="h-14">
-              <th>ID</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Trạng thái</th>
-              <th>Role</th>
-              <th>Hành động</th>
-            </tr>
+          {/* ADD BUTTON */}
+          <button
+            className="
+              flex items-center gap-2
+              bg-green-600
+              hover:bg-green-700
+              text-white
+              px-6 py-3
+              rounded-2xl
+              transition
+              text-2xl
+            "
+          >
+            <UserPlus size={28} />
 
-          </thead>
+            Thêm người dùng
+          </button>
+        </div>
 
-          <tbody>
+        {/* ========================================= */}
+        {/* TABLE */}
+        {/* ========================================= */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse overflow-hidden rounded-2xl">
+            <thead>
+              <tr className="bg-blue-600 text-white text-xl">
+                <th className="py-5 px-4 text-left">
+                  ID
+                </th>
 
-            {users.length > 0 ? (
-              users.map((user) => {
+                <th className="py-5 px-4 text-left">
+                  Tên
+                </th>
 
-                // ⭐ USER KHÓA
-                const isLocked =
-                  !user.is_active;
+                <th className="py-5 px-4 text-center">
+                  Email
+                </th>
 
-                return (
-                  <tr
-                    key={user.user_id}
-                    className={`border-b text-center transition h-14 ${
-                      isLocked
-                        ? "bg-gray-300 opacity-60"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
+                <th className="py-5 px-4 text-center">
+                  Trạng thái
+                </th>
 
-                    <td>
-                      #{user.user_id}
-                    </td>
+                <th className="py-5 px-4 text-center">
+                  Role
+                </th>
 
-                    <td className="font-medium">
-                      {user.username}
-                    </td>
-
-                    <td>
-                      {user.email}
-                    </td>
-
-                    <td>
-
-                      {user.is_active ? (
-                        <span className="text-green-600 font-semibold">
-                          Hoạt động
-                        </span>
-                      ) : (
-                        <span className="text-red-600 font-semibold">
-                          Đã khóa
-                        </span>
-                      )}
-
-                    </td>
-
-                    <td>
-                      {user.role}
-                    </td>
-
-                    <td>
-
-                      <div className="flex justify-center gap-4">
-
-                        {/* EDIT */}
-                        <button
-                          disabled={isLocked}
-                          onClick={() => {
-
-                            setEditingUser(user);
-
-                            setFormData({
-                              username:
-                                user.username,
-
-                              email:
-                                user.email,
-
-                              role:
-                                user.role,
-
-                              is_active:
-                                user.is_active,
-                            });
-                          }}
-                          className={`${
-                            isLocked
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-blue-600 hover:text-blue-800"
-                          }`}
-                        >
-                          <Edit size={18} />
-                        </button>
-
-                        {/* LOCK / UNLOCK */}
-                        <button
-                          onClick={() =>
-                            toggleActive(user)
-                          }
-                          className={`${
-                            isLocked
-                              ? "text-green-600 hover:text-green-700"
-                              : "text-orange-500 hover:text-orange-700"
-                          }`}
-                        >
-                          {isLocked ? (
-                            <Unlock size={18} />
-                          ) : (
-                            <Lock size={18} />
-                          )}
-                        </button>
-
-                        {/* DELETE */}
-                        <button
-                          disabled={isLocked}
-                          onClick={() =>
-                            handleDelete(
-                              user.user_id
-                            )
-                          }
-                          className={`${
-                            isLocked
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-red-500 hover:text-red-700"
-                          }`}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-
-                      </div>
-
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="py-10 text-center text-gray-500"
-                >
-                  Không có user nào
-                </td>
+                <th className="py-5 px-4 text-center">
+                  Hành động
+                </th>
               </tr>
-            )}
+            </thead>
 
-          </tbody>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="text-center py-8 text-gray-500"
+                  >
+                    Không có người dùng
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => {
+                  // =========================================
+                  // CHECK LOCK
+                  // =========================================
+                  const isLocked =
+                    user.is_active ===
+                      false ||
+                    user.is_active ===
+                      "false" ||
+                    user.is_active ===
+                      0;
 
-        </table>
+                  return (
+                    <tr
+                      key={
+                        user.user_id
+                      }
+                      className={`border-b text-center transition h-16 ${
+                        isLocked
+                          ? "bg-gray-400 text-gray-600 opacity-70"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {/* ID */}
+                      <td className="py-4 px-4 text-left text-xl">
+                        #
+                        {
+                          user.user_id
+                        }
+                      </td>
 
+                      {/* NAME */}
+                      <td className="py-4 px-4 text-left font-semibold text-xl">
+                        {
+                          user.username
+                        }
+                      </td>
+
+                      {/* EMAIL */}
+                      <td className="py-4 px-4 text-lg">
+                        {user.email}
+                      </td>
+
+                      {/* STATUS */}
+                      <td className="py-4 px-4">
+                        <span
+                          className={`font-semibold text-xl ${
+                            isLocked
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {isLocked
+                            ? "Đã khóa"
+                            : "Hoạt động"}
+                        </span>
+                      </td>
+
+                      {/* ROLE */}
+                      <td className="py-4 px-4 text-lg">
+                        {user.role}
+                      </td>
+
+                      {/* ACTION */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-center gap-5">
+                          {/* EDIT */}
+                          <button
+                            className="
+                              text-blue-500
+                              hover:text-blue-700
+                              transition
+                            "
+                          >
+                            <Edit
+                              size={22}
+                            />
+                          </button>
+
+                          {/* LOCK / UNLOCK */}
+                          <button
+                            onClick={() =>
+                              toggleActive(
+                                user
+                              )
+                            }
+                            className={`transition ${
+                              isLocked
+                                ? "text-green-600 hover:text-green-700"
+                                : "text-red-500 hover:text-red-700"
+                            }`}
+                          >
+                            {isLocked ? (
+                              <Unlock
+                                size={22}
+                              />
+                            ) : (
+                              <Lock
+                                size={22}
+                                className="text-red-500"
+                              />
+                            )}
+                          </button>
+
+                          {/* DELETE */}
+                          <button
+                            onClick={() =>
+                              deleteUser(
+                                user.user_id
+                              )
+                            }
+                            className="
+                              text-red-500
+                              hover:text-red-700
+                              transition
+                            "
+                          >
+                            <Trash2
+                              size={22}
+                            />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-
-      {/* ======================================
-          CREATE MODAL
-      ====================================== */}
-      {openCreate && (
-
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-          <div className="bg-white p-6 rounded-2xl w-[400px] shadow-xl">
-
-            <h3 className="text-xl font-semibold mb-4">
-              ➕ Thêm user
-            </h3>
-
-            <div className="space-y-3">
-
-              <input
-                placeholder="Username"
-                value={newUser.username}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    username:
-                      e.target.value,
-                  })
-                }
-              />
-
-              <input
-                placeholder="Email"
-                value={newUser.email}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    email:
-                      e.target.value,
-                  })
-                }
-              />
-
-              <input
-                type="password"
-                placeholder="Password (6 số)"
-                value={newUser.password}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    password:
-                      e.target.value,
-                  })
-                }
-              />
-
-              <select
-                value={newUser.role}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    role:
-                      e.target.value,
-                  })
-                }
-              >
-                <option value="user">
-                  User
-                </option>
-
-                <option value="admin">
-                  Admin
-                </option>
-
-              </select>
-
-            </div>
-
-            <div className="flex justify-end gap-3 mt-5">
-
-              <button
-                onClick={() =>
-                  setOpenCreate(false)
-                }
-                className="px-4 py-2 rounded-lg bg-gray-200"
-              >
-                Huỷ
-              </button>
-
-              <button
-                onClick={handleCreateUser}
-                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
-              >
-                Tạo
-              </button>
-
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* ======================================
-          EDIT MODAL
-      ====================================== */}
-      {editingUser && (
-
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-          <div className="bg-white p-6 rounded-2xl w-[400px] shadow-xl">
-
-            <h3 className="text-xl font-semibold mb-4">
-              ✏️ Sửa user
-            </h3>
-
-            <div className="space-y-3">
-
-              <input
-                value={formData.username}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    username:
-                      e.target.value,
-                  })
-                }
-              />
-
-              <input
-                value={formData.email}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    email:
-                      e.target.value,
-                  })
-                }
-              />
-
-              <select
-                value={formData.role}
-                className="w-full border rounded-lg px-3 py-2"
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    role:
-                      e.target.value,
-                  })
-                }
-              >
-                <option value="user">
-                  User
-                </option>
-
-                <option value="admin">
-                  Admin
-                </option>
-
-              </select>
-
-            </div>
-
-            <div className="flex justify-end gap-3 mt-5">
-
-              <button
-                onClick={() =>
-                  setEditingUser(null)
-                }
-                className="px-4 py-2 rounded-lg bg-gray-200"
-              >
-                Huỷ
-              </button>
-
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Lưu
-              </button>
-
-            </div>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
-

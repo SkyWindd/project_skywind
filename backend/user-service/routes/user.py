@@ -1,4 +1,3 @@
-
 from flask import Blueprint, jsonify, request
 from db import get_connection
 from werkzeug.security import generate_password_hash
@@ -17,7 +16,9 @@ user_bp = Blueprint(
 def get_users():
 
     try:
+
         conn = get_connection()
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -27,7 +28,9 @@ def get_users():
                 email,
                 is_active,
                 role
+
             FROM users
+
             ORDER BY user_id ASC
         """)
 
@@ -50,6 +53,7 @@ def get_users():
         return jsonify(users), 200
 
     except Exception as e:
+
         return jsonify({
             "error": str(e)
         }), 500
@@ -63,20 +67,32 @@ def get_users():
 def create_user():
 
     try:
+
         data = request.get_json()
 
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
-        role = data.get("role", "user")
+
+        role = data.get(
+            "role",
+            "user"
+        )
 
         # VALIDATE
-        if not username or not email or not password:
+        if (
+            not username
+            or not email
+            or not password
+        ):
+
             return jsonify({
-                "error": "Thiếu thông tin"
+                "error":
+                "Thiếu thông tin"
             }), 400
 
         conn = get_connection()
+
         cur = conn.cursor()
 
         # CHECK EMAIL
@@ -94,11 +110,16 @@ def create_user():
             conn.close()
 
             return jsonify({
-                "error": "Email đã tồn tại"
+                "error":
+                "Email đã tồn tại"
             }), 400
 
         # HASH PASSWORD
-        hashed_password = generate_password_hash(password)
+        hashed_password = (
+            generate_password_hash(
+                password
+            )
+        )
 
         # INSERT USER
         cur.execute("""
@@ -109,13 +130,21 @@ def create_user():
                 role,
                 is_active
             )
-            VALUES (%s, %s, %s, %s, %s)
+
+            VALUES (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
+            )
 
             RETURNING
                 user_id,
                 username,
                 email,
-                role
+                role,
+                is_active
         """, (
             username,
             email,
@@ -132,17 +161,29 @@ def create_user():
         conn.close()
 
         return jsonify({
-            "message": "Tạo user thành công",
+            "message":
+            "Tạo user thành công",
 
             "user": {
-                "user_id": new_user[0],
-                "username": new_user[1],
-                "email": new_user[2],
-                "role": new_user[3],
+                "user_id":
+                new_user[0],
+
+                "username":
+                new_user[1],
+
+                "email":
+                new_user[2],
+
+                "role":
+                new_user[3],
+
+                "is_active":
+                new_user[4]
             }
         }), 201
 
     except Exception as e:
+
         return jsonify({
             "error": str(e)
         }), 500
@@ -155,12 +196,25 @@ def create_user():
 def update_user(user_id):
 
     try:
+
         data = request.get_json()
 
         username = data.get("username")
         email = data.get("email")
 
+        # ===== FIX LOCK USER =====
+        is_active = data.get(
+            "is_active",
+            True
+        )
+
+        role = data.get(
+            "role",
+            "user"
+        )
+
         conn = get_connection()
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -168,17 +222,23 @@ def update_user(user_id):
 
             SET
                 username = %s,
-                email = %s
+                email = %s,
+                is_active = %s,
+                role = %s
 
             WHERE user_id = %s
 
             RETURNING
                 user_id,
                 username,
-                email
+                email,
+                is_active,
+                role
         """, (
             username,
             email,
+            is_active,
+            role,
             user_id
         ))
 
@@ -190,21 +250,36 @@ def update_user(user_id):
         conn.close()
 
         if not updated:
+
             return jsonify({
-                "error": "User không tồn tại"
+                "error":
+                "User không tồn tại"
             }), 404
 
         return jsonify({
-            "message": "Cập nhật thành công",
+            "message":
+            "Cập nhật thành công",
 
             "user": {
-                "user_id": updated[0],
-                "username": updated[1],
-                "email": updated[2]
+                "user_id":
+                updated[0],
+
+                "username":
+                updated[1],
+
+                "email":
+                updated[2],
+
+                "is_active":
+                updated[3],
+
+                "role":
+                updated[4]
             }
         }), 200
 
     except Exception as e:
+
         return jsonify({
             "error": str(e)
         }), 500
@@ -217,12 +292,16 @@ def update_user(user_id):
 def delete_user(user_id):
 
     try:
+
         conn = get_connection()
+
         cur = conn.cursor()
 
         cur.execute("""
             DELETE FROM users
+
             WHERE user_id = %s
+
             RETURNING user_id
         """, (user_id,))
 
@@ -234,16 +313,19 @@ def delete_user(user_id):
         conn.close()
 
         if not deleted:
+
             return jsonify({
-                "error": "User không tồn tại"
+                "error":
+                "User không tồn tại"
             }), 404
 
         return jsonify({
-            "message": "Xóa user thành công"
+            "message":
+            "Xóa user thành công"
         }), 200
 
     except Exception as e:
+
         return jsonify({
             "error": str(e)
         }), 500
-
