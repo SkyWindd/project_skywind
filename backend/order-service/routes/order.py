@@ -24,6 +24,8 @@ INVENTORY_URL = (
 # =========================================
 # KAFKA PRODUCER
 # =========================================
+import time
+
 producer = None
 
 
@@ -31,16 +33,33 @@ def get_producer():
 
     global producer
 
-    if producer is None:
+    while producer is None:
 
-        producer = KafkaProducer(
-            bootstrap_servers="kafka:9092",
+        try:
 
-            value_serializer=lambda v:
-            json.dumps(v).encode("utf-8"),
+            producer = KafkaProducer(
 
-            retries=5
-        )
+                bootstrap_servers="kafka:9092",
+
+                value_serializer=lambda v:
+                json.dumps(v).encode("utf-8"),
+
+                retries=5
+            )
+
+            print(
+                "✅ Connected to Kafka Producer"
+            )
+
+        except Exception as e:
+
+            print(
+                "⏳ Waiting for Kafka Broker..."
+            )
+
+            print(e)
+
+            time.sleep(5)
 
     return producer
 
@@ -48,17 +67,52 @@ def get_producer():
 # =========================================
 # SEND NOTIFICATION
 # =========================================
-def send_notification(order_id):
+def send_notification(
+    order_id,
+    email,
+    total_amount
+):
 
     message = {
-        "orderNumber": str(order_id),
-        "message": "Order Placed Successfully"
+        "email": email,
+        "order_id": order_id,
+        "total": float(total_amount)
     }
 
     try:
 
         get_producer().send(
-            "notificationTopic",
+            "order-topic",
+            message
+        )
+
+        get_producer().flush()
+
+        print(
+            f"✅ Kafka sent: {message}"
+        )
+
+    except Exception as e:
+
+        print(
+            f"❌ Kafka error: {e}"
+        )
+
+# =========================================
+# SEND NOTIFICATION
+# =========================================
+def send_notification(order_id, email, total_amount):
+
+    message = {
+        "email": email,
+        "order_id": order_id,
+        "total": float(total_amount)
+    }
+
+    try:
+
+        get_producer().send(
+            "order-topic",
             message
         )
 
@@ -69,8 +123,6 @@ def send_notification(order_id):
     except Exception as e:
 
         print(f"❌ Kafka error: {e}")
-
-
 # =========================================
 # CREATE ORDER
 # =========================================
@@ -198,7 +250,11 @@ def create_order():
         # =========================================
         try:
 
-            send_notification(order_id)
+            send_notification(
+                order_id,
+                data.get("email"),
+                total_amount
+            )
 
         except Exception as e:
 
