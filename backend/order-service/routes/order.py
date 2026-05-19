@@ -64,19 +64,31 @@ def get_producer():
     return producer
 
 
+
 # =========================================
 # SEND NOTIFICATION
 # =========================================
 def send_notification(
     order_id,
     email,
-    total_amount
+    total_amount,
+    items
 ):
 
     message = {
-        "email": email,
-        "order_id": order_id,
-        "total": float(total_amount)
+
+        "email":
+        email,
+
+        "order_id":
+        order_id,
+
+        "total":
+        float(total_amount),
+
+        # ✅ PRODUCTS
+        "items":
+        items
     }
 
     try:
@@ -97,32 +109,7 @@ def send_notification(
         print(
             f"❌ Kafka error: {e}"
         )
-
-# =========================================
-# SEND NOTIFICATION
-# =========================================
-def send_notification(order_id, email, total_amount):
-
-    message = {
-        "email": email,
-        "order_id": order_id,
-        "total": float(total_amount)
-    }
-
-    try:
-
-        get_producer().send(
-            "order-topic",
-            message
-        )
-
-        get_producer().flush()
-
-        print(f"✅ Kafka sent: {message}")
-
-    except Exception as e:
-
-        print(f"❌ Kafka error: {e}")
+        
 # =========================================
 # CREATE ORDER
 # =========================================
@@ -243,6 +230,27 @@ def create_order():
 
         conn.commit()
 
+        # =========================================
+        # GET PRODUCT NAME
+        # =========================================
+        for item in items:
+
+            cur.execute("""
+                SELECT name
+                FROM product
+                WHERE product_id = %s
+            """, (
+                item["product_id"],
+            ))
+
+            product = cur.fetchone()
+
+            item["product_name"] = (
+                product[0]
+                if product
+                else "Unknown Product"
+            )
+
         cur.close()
 
         # =========================================
@@ -253,7 +261,8 @@ def create_order():
             send_notification(
                 order_id,
                 data.get("email"),
-                total_amount
+                total_amount,
+                items
             )
 
         except Exception as e:
@@ -282,8 +291,7 @@ def create_order():
 
         if conn:
             conn.close()
-
-
+            
 # =========================================
 # GET ALL ORDERS
 # =========================================
