@@ -1,7 +1,9 @@
 import os
 from google import genai
+from openai import OpenAI
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SYSTEM_PROMPT = """Bạn là Bi, trợ lý CSKH của cửa hàng laptop Skywind.
 Trả lời ngắn gọn, thân thiện bằng tiếng Việt.

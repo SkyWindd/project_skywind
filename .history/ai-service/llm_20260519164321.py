@@ -1,5 +1,6 @@
 import os
 from google import genai
+from openai import OpenAI
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
