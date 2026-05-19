@@ -1,27 +1,37 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Calendar, Package } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+
 import { cn } from "@/lib/utils";
+
 import OrderCard from "./orderCard";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ProfileOrders() {
   const { user } = useAuth();
-  const userId = user?.id; // lấy từ AuthContext
+
+  const userId = user?.id;
 
   const [orders, setOrders] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState({
-    from: "2026-12-01",
-    to: "2026-12-05",
-  });
 
-  // 🔹 Map key tab -> các trạng thái thực trong DB
+  const [statusFilter, setStatusFilter] =
+    useState("all");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [dateRange, setDateRange] =
+    useState({
+      from: "2026-12-01",
+      to: "2026-12-05",
+    });
+
+  // ===== MAP STATUS =====
   const statusMapping = {
     all: null,
     pending: ["Chờ xác nhận"],
@@ -33,122 +43,217 @@ export default function ProfileOrders() {
 
   const statusTabs = [
     { key: "all", label: "Tất cả" },
-    { key: "pending", label: "Chờ xác nhận" },
-    { key: "confirmed", label: "Đã xác nhận" },
-    { key: "shipping", label: "Đang vận chuyển" },
-    { key: "delivered", label: "Đã giao hàng" },
-    { key: "cancelled", label: "Đã hủy" },
+    {
+      key: "pending",
+      label: "Chờ xác nhận",
+    },
+    {
+      key: "confirmed",
+      label: "Đã xác nhận",
+    },
+    {
+      key: "shipping",
+      label: "Đang vận chuyển",
+    },
+    {
+      key: "delivered",
+      label: "Đã giao hàng",
+    },
+    {
+      key: "cancelled",
+      label: "Đã hủy",
+    },
   ];
 
-  // Nếu chưa load xong user
+  // ===== LOADING USER =====
   if (!userId) {
     return (
-      <p className="text-center py-6 text-gray-500">Đang tải tài khoản...</p>
+      <p className="text-center py-6 text-gray-500">
+        Đang tải tài khoản...
+      </p>
     );
   }
 
-  // 🛰 Lấy đơn hàng thật
+  // ===== FETCH ORDERS =====
   useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const res = await axios.get(
-          `http://localhost:8000/orders/api/orders/user/${userId}`,
-        );
+    fetchOrders();
+  }, [userId]);
 
-        const formatted = res.data.map((order) => {
+  // ===== GET ORDERS =====
+  async function fetchOrders() {
+    try {
+      setLoading(true);
+
+      const res = await axios.get(
+        `http://localhost:8000/orders/api/orders/user/${userId}`
+      );
+
+      const formatted = res.data.map(
+        (order) => {
           const firstItem =
-            Array.isArray(order.items) && order.items.length > 0
+            Array.isArray(order.items) &&
+            order.items.length > 0
               ? order.items[0]
               : null;
 
           return {
-            order_id: order.order_id,
-            order_date: order.order_date,
-            status: order.status,
-            total_amount: order.total_amount,
+            ...order,
 
-            product_name: firstItem?.product_name || "Không có sản phẩm",
-            price: firstItem?.price || 0,
-            quantity: firstItem?.quantity || 0,
-            image_url: firstItem?.image_url
-              ? `http://localhost:8000/products/${firstItem.image_url}`
-              : "/no-image.png",
+            product_name:
+              firstItem?.product_name ||
+              "Không có sản phẩm",
+
+            price:
+              firstItem?.price || 0,
+
+            quantity:
+              firstItem?.quantity || 0,
+
+            image_url:
+              firstItem?.image_url
+                ? `http://localhost:8000/products/${firstItem.image_url}`
+                : "/no-image.png",
           };
-        });
+        }
+      );
 
-        setOrders(formatted);
-      } catch (err) {
-        console.error("❌ Lỗi tải đơn hàng:", err);
-      } finally {
-        setLoading(false);
+      setOrders(formatted);
+    } catch (err) {
+      console.error(
+        "❌ Lỗi tải đơn hàng:",
+        err
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ===== UPDATE STATUS UI =====
+  const handleCancelSuccess = (
+    orderId
+  ) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.order_id === orderId
+          ? {
+              ...o,
+              status: "Đã hủy",
+            }
+          : o
+      )
+    );
+  };
+
+  // ===== FILTER =====
+  const filteredOrders = orders.filter(
+    (o) => {
+      // STATUS
+      if (statusFilter !== "all") {
+        const validStatuses =
+          statusMapping[statusFilter];
+
+        if (
+          validStatuses &&
+          !validStatuses.includes(
+            o.status
+          )
+        ) {
+          return false;
+        }
       }
+
+      // DATE
+      if (
+        dateRange.from &&
+        dateRange.to
+      ) {
+        const orderDate = new Date(
+          o.order_date
+        );
+
+        const from = new Date(
+          dateRange.from
+        );
+
+        const to = new Date(
+          dateRange.to
+        );
+
+        to.setHours(23, 59, 59);
+
+        if (
+          orderDate < from ||
+          orderDate > to
+        ) {
+          return false;
+        }
+      }
+
+      return true;
     }
+  );
 
-    fetchOrders();
-  }, [userId]);
-
-  // 🔍 Filter theo trạng thái
-// 🔍 Filter theo trạng thái + thời gian
-  const filteredOrders = orders.filter((o) => {
-    // Lọc trạng thái
-    if (statusFilter !== "all") {
-      const validStatuses = statusMapping[statusFilter];
-      if (validStatuses && !validStatuses.includes(o.status)) return false;
-    }
-
-    // Lọc thời gian
-    if (dateRange.from && dateRange.to) {
-      const orderDate = new Date(o.order_date);
-      const from = new Date(dateRange.from);
-      const to = new Date(dateRange.to);
-      to.setHours(23, 59, 59);
-      if (orderDate < from || orderDate > to) return false;
-    }
-
-    return true;
-  });
-
+  // ===== LOADING =====
   if (loading) {
     return (
-      <p className="text-center py-6 text-gray-500">Đang tải đơn hàng...</p>
+      <p className="text-center py-6 text-gray-500">
+        Đang tải đơn hàng...
+      </p>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* ===== HEADER ===== */}
       <div className="flex items-center sm:items-start gap-4 pb-4 group">
-        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/20 ring-1 ring-blue-200 shadow-inner group-hover:shadow-md transition-all">
-          <Package size={22} className="text-blue-600" />
+        <div
+          className="
+            flex items-center justify-center
+            w-12 h-12
+            rounded-xl
+            bg-gradient-to-br
+            from-blue-50
+            to-blue-100/20
+            ring-1 ring-blue-200
+            shadow-inner
+          "
+        >
+          <Package
+            size={22}
+            className="text-blue-600"
+          />
         </div>
 
         <div className="flex flex-col justify-center">
           <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-blue-700">
             Đơn hàng của tôi
           </h3>
+
           <p className="text-gray-500 text-sm mt-1 hidden sm:block">
             Quản lý các đơn hàng bạn đã đặt
           </p>
         </div>
       </div>
 
-      {/* Tabs trạng thái */}
+      {/* ===== STATUS TABS ===== */}
       <div className="relative">
         <div
           className={cn(
             "flex items-center gap-2 border-b border-gray-200 pb-2",
-            "max-lg:overflow-x-auto whitespace-nowrap scrollbar-hide",
+            "max-lg:overflow-x-auto whitespace-nowrap scrollbar-hide"
           )}
         >
           {statusTabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setStatusFilter(tab.key)}
+              onClick={() =>
+                setStatusFilter(tab.key)
+              }
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-xl transition-all flex-shrink-0 shadow-sm",
                 statusFilter === tab.key
                   ? "bg-red-500 text-white shadow-md"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100",
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
               )}
             >
               {tab.label}
@@ -157,11 +262,12 @@ export default function ProfileOrders() {
         </div>
       </div>
 
-      {/* Bộ lọc thời gian (chưa áp logic, chỉ UI) */}
+      {/* ===== DATE FILTER ===== */}
       <div className="mt-4 w-full bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <Label className="text-gray-700 font-semibold min-w-[150px] flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-600" />
+
             Lọc theo thời gian
           </Label>
 
@@ -170,7 +276,12 @@ export default function ProfileOrders() {
               type="date"
               value={dateRange.from}
               onChange={(e) =>
-                setDateRange((prev) => ({ ...prev, from: e.target.value }))
+                setDateRange(
+                  (prev) => ({
+                    ...prev,
+                    from: e.target.value,
+                  })
+                )
               }
               className="w-full sm:w-40 text-sm"
             />
@@ -179,7 +290,12 @@ export default function ProfileOrders() {
               type="date"
               value={dateRange.to}
               onChange={(e) =>
-                setDateRange((prev) => ({ ...prev, to: e.target.value }))
+                setDateRange(
+                  (prev) => ({
+                    ...prev,
+                    to: e.target.value,
+                  })
+                )
               }
               className="w-full sm:w-40 text-sm"
             />
@@ -189,15 +305,22 @@ export default function ProfileOrders() {
 
       <Separator />
 
-      {/* Danh sách đơn hàng */}
+      {/* ===== ORDERS ===== */}
       <div className="space-y-5">
-        {filteredOrders.length === 0 ? (
+        {filteredOrders.length ===
+        0 ? (
           <p className="text-gray-500 text-sm text-center py-4">
             Không có đơn hàng nào
           </p>
         ) : (
           filteredOrders.map((order) => (
-            <OrderCard key={order.order_id} order={order} />
+            <OrderCard
+              key={order.order_id}
+              order={order}
+              onCancelSuccess={
+                handleCancelSuccess
+              }
+            />
           ))
         )}
       </div>

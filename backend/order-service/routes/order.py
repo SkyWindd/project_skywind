@@ -1,4 +1,3 @@
-
 from flask import Blueprint, request, jsonify
 from db import get_connection
 
@@ -381,9 +380,14 @@ def cancel_order(order_id):
             cursor_factory=RealDictCursor
         )
 
+        # ===== CHECK ORDER =====
         cur.execute("""
-            SELECT status
+            SELECT
+                order_id,
+                status
+
             FROM orders
+
             WHERE order_id = %s
         """, (order_id,))
 
@@ -396,15 +400,18 @@ def cancel_order(order_id):
                 "Không tìm thấy đơn hàng"
             }), 404
 
+        # ===== CHO PHÉP HỦY =====
         if order["status"] not in [
-            "Chờ xác nhận"
+            "Chờ xác nhận",
+            "Đã xác nhận"
         ]:
 
             return jsonify({
                 "error":
-                f"Không thể hủy đơn đang ở trạng thái '{order['status']}'"
+                f"Không thể hủy đơn ở trạng thái '{order['status']}'"
             }), 400
 
+        # ===== UPDATE =====
         cur.execute("""
             UPDATE orders
 
@@ -412,10 +419,12 @@ def cancel_order(order_id):
 
             WHERE order_id = %s
 
-            RETURNING order_id, status
+            RETURNING
+                order_id,
+                status
         """, (order_id,))
 
-        result = cur.fetchone()
+        updated_order = cur.fetchone()
 
         conn.commit()
 
@@ -424,9 +433,10 @@ def cancel_order(order_id):
 
         return jsonify({
             "message":
-            "Hủy đơn thành công",
+            "Hủy đơn hàng thành công",
 
-            "order": result
+            "order":
+            updated_order
         }), 200
 
     except Exception as e:
@@ -565,6 +575,7 @@ def get_order_detail(order_id):
         return jsonify({
             "error": str(e)
         }), 500
+
 
 # =========================================
 # UPDATE ORDER STATUS
