@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # conftest.py
 # Pytest tự động load file này trước khi chạy test.
 # Dùng để set env vars giả lập và tránh import lỗi khi không có DB/API thật.
@@ -15,3 +16,19 @@ os.environ.setdefault("DB_HOST", "localhost")
 os.environ.setdefault("DB_NAME", "skywind")
 os.environ.setdefault("DB_USER", "postgres")
 os.environ.setdefault("DB_PASSWORD", "12345")   
+=======
+import pytest
+
+from app import app
+
+
+
+@pytest.fixture
+def client():
+
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+
+        yield client
+>>>>>>> 3640082ac5961fe29eb6b43552623eaa243b90bd

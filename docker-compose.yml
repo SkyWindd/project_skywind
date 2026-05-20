@@ -89,6 +89,7 @@ services:
   # =========================
   kafka:
     image: confluentinc/cp-kafka:7.5.0
+    restart: always
     container_name: kafka
     depends_on:
       - zookeeper
@@ -113,6 +114,8 @@ services:
       - db
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MAIL_USERNAME=ngogiahung.hcm@gmail.com
+      - MAIL_PASSWORD=ssiz unlu sdrw eitu
 
   # =========================
   # 🧾 ORDER SERVICE

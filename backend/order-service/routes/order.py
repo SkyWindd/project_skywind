@@ -24,6 +24,8 @@ INVENTORY_URL = (
 # =========================================
 # KAFKA PRODUCER
 # =========================================
+import time
+
 producer = None
 
 
@@ -31,46 +33,83 @@ def get_producer():
 
     global producer
 
-    if producer is None:
+    while producer is None:
 
-        producer = KafkaProducer(
-            bootstrap_servers="kafka:9092",
+        try:
 
-            value_serializer=lambda v:
-            json.dumps(v).encode("utf-8"),
+            producer = KafkaProducer(
 
-            retries=5
-        )
+                bootstrap_servers="kafka:9092",
+
+                value_serializer=lambda v:
+                json.dumps(v).encode("utf-8"),
+
+                retries=5
+            )
+
+            print(
+                "✅ Connected to Kafka Producer"
+            )
+
+        except Exception as e:
+
+            print(
+                "⏳ Waiting for Kafka Broker..."
+            )
+
+            print(e)
+
+            time.sleep(5)
 
     return producer
+
 
 
 # =========================================
 # SEND NOTIFICATION
 # =========================================
-def send_notification(order_id):
+def send_notification(
+    order_id,
+    email,
+    total_amount,
+    items
+):
 
     message = {
-        "orderNumber": str(order_id),
-        "message": "Order Placed Successfully"
+
+        "email":
+        email,
+
+        "order_id":
+        order_id,
+
+        "total":
+        float(total_amount),
+
+        # ✅ PRODUCTS
+        "items":
+        items
     }
 
     try:
 
         get_producer().send(
-            "notificationTopic",
+            "order-topic",
             message
         )
 
         get_producer().flush()
 
-        print(f"✅ Kafka sent: {message}")
+        print(
+            f"✅ Kafka sent: {message}"
+        )
 
     except Exception as e:
 
-        print(f"❌ Kafka error: {e}")
-
-
+        print(
+            f"❌ Kafka error: {e}"
+        )
+        
 # =========================================
 # CREATE ORDER
 # =========================================
@@ -191,6 +230,27 @@ def create_order():
 
         conn.commit()
 
+        # =========================================
+        # GET PRODUCT NAME
+        # =========================================
+        for item in items:
+
+            cur.execute("""
+                SELECT name
+                FROM product
+                WHERE product_id = %s
+            """, (
+                item["product_id"],
+            ))
+
+            product = cur.fetchone()
+
+            item["product_name"] = (
+                product[0]
+                if product
+                else "Unknown Product"
+            )
+
         cur.close()
 
         # =========================================
@@ -198,7 +258,12 @@ def create_order():
         # =========================================
         try:
 
-            send_notification(order_id)
+            send_notification(
+                order_id,
+                data.get("email"),
+                total_amount,
+                items
+            )
 
         except Exception as e:
 
@@ -226,8 +291,7 @@ def create_order():
 
         if conn:
             conn.close()
-
-
+            
 # =========================================
 # GET ALL ORDERS
 # =========================================

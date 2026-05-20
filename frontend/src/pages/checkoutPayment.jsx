@@ -143,6 +143,9 @@ export default function CheckoutPayment() {
           user?.user_id ||
           user?.id,
 
+        email:
+          user?.email,
+          
         cart_items:
           cartItems.map((item) => ({
             product_id: item.id,
